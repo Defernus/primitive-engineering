@@ -20,4 +20,12 @@ impl Voxel {
             color: Color::default(),
         }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.value == 0
+    }
+
+    pub fn get_color(&self) -> Color {
+        self.color
+    }
 }

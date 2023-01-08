@@ -1,9 +1,9 @@
+use bevy::prelude::Vec3;
+use bevy_reflect::{FromReflect, Reflect};
 use std::{
     hash::Hash,
     ops::{Add, Mul},
 };
-
-use bevy_reflect::{FromReflect, Reflect};
 
 use super::direction::Direction;
 
@@ -11,16 +11,35 @@ pub type VoxelPos = Pos<usize>;
 pub type GlobalVoxelPos = Pos<i64>;
 pub type ChunkPos = Pos<i64>;
 
-#[derive(Debug, Copy, Clone, PartialEq, Reflect, Eq, Hash, FromReflect)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Reflect, Eq, Hash, FromReflect)]
 pub struct Pos<T: Reflect + Copy + Clone> {
     pub x: T,
     pub y: T,
     pub z: T,
 }
 
+pub struct PosIter<T: Reflect + Copy + Clone> {
+    pos: Pos<T>,
+    size: Pos<T>,
+}
+
 impl<T: Reflect + Copy + Clone> Pos<T> {
     pub fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
+    }
+}
+impl<T: Reflect + Copy + Clone + num_traits::Num> Pos<T> {
+    pub fn iter(size: Pos<T>) -> PosIter<T> {
+        PosIter {
+            pos: Pos::new(T::zero(), T::zero(), T::zero()),
+            size,
+        }
+    }
+}
+
+impl<T: Reflect + Copy + Clone + num_traits::AsPrimitive<f32>> Pos<T> {
+    pub fn to_vec3(self) -> Vec3 {
+        Vec3::new(self.x.as_(), self.y.as_(), self.z.as_())
     }
 }
 
@@ -76,6 +95,27 @@ impl<T: num_traits::Signed + num_traits::PrimInt + From<i64> + Reflect + Copy + 
     fn add(self, rhs: Direction) -> Self::Output {
         let r: Pos<T> = rhs.into();
         self + r
+    }
+}
+
+impl<T: Reflect + Copy + Clone + num_traits::PrimInt> Iterator for PosIter<T> {
+    type Item = Pos<T>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos.x >= self.size.x {
+            self.pos.x = T::zero();
+            self.pos.y = self.pos.y + T::one();
+        }
+        if self.pos.y >= self.size.y {
+            self.pos.y = T::zero();
+            self.pos.z = self.pos.z + T::one();
+        }
+        if self.pos.z >= self.size.z {
+            return None;
+        }
+        let pos = self.pos;
+        self.pos.x = self.pos.x + T::one();
+        Some(pos)
     }
 }
 

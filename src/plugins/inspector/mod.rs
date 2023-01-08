@@ -2,7 +2,6 @@ use std::any::TypeId;
 
 use crate::states::game_state::GameState;
 
-use self::systems::inspector;
 use bevy::{
     asset::{HandleId, ReflectAsset},
     prelude::*,
@@ -20,14 +19,11 @@ use bevy_inspector_egui::{
 use bevy_reflect::TypeRegistry;
 use egui_dock::{NodeIndex, Tree};
 
-mod systems;
-
 pub struct InspectorPlugin;
 
 impl Plugin for InspectorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(inspector)
-            .add_plugin(bevy_egui::EguiPlugin)
+        app.add_plugin(bevy_egui::EguiPlugin)
             .add_plugin(bevy_inspector_egui::DefaultInspectorConfigPlugin)
             .insert_resource(UiState::new())
             .add_plugin(StateInspectorPlugin::<GameState>::default())

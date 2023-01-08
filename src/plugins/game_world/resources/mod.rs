@@ -28,7 +28,7 @@ impl GameWorldMeta {
 #[derive(Resource, Debug, Reflect, Default, InspectorOptions)]
 #[reflect(Resource)]
 pub struct GameWorld {
-    chunks: HashMap<ChunkPos, ChunkPointer>,
+    pub chunks: HashMap<ChunkPos, ChunkPointer>,
 }
 
 impl GameWorld {

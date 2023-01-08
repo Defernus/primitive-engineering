@@ -13,7 +13,7 @@ use std::{
     sync::{Arc, Mutex, MutexGuard},
 };
 
-#[derive(Clone, Reflect, FromReflect)]
+#[derive(Clone, Default, Reflect, FromReflect)]
 pub struct ChunkPointer {
     #[reflect(ignore)]
     chunk: Arc<Mutex<Chunk>>,
@@ -23,6 +23,7 @@ pub struct ChunkPointer {
 #[derive(Default)]
 pub struct Chunk {
     voxels: Vec<Voxel>,
+    need_redraw: bool,
     neighbors: [Option<ChunkPointer>; Direction::COUNT],
 }
 
@@ -45,8 +46,24 @@ impl Chunk {
                 pos * Self::SIZE as i64,
                 VoxelPos::new(Self::OVERLAP_SIZE, Self::OVERLAP_SIZE, Self::OVERLAP_SIZE),
             ),
+            need_redraw: true,
             neighbors: Direction::iter_map(|_| None),
         }
+    }
+
+    pub fn is_need_redraw(&self) -> bool {
+        self.need_redraw
+    }
+
+    pub fn set_need_redraw(&mut self, need_redraw: bool) {
+        self.need_redraw = need_redraw;
+    }
+
+    pub fn iter_all(&self) -> impl Iterator<Item = (VoxelPos, &Voxel)> {
+        VoxelPos::iter((Self::SIZE, Self::SIZE, Self::SIZE).into()).map(move |pos| {
+            let voxel = self.get_voxel(pos);
+            (pos, voxel)
+        })
     }
 
     /// Updates the neighbors of this chunk.
