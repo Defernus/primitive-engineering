@@ -25,20 +25,25 @@ impl Chunk {
     pub const SIZE: usize = 16;
     pub const VOLUME: usize = Self::SIZE * Self::SIZE * Self::SIZE;
 
-    pub fn generate(world: &GameWorld, _meta: &GameWorldMeta, pos: ChunkPos) -> Self {
-        let neighbors = Direction::iter_map(|dir| {
-            let neighbor_pos: ChunkPos = pos + dir;
-            world.get_chunk(neighbor_pos)
-        });
-
+    pub fn generate(_world_meta: GameWorldMeta, pos: ChunkPos) -> Self {
         Self {
             voxels: vec![Voxel::default(); Self::VOLUME],
-            neighbors,
+            neighbors: Direction::iter_map(|_| None),
         }
     }
 
-    pub fn set_neighbor(&mut self, dir: Direction, chunk: ChunkPointer) {
-        self.neighbors[dir as usize] = Some(chunk);
+    /// Updates the neighbors of this chunk.
+    /// WARNING: This function only update **THIS** chunk, you also need to add this chunk to each neighbor.
+    pub fn update_neighbors(&mut self, world: &GameWorld, pos: ChunkPos) {
+        Direction::iter_map(|dir| {
+            let neighbor_pos: ChunkPos = pos + dir;
+            let neighbor_chunk = world.get_chunk(neighbor_pos);
+            self.set_neighbor(dir, neighbor_chunk);
+        });
+    }
+
+    pub fn set_neighbor(&mut self, dir: Direction, chunk: Option<ChunkPointer>) {
+        self.neighbors[dir as usize] = chunk;
     }
 
     pub fn get_voxel(&self, pos: VoxelPos) -> &Voxel {

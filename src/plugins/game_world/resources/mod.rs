@@ -1,6 +1,5 @@
 use crate::internal::{
     chunks::{Chunk, ChunkPointer},
-    direction::Direction,
     pos::ChunkPos,
 };
 use bevy::{
@@ -9,7 +8,6 @@ use bevy::{
     utils::{HashMap, Uuid},
 };
 use bevy_inspector_egui::InspectorOptions;
-use strum::IntoEnumIterator;
 
 #[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions)]
 #[reflect(Resource)]
@@ -45,8 +43,10 @@ impl GameWorld {
         self.chunks.get(&pos).cloned()
     }
 
-    pub fn generate_chunk(&mut self, meta: &GameWorldMeta, pos: ChunkPos) -> ChunkPointer {
-        let chunk = Chunk::generate(self, meta, pos);
+    pub fn generate_chunk(&mut self, meta: GameWorldMeta, pos: ChunkPos) -> ChunkPointer {
+        let mut chunk = Chunk::generate(meta, pos);
+        chunk.update_neighbors(self, pos);
+
         let neighbors = chunk.iter_neighbors();
 
         let chunk = ChunkPointer::new(chunk, pos);
@@ -54,7 +54,7 @@ impl GameWorld {
 
         for (dir, neighbor) in neighbors {
             if let Some(neighbor) = neighbor {
-                neighbor.lock().set_neighbor(dir, chunk.clone());
+                neighbor.lock().set_neighbor(dir, Some(chunk.clone()));
             }
         }
 
