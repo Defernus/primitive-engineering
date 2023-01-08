@@ -1,21 +1,26 @@
+use bevy_reflect::{FromReflect, Reflect};
+
 use crate::plugins::game_world::resources::{GameWorld, GameWorldMeta};
 
 use super::{
     direction::Direction,
     pos::{ChunkPos, VoxelPos},
     voxel::Voxel,
+    voxels_generator::generate_voxels,
 };
 use std::{
     fmt::{Debug, Formatter},
     sync::{Arc, Mutex, MutexGuard},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Reflect, FromReflect)]
 pub struct ChunkPointer {
+    #[reflect(ignore)]
     chunk: Arc<Mutex<Chunk>>,
     pos: ChunkPos,
 }
 
+#[derive(Default)]
 pub struct Chunk {
     voxels: Vec<Voxel>,
     neighbors: [Option<ChunkPointer>; Direction::COUNT],
@@ -25,9 +30,13 @@ impl Chunk {
     pub const SIZE: usize = 16;
     pub const VOLUME: usize = Self::SIZE * Self::SIZE * Self::SIZE;
 
-    pub fn generate(_world_meta: GameWorldMeta, pos: ChunkPos) -> Self {
+    pub fn generate(world_meta: GameWorldMeta, pos: ChunkPos) -> Self {
         Self {
-            voxels: vec![Voxel::default(); Self::VOLUME],
+            voxels: generate_voxels(
+                world_meta.seed,
+                pos * Self::SIZE as i64,
+                VoxelPos::new(Self::SIZE, Self::SIZE, Self::SIZE),
+            ),
             neighbors: Direction::iter_map(|_| None),
         }
     }

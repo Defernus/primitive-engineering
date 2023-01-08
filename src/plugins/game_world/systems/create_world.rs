@@ -1,9 +1,18 @@
 use bevy::prelude::*;
 
-use crate::states::game_state::GameState;
+use crate::{
+    internal::pos::ChunkPos,
+    plugins::game_world::resources::{GameWorld, GameWorldMeta},
+    states::game_state::GameState,
+};
 
-pub fn start_world_creating(mut commands: Commands) {}
+pub fn start_world_creating(mut commands: Commands, world_meta: Res<GameWorldMeta>) {
+    let mut world = GameWorld::new();
+    world.generate_chunk(world_meta.clone(), ChunkPos::new(0, 0, 0));
 
-pub fn world_creating_progress(mut commands: Commands, mut game_state: ResMut<State<GameState>>) {
+    commands.insert_resource(world);
+}
+
+pub fn world_creating_progress(mut game_state: ResMut<State<GameState>>) {
     game_state.set(GameState::InGame).unwrap();
 }

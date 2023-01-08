@@ -3,14 +3,15 @@ use std::{
     ops::{Add, Mul},
 };
 
-use bevy_reflect::Reflect;
+use bevy_reflect::{FromReflect, Reflect};
 
 use super::direction::Direction;
 
 pub type VoxelPos = Pos<usize>;
+pub type GlobalVoxelPos = Pos<i64>;
 pub type ChunkPos = Pos<i64>;
 
-#[derive(Debug, Copy, Clone, PartialEq, Reflect, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Reflect, Eq, Hash, FromReflect)]
 pub struct Pos<T: Reflect + Copy + Clone> {
     pub x: T,
     pub y: T,
@@ -34,6 +35,13 @@ impl<T: From<usize> + Reflect + Copy + Clone> Pos<T> {
         let x: T = (index % size).into();
         let y: T = ((index / size) % size).into();
         let z: T = (index / (size * size)).into();
+        Self::new(x.into(), y.into(), z.into())
+    }
+
+    pub fn from_index_rect(index: usize, size: VoxelPos) -> Self {
+        let x: T = (index % size.x).into();
+        let y: T = ((index / size.x) % size.y).into();
+        let z: T = (index / (size.x * size.y)).into();
         Self::new(x.into(), y.into(), z.into())
     }
 }
