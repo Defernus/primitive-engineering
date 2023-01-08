@@ -2,8 +2,8 @@ use super::color::Color;
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Voxel {
-    pub value: u8,
-    pub color: Color,
+    value: u8,
+    color: Color,
 }
 
 impl Voxel {
