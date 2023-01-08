@@ -3,37 +3,33 @@ use std::{
     ops::{Add, Mul},
 };
 
+use bevy_reflect::Reflect;
+
 use super::direction::Direction;
 
 pub type VoxelPos = Pos<usize>;
 pub type ChunkPos = Pos<i64>;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Pos<T> {
+#[derive(Debug, Copy, Clone, PartialEq, Reflect, Eq, Hash)]
+pub struct Pos<T: Reflect + Copy + Clone> {
     pub x: T,
     pub y: T,
     pub z: T,
 }
 
-impl<T> Pos<T> {
+impl<T: Reflect + Copy + Clone> Pos<T> {
     pub fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
     }
 }
 
-impl<T, V> From<(V, V, V)> for Pos<T>
-where
-    T: From<V>,
-{
+impl<T: From<V> + Reflect + Copy + Clone, V> From<(V, V, V)> for Pos<T> {
     fn from((x, y, z): (V, V, V)) -> Self {
         Self::new(x.into(), y.into(), z.into())
     }
 }
 
-impl<T> Pos<T>
-where
-    T: From<usize>,
-{
+impl<T: From<usize> + Reflect + Copy + Clone> Pos<T> {
     pub fn from_index(index: usize, size: usize) -> Self {
         let x: T = (index % size).into();
         let y: T = ((index / size) % size).into();
@@ -42,19 +38,13 @@ where
     }
 }
 
-impl<T> Pos<T>
-where
-    T: num_traits::Unsigned + From<usize> + Into<usize> + Copy,
-{
+impl<T: num_traits::Unsigned + From<usize> + Into<usize> + Copy + Reflect + Clone> Pos<T> {
     pub fn to_index(&self, size: usize) -> usize {
         (self.x + self.y * size.into() + self.z * size.into() * size.into()).into()
     }
 }
 
-impl<T> Add<Pos<T>> for Pos<T>
-where
-    T: num_traits::PrimInt,
-{
+impl<T: num_traits::PrimInt + Reflect + Copy + Clone> Add<Pos<T>> for Pos<T> {
     type Output = Pos<T>;
 
     fn add(self, other: Pos<T>) -> Pos<T> {
@@ -62,7 +52,7 @@ where
     }
 }
 
-impl<T: num_traits::PrimInt> Mul<T> for Pos<T> {
+impl<T: num_traits::PrimInt + Reflect + Copy + Clone> Mul<T> for Pos<T> {
     type Output = Pos<T>;
 
     fn mul(self, other: T) -> Pos<T> {
@@ -70,7 +60,9 @@ impl<T: num_traits::PrimInt> Mul<T> for Pos<T> {
     }
 }
 
-impl<T: num_traits::Signed + num_traits::PrimInt + From<i64>> Add<Direction> for Pos<T> {
+impl<T: num_traits::Signed + num_traits::PrimInt + From<i64> + Reflect + Copy + Clone>
+    Add<Direction> for Pos<T>
+{
     type Output = Pos<T>;
 
     fn add(self, rhs: Direction) -> Self::Output {

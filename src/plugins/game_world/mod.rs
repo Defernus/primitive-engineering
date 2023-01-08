@@ -1,5 +1,5 @@
 use self::{
-    resources::GameWorldMeta,
+    resources::{GameWorld, GameWorldMeta},
     systems::{
         create_world::{start_world_creating, world_creating_progress},
         load_world::{start_world_loading, world_loading_progress},
@@ -28,6 +28,7 @@ impl Plugin for GameWorldPlugin {
             SystemSet::on_update(GameState::WorldLoading).with_system(world_loading_progress),
         )
         .register_type::<GameWorldMeta>()
+        .register_type::<GameWorld>()
         .insert_resource(GameWorldMeta::default());
     }
 }

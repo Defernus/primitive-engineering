@@ -1,4 +1,5 @@
 use super::pos::Pos;
+use bevy_reflect::Reflect;
 use strum_macros::EnumIter;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
@@ -38,7 +39,7 @@ impl Direction {
     }
 }
 
-impl<T: num_traits::Signed + From<i64>> Into<Pos<T>> for Direction {
+impl<T: num_traits::Signed + From<i64> + Reflect + Copy + Clone> Into<Pos<T>> for Direction {
     fn into(self) -> Pos<T> {
         match self {
             Direction::UP => (0, 1, 0).into(),
@@ -47,6 +48,22 @@ impl<T: num_traits::Signed + From<i64>> Into<Pos<T>> for Direction {
             Direction::RIGHT => (1, 0, 0).into(),
             Direction::FORWARD => (0, 0, -1).into(),
             Direction::BACKWARD => (0, 0, 1).into(),
+        }
+    }
+}
+
+impl TryFrom<usize> for Direction {
+    type Error = ();
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Direction::UP),
+            1 => Ok(Direction::DOWN),
+            2 => Ok(Direction::LEFT),
+            3 => Ok(Direction::RIGHT),
+            4 => Ok(Direction::FORWARD),
+            5 => Ok(Direction::BACKWARD),
+            _ => Err(()),
         }
     }
 }
