@@ -1,13 +1,14 @@
 use super::{
+    color::Color,
     pos::{GlobalVoxelPos, VoxelPos},
     voxel::Voxel,
 };
 
 fn generate_voxel(_seed: u64, pos: GlobalVoxelPos) -> Voxel {
-    let value = if pos.y > 0 { 0 } else { 1 };
-    Voxel {
-        value,
-        color: Default::default(),
+    if pos.y > 0 {
+        Voxel::empty()
+    } else {
+        Voxel::new(Color::RED)
     }
 }
 
