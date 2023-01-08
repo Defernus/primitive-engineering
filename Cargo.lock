@@ -1365,6 +1365,8 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_egui",
  "bevy_flycam",
+ "bevy_reflect",
+ "egui_dock",
  "num-traits",
  "rand",
 ]
@@ -1425,6 +1427,15 @@ dependencies = [
  "ahash 0.8.2",
  "epaint",
  "nohash-hasher",
+]
+
+[[package]]
+name = "egui_dock"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77bb3bc3ce46356c466e04fea06d8110bf2d78b0ca7f98c4c404b2c7b502f392"
+dependencies = [
+ "egui",
 ]
 
 [[package]]
