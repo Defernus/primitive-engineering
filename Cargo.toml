@@ -22,3 +22,5 @@ rand = "0.8.5"
 num-traits = "0.2.15"
 egui_dock = "0.3.1"
 bevy_reflect = "0.9.1"
+strum_macros = "0.24"
+strum = { version = "0.24", features = ["derive"] }

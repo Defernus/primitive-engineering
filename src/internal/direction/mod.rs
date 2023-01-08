@@ -1,6 +1,7 @@
 use super::pos::Pos;
+use strum_macros::EnumIter;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
 #[repr(usize)]
 pub enum Direction {
     UP,
@@ -23,6 +24,17 @@ impl Direction {
             Direction::FORWARD => Direction::BACKWARD,
             Direction::BACKWARD => Direction::FORWARD,
         }
+    }
+
+    pub fn iter_map<T, F: FnMut(Self) -> T>(mut f: F) -> [T; Self::COUNT] {
+        [
+            f(Direction::UP),
+            f(Direction::DOWN),
+            f(Direction::LEFT),
+            f(Direction::RIGHT),
+            f(Direction::FORWARD),
+            f(Direction::BACKWARD),
+        ]
     }
 }
 
