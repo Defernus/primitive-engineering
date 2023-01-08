@@ -20,8 +20,6 @@ pub fn redraw_chunks(
     chunks_q: Query<(Entity, &ChunkComponent)>,
 ) {
     if redraw_timer.0.tick(time.delta()).just_finished() {
-        println!("Redraw chunks");
-
         let mut chunks_to_redraw = world.chunks.clone();
 
         for (e, ChunkComponent { chunk }) in chunks_q.iter() {

@@ -8,6 +8,7 @@ use bevy::{
     render::camera::Viewport,
 };
 use bevy_egui::egui;
+use bevy_flycam::FlyCam;
 use bevy_inspector_egui::{
     bevy_inspector::{
         self,
@@ -252,6 +253,7 @@ fn setup(mut commands: Commands) {
                 .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
             ..Default::default()
         },
+        FlyCam,
         MainCamera,
     ));
 }

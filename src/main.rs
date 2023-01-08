@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_flycam::NoCameraPlayerPlugin;
 use digg::{
     plugins::{
         chunks::ChunksPlugin, game_world::GameWorldPlugin, inspector::InspectorPlugin,
@@ -16,6 +17,7 @@ fn main() {
         .add_plugin(MainMenuPlugin)
         .add_plugin(GameWorldPlugin)
         .add_plugin(ChunksPlugin)
+        .add_plugin(NoCameraPlayerPlugin)
         .add_plugin(InspectorPlugin)
         .run();
 }
