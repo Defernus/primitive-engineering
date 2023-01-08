@@ -74,7 +74,7 @@ impl Chunk {
         &self.voxels[pos.to_index(Self::OVERLAP_SIZE)]
     }
 
-    /// Returns the voxel at the given position.
+    /// Set the voxel at the given position.
     ///
     /// **WARNING**: If the position is out of bounds (one of the coordinates is greater than `OVERLAP_SIZE`), this function will panic.
     pub fn set_voxel(&mut self, pos: VoxelPos, voxel: Voxel) {
