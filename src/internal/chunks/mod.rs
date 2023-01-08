@@ -30,19 +30,28 @@ impl Chunk {
     pub const SIZE: usize = 16;
     pub const VOLUME: usize = Self::SIZE * Self::SIZE * Self::SIZE;
 
+    /// The size of the chunk with the overlap `SIZE + 1`.
+    /// Overlap is used to avoid seams between chunks.
+    pub const OVERLAP_SIZE: usize = Self::SIZE + 1;
+
+    /// The volume of the chunk with the overlap `(SIZE + 1)³`.
+    /// Overlap is used to avoid seams between chunks.
+    pub const OVERLAP_VOLUME: usize = Self::OVERLAP_SIZE * Self::OVERLAP_SIZE * Self::OVERLAP_SIZE;
+
     pub fn generate(world_meta: GameWorldMeta, pos: ChunkPos) -> Self {
         Self {
             voxels: generate_voxels(
                 world_meta.seed,
                 pos * Self::SIZE as i64,
-                VoxelPos::new(Self::SIZE, Self::SIZE, Self::SIZE),
+                VoxelPos::new(Self::OVERLAP_SIZE, Self::OVERLAP_SIZE, Self::OVERLAP_SIZE),
             ),
             neighbors: Direction::iter_map(|_| None),
         }
     }
 
     /// Updates the neighbors of this chunk.
-    /// WARNING: This function only update **THIS** chunk, you also need to add this chunk to each neighbor.
+    ///
+    /// **WARNING**: This function only update **THIS** chunk, you also need to add this chunk to each neighbor.
     pub fn update_neighbors(&mut self, world: &GameWorld, pos: ChunkPos) {
         Direction::iter_map(|dir| {
             let neighbor_pos: ChunkPos = pos + dir;
@@ -55,12 +64,25 @@ impl Chunk {
         self.neighbors[dir as usize] = chunk;
     }
 
+    /// Returns the voxel at the given position.
+    ///
+    /// **WARNING**: If the position is out of bounds, this function will panic.
     pub fn get_voxel(&self, pos: VoxelPos) -> &Voxel {
-        &self.voxels[pos.to_index(Self::SIZE)]
+        if pos.x >= Self::SIZE || pos.y >= Self::SIZE || pos.z >= Self::SIZE {
+            panic!("Voxel position out of bounds: {:?}", pos);
+        }
+        &self.voxels[pos.to_index(Self::OVERLAP_SIZE)]
     }
 
+    /// Returns the voxel at the given position.
+    ///
+    /// **WARNING**: If the position is out of bounds (one of the coordinates is greater than `OVERLAP_SIZE`), this function will panic.
     pub fn set_voxel(&mut self, pos: VoxelPos, voxel: Voxel) {
-        self.voxels[pos.to_index(Self::SIZE)] = voxel;
+        if pos.x >= Self::OVERLAP_SIZE || pos.y >= Self::OVERLAP_SIZE || pos.z >= Self::OVERLAP_SIZE
+        {
+            panic!("Voxel position out of bounds: {:?}", pos);
+        }
+        self.voxels[pos.to_index(Self::OVERLAP_SIZE)] = voxel;
     }
 
     pub fn iter_neighbors(&self) -> impl Iterator<Item = (Direction, Option<ChunkPointer>)> {
