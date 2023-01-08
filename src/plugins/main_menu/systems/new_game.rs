@@ -46,7 +46,7 @@ pub fn new_game(
             });
         });
 
-        if ui.button("Generate").clicked() {
+        if ui.button("Generate world").clicked() {
             game_state.set(GameState::WorldCreating).unwrap();
         }
     });
