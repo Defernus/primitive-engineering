@@ -1,4 +1,8 @@
-use super::pos::{Pos, VoxelPos};
+use std::ops::Add;
+
+use crate::internal::pos::ChunkPos;
+
+use super::pos::Pos;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Direction {
@@ -23,10 +27,7 @@ impl Direction {
     }
 }
 
-impl<T> Into<Pos<T>> for Direction
-where
-    T: num_traits::PrimInt + From<isize>,
-{
+impl<T: num_traits::Signed + From<i64>> Into<Pos<T>> for Direction {
     fn into(self) -> Pos<T> {
         match self {
             Direction::UP => (0, 1, 0).into(),

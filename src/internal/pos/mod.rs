@@ -3,6 +3,8 @@ use std::{
     ops::{Add, Mul},
 };
 
+use super::direction::Direction;
+
 pub type VoxelPos = Pos<usize>;
 pub type ChunkPos = Pos<i64>;
 
@@ -66,6 +68,26 @@ impl<T: num_traits::PrimInt> Mul<T> for Pos<T> {
     fn mul(self, other: T) -> Pos<T> {
         Pos::new(self.x * other, self.y * other, self.z * other)
     }
+}
+
+impl<T: num_traits::Signed + num_traits::PrimInt + From<i64>> Add<Direction> for Pos<T> {
+    type Output = Pos<T>;
+
+    fn add(self, rhs: Direction) -> Self::Output {
+        let r: Pos<T> = rhs.into();
+        self + r
+    }
+}
+
+#[test]
+pub fn test_direction() {
+    let pos: ChunkPos = (1, 2, 3).into();
+    assert_eq!(pos + Direction::UP, (1, 3, 3).into());
+    assert_eq!(pos + Direction::DOWN, (1, 1, 3).into());
+    assert_eq!(pos + Direction::LEFT, (0, 2, 3).into());
+    assert_eq!(pos + Direction::RIGHT, (2, 2, 3).into());
+    assert_eq!(pos + Direction::FORWARD, (1, 2, 2).into());
+    assert_eq!(pos + Direction::BACKWARD, (1, 2, 4).into());
 }
 
 #[test]
