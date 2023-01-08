@@ -1,10 +1,7 @@
-use std::ops::Add;
-
-use crate::internal::pos::ChunkPos;
-
 use super::pos::Pos;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(usize)]
 pub enum Direction {
     UP,
     DOWN,
@@ -15,6 +12,8 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub const COUNT: usize = 6;
+
     pub fn opposite(&self) -> Self {
         match self {
             Direction::UP => Direction::DOWN,
