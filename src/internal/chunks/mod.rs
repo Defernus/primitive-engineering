@@ -1,4 +1,4 @@
-use super::voxel_pos::VoxelPos;
+use super::pos::VoxelPos;
 
 pub struct Chunk {
     voxels: Vec<u8>,

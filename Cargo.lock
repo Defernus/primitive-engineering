@@ -1365,6 +1365,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_egui",
  "bevy_flycam",
+ "num-traits",
  "rand",
 ]
 
