@@ -68,6 +68,7 @@ fn draw_chunk(
             ChunkComponent {
                 chunk: chunk.clone(),
             },
+            Name::new(format!("Chunk: {:?}", pos)),
             GlobalTransform::default(),
             Transform::from_translation(chunk_pos_vec),
             VisibilityBundle::default(),

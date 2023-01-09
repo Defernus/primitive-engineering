@@ -3,6 +3,7 @@ use self::{
     systems::{
         create_world::{start_world_creating, world_creating_progress},
         load_world::{start_world_loading, world_loading_progress},
+        setup_world::{setup_world, WorldSun},
     },
 };
 use crate::states::game_state::GameState;
@@ -27,8 +28,10 @@ impl Plugin for GameWorldPlugin {
         .add_system_set(
             SystemSet::on_update(GameState::WorldLoading).with_system(world_loading_progress),
         )
+        .register_type::<WorldSun>()
         .register_type::<GameWorldMeta>()
         .register_type::<GameWorld>()
+        .add_startup_system(setup_world)
         .insert_resource(GameWorldMeta::default());
     }
 }

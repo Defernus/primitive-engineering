@@ -5,9 +5,11 @@ use super::{
 };
 
 fn generate_voxel(_seed: u64, pos: GlobalVoxelPos) -> Voxel {
-    let scale: f32 = 8.0;
+    let scale: f32 = 0.5;
     let value =
         (pos.x as f32 * scale).sin() * (pos.z as f32 * scale).sin() - (pos.y as f32 * scale);
+
+    // let value = 4.0 - (pos - GlobalVoxelPos::from_scalar(6)).to_vec3().length();
 
     let color = if value > 0. { Color::RED } else { Color::BLACK };
 
