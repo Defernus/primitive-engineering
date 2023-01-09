@@ -3,7 +3,7 @@ use bevy_flycam::NoCameraPlayerPlugin;
 use digg::{
     plugins::{
         chunks::ChunksPlugin, game_world::GameWorldPlugin, inspector::InspectorPlugin,
-        loading::LoadingPlugin, main_menu::MainMenuPlugin,
+        loading::LoadingPlugin, main_menu::MainMenuPlugin, static_mesh::StaticMeshPlugin,
     },
     states::game_state::GameState,
 };
@@ -17,7 +17,8 @@ fn main() {
         .add_plugin(MainMenuPlugin)
         .add_plugin(GameWorldPlugin)
         .add_plugin(ChunksPlugin)
-        .add_plugin(NoCameraPlayerPlugin)
         .add_plugin(InspectorPlugin)
+        .add_plugin(NoCameraPlayerPlugin)
+        .add_plugin(StaticMeshPlugin)
         .run();
 }

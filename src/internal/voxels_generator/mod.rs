@@ -5,11 +5,13 @@ use super::{
 };
 
 fn generate_voxel(_seed: u64, pos: GlobalVoxelPos) -> Voxel {
-    if pos.y > 0 {
-        Voxel::empty()
-    } else {
-        Voxel::new(Color::RED)
-    }
+    let scale: f32 = 8.0;
+    let value =
+        (pos.x as f32 * scale).sin() * (pos.z as f32 * scale).sin() - (pos.y as f32 * scale);
+
+    let color = if value > 0. { Color::RED } else { Color::BLACK };
+
+    Voxel::new(value, color)
 }
 
 pub fn generate_voxels(seed: u64, offset: GlobalVoxelPos, size: VoxelPos) -> Vec<Voxel> {

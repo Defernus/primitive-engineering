@@ -1,11 +1,15 @@
+use bevy::prelude::Vec3;
 use bevy_reflect::{FromReflect, Reflect};
 
-use crate::plugins::game_world::resources::{GameWorld, GameWorldMeta};
+use crate::plugins::{
+    game_world::resources::{GameWorld, GameWorldMeta},
+    static_mesh::components::Vertex,
+};
 
 use super::{
     direction::Direction,
-    pos::{ChunkPos, VoxelPos},
-    voxel::Voxel,
+    pos::{ChunkPos, GlobalVoxelPos, VoxelPos},
+    voxel::{voxels_to_vertex::append_vertex, Voxel},
     voxels_generator::generate_voxels,
 };
 use std::{
@@ -29,23 +33,14 @@ pub struct Chunk {
 
 impl Chunk {
     pub const SIZE: usize = 16;
+    pub const SIZE_I64: i64 = Self::SIZE as i64;
     pub const VOLUME: usize = Self::SIZE * Self::SIZE * Self::SIZE;
-
-    /// The size of the chunk with the overlap `SIZE + 1`.
-    /// Overlap is used to avoid seams between chunks.
-    pub const OVERLAP_SIZE: usize = Self::SIZE + 1;
-
-    /// The volume of the chunk with the overlap `(SIZE + 1)³`.
-    /// Overlap is used to avoid seams between chunks.
-    pub const OVERLAP_VOLUME: usize = Self::OVERLAP_SIZE * Self::OVERLAP_SIZE * Self::OVERLAP_SIZE;
+    pub const VOLUME_I64: i64 = Self::VOLUME as i64;
+    pub const SIZES: VoxelPos = VoxelPos::from_scalar(Self::SIZE);
 
     pub fn generate(world_meta: GameWorldMeta, pos: ChunkPos) -> Self {
         Self {
-            voxels: generate_voxels(
-                world_meta.seed,
-                pos * Self::SIZE as i64,
-                VoxelPos::new(Self::OVERLAP_SIZE, Self::OVERLAP_SIZE, Self::OVERLAP_SIZE),
-            ),
+            voxels: generate_voxels(world_meta.seed, pos * Self::SIZE as i64, Self::SIZES),
             need_redraw: true,
             neighbors: Direction::iter_map(|_| None),
         }
@@ -57,13 +52,6 @@ impl Chunk {
 
     pub fn set_need_redraw(&mut self, need_redraw: bool) {
         self.need_redraw = need_redraw;
-    }
-
-    pub fn iter_all(&self) -> impl Iterator<Item = (VoxelPos, &Voxel)> {
-        VoxelPos::iter((Self::SIZE, Self::SIZE, Self::SIZE).into()).map(move |pos| {
-            let voxel = self.get_voxel(pos);
-            (pos, voxel)
-        })
     }
 
     /// Updates the neighbors of this chunk.
@@ -81,25 +69,92 @@ impl Chunk {
         self.neighbors[dir as usize] = chunk;
     }
 
-    /// Returns the voxel at the given position.
+    /// Returns the voxel at the given relative to chunk position.
     ///
-    /// **WARNING**: If the position is out of bounds, this function will panic.
-    pub fn get_voxel(&self, pos: VoxelPos) -> &Voxel {
-        if pos.x >= Self::SIZE || pos.y >= Self::SIZE || pos.z >= Self::SIZE {
-            panic!("Voxel position out of bounds: {:?}", pos);
+    /// note: If the position is out of bounds this function will try to get the voxel from the neighbor chunk.
+    /// If the neighbor chunk is not loaded, this function will return `None`.
+    pub fn get_voxel(&self, pos: GlobalVoxelPos) -> Option<Voxel> {
+        if pos.x >= Self::SIZE_I64 {
+            return self
+                .get_neighbor(Direction::X)?
+                .lock()
+                .get_voxel(pos - GlobalVoxelPos::new(Self::SIZE_I64, 0, 0));
         }
-        &self.voxels[pos.to_index(Self::OVERLAP_SIZE)]
+
+        if pos.y >= Self::SIZE_I64 {
+            return self
+                .get_neighbor(Direction::Y)?
+                .lock()
+                .get_voxel(pos - GlobalVoxelPos::new(0, Self::SIZE_I64, 0));
+        }
+
+        if pos.z >= Self::SIZE_I64 {
+            return self
+                .get_neighbor(Direction::Z)?
+                .lock()
+                .get_voxel(pos - GlobalVoxelPos::new(0, 0, Self::SIZE_I64));
+        }
+
+        if pos.x < 0 {
+            return self
+                .get_neighbor(Direction::X_NEG)?
+                .lock()
+                .get_voxel(pos + GlobalVoxelPos::new(Self::SIZE_I64, 0, 0));
+        }
+
+        if pos.y < 0 {
+            return self
+                .get_neighbor(Direction::Y_NEG)?
+                .lock()
+                .get_voxel(pos + GlobalVoxelPos::new(0, Self::SIZE_I64, 0));
+        }
+
+        if pos.z < 0 {
+            return self
+                .get_neighbor(Direction::Z_NEG)?
+                .lock()
+                .get_voxel(pos + GlobalVoxelPos::new(0, 0, Self::SIZE_I64));
+        }
+
+        Some(
+            self.voxels[VoxelPos::new(pos.x as usize, pos.y as usize, pos.z as usize)
+                .to_index(Self::SIZE)],
+        )
+    }
+
+    pub fn get_neighbor(&self, dir: Direction) -> Option<ChunkPointer> {
+        self.neighbors[dir as usize].clone()
     }
 
     /// Set the voxel at the given position.
     ///
     /// **WARNING**: If the position is out of bounds (one of the coordinates is greater than `OVERLAP_SIZE`), this function will panic.
     pub fn set_voxel(&mut self, pos: VoxelPos, voxel: Voxel) {
-        if pos.x >= Self::OVERLAP_SIZE || pos.y >= Self::OVERLAP_SIZE || pos.z >= Self::OVERLAP_SIZE
-        {
+        if pos.x >= Self::SIZE || pos.y >= Self::SIZE || pos.z >= Self::SIZE {
             panic!("Voxel position out of bounds: {:?}", pos);
         }
-        self.voxels[pos.to_index(Self::OVERLAP_SIZE)] = voxel;
+        self.voxels[pos.to_index(Self::SIZE)] = voxel;
+    }
+
+    pub fn generate_vertices(&mut self, pos: ChunkPos) -> Vec<Vertex> {
+        let mut vertices: Vec<Vertex> = Vec::new();
+        for x in 0..Self::SIZE {
+            for y in 0..Self::SIZE {
+                for z in 0..Self::SIZE {
+                    append_vertex((x, y, z).into(), self, &mut vertices);
+                }
+            }
+        }
+
+        for v in vertices.iter_mut() {
+            v.pos = Vec3::new(
+                v.pos.x + (pos.x * Self::SIZE as i64) as f32,
+                v.pos.y + (pos.y * Self::SIZE as i64) as f32,
+                v.pos.z + (pos.z * Self::SIZE as i64) as f32,
+            )
+        }
+
+        vertices
     }
 
     pub fn iter_neighbors(&self) -> impl Iterator<Item = (Direction, Option<ChunkPointer>)> {

@@ -5,16 +5,28 @@ use strum_macros::EnumIter;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumIter)]
 #[repr(usize)]
 pub enum Direction {
+    /// +y
     UP,
+    /// -y
     DOWN,
+    /// -x
     LEFT,
+    /// +x
     RIGHT,
+    /// -z
     FORWARD,
+    /// +z
     BACKWARD,
 }
 
 impl Direction {
     pub const COUNT: usize = 6;
+    pub const X: Self = Direction::RIGHT;
+    pub const Y: Self = Direction::UP;
+    pub const Z: Self = Direction::BACKWARD;
+    pub const X_NEG: Self = Direction::LEFT;
+    pub const Y_NEG: Self = Direction::DOWN;
+    pub const Z_NEG: Self = Direction::FORWARD;
 
     pub fn opposite(&self) -> Self {
         match self {

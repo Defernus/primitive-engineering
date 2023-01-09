@@ -6,7 +6,7 @@ use crate::{
     plugins::{
         chunks::{components::ChunkComponent, resources::ChunksRedrawTimer},
         game_world::resources::GameWorld,
-        loading::resources::GameAssets,
+        static_mesh::components::StaticMeshComponent,
     },
 };
 use bevy::prelude::*;
@@ -14,10 +14,12 @@ use bevy::prelude::*;
 pub fn redraw_chunks(
     mut commands: Commands,
     world: Res<GameWorld>,
-    assets: Res<GameAssets>,
     time: Res<Time>,
     mut redraw_timer: ResMut<ChunksRedrawTimer>,
     chunks_q: Query<(Entity, &ChunkComponent)>,
+
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     if redraw_timer.0.tick(time.delta()).just_finished() {
         let mut chunks_to_redraw = world.chunks.clone();
@@ -34,17 +36,32 @@ pub fn redraw_chunks(
         }
 
         for (pos, chunk) in chunks_to_redraw.into_iter() {
-            draw_chunk(&mut commands, pos, chunk.clone(), &assets);
+            draw_chunk(
+                &mut commands,
+                pos,
+                chunk.clone(),
+                &mut meshes,
+                &mut materials,
+            );
 
             chunk.lock().set_need_redraw(false);
         }
     }
 }
 
-fn draw_chunk(commands: &mut Commands, pos: ChunkPos, chunk: ChunkPointer, assets: &GameAssets) {
+fn draw_chunk(
+    commands: &mut Commands,
+    pos: ChunkPos,
+    chunk: ChunkPointer,
+    meshes: &mut Assets<Mesh>,
+    materials: &mut Assets<StandardMaterial>,
+) {
     println!("Draw chunk: {:?}", pos);
 
     let chunk_pos_vec = (pos * Chunk::SIZE as i64).to_vec3();
+
+    let chunk_vertices = chunk.lock().generate_vertices(pos);
+    let mesh = StaticMeshComponent::spawn(commands, meshes, materials, chunk_vertices);
 
     commands
         .spawn((
@@ -55,20 +72,5 @@ fn draw_chunk(commands: &mut Commands, pos: ChunkPos, chunk: ChunkPointer, asset
             Transform::from_translation(chunk_pos_vec),
             VisibilityBundle::default(),
         ))
-        .with_children(|parent| {
-            for (pos, voxel) in chunk.lock().iter_all() {
-                let pos_vec = pos.to_vec3() + chunk_pos_vec;
-
-                if voxel.is_empty() {
-                    continue;
-                }
-
-                parent.spawn(MaterialMeshBundle {
-                    mesh: assets.voxel_mesh.clone(),
-                    material: assets.voxel_material.clone(),
-                    transform: Transform::from_translation(pos_vec),
-                    ..Default::default()
-                });
-            }
-        });
+        .add_child(mesh);
 }

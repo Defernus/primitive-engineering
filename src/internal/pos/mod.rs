@@ -2,7 +2,7 @@ use bevy::prelude::Vec3;
 use bevy_reflect::{FromReflect, Reflect};
 use std::{
     hash::Hash,
-    ops::{Add, Mul},
+    ops::{Add, Mul, Sub},
 };
 
 use super::direction::Direction;
@@ -24,8 +24,12 @@ pub struct PosIter<T: Reflect + Copy + Clone> {
 }
 
 impl<T: Reflect + Copy + Clone> Pos<T> {
-    pub fn new(x: T, y: T, z: T) -> Self {
+    pub const fn new(x: T, y: T, z: T) -> Self {
         Self { x, y, z }
+    }
+
+    pub const fn from_scalar(scalar: T) -> Self {
+        Self::new(scalar, scalar, scalar)
     }
 }
 impl<T: Reflect + Copy + Clone + num_traits::Num> Pos<T> {
@@ -71,11 +75,27 @@ impl<T: num_traits::Unsigned + From<usize> + Into<usize> + Copy + Reflect + Clon
     }
 }
 
+impl<T: num_traits::PrimInt + Reflect + Copy + Clone> Sub<Pos<T>> for Pos<T> {
+    type Output = Pos<T>;
+
+    fn sub(self, other: Pos<T>) -> Pos<T> {
+        Pos::new(self.x - other.x, self.y - other.y, self.z - other.z)
+    }
+}
+
 impl<T: num_traits::PrimInt + Reflect + Copy + Clone> Add<Pos<T>> for Pos<T> {
     type Output = Pos<T>;
 
     fn add(self, other: Pos<T>) -> Pos<T> {
         Pos::new(self.x + other.x, self.y + other.y, self.z + other.z)
+    }
+}
+
+impl<T: num_traits::PrimInt + Reflect + Copy + Clone> Mul<Pos<T>> for Pos<T> {
+    type Output = Pos<T>;
+
+    fn mul(self, other: Pos<T>) -> Pos<T> {
+        Pos::new(self.x * other.x, self.y * other.y, self.z * other.z)
     }
 }
 
