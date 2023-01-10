@@ -1,6 +1,7 @@
 use bevy::prelude::Vec3;
 use bevy_reflect::{FromReflect, Reflect};
 use std::{
+    cmp::Ordering,
     hash::Hash,
     ops::{Add, Mul, Sub},
 };
@@ -32,12 +33,22 @@ impl<T: Reflect + Copy + Clone> Pos<T> {
         Self::new(scalar, scalar, scalar)
     }
 }
+
 impl<T: Reflect + Copy + Clone + num_traits::Num> Pos<T> {
     pub fn iter(size: Pos<T>) -> PosIter<T> {
         PosIter {
             pos: Pos::new(T::zero(), T::zero(), T::zero()),
             size,
         }
+    }
+}
+
+impl<T: Reflect + Copy + Clone + num_traits::Signed + num_traits::FromPrimitive> Pos<T> {
+    pub fn iter_around(&self, radius: usize) -> PosAroundIterator<T> {
+        PosAroundIterator::new(self.clone(), radius)
+    }
+    pub fn iter_neighbors(&self, include_self: bool) -> PosIterNeighbors<T> {
+        PosIterNeighbors::new(self.clone(), include_self)
     }
 }
 
@@ -136,6 +147,185 @@ impl<T: Reflect + Copy + Clone + num_traits::PrimInt> Iterator for PosIter<T> {
         let pos = self.pos;
         self.pos.x = self.pos.x + T::one();
         Some(pos)
+    }
+}
+
+impl<T: Reflect + Copy + Clone + PartialOrd + Eq> Ord for Pos<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.x > other.x {
+            return Ordering::Greater;
+        }
+        if self.x < other.x {
+            return Ordering::Less;
+        }
+        if self.y > other.y {
+            return Ordering::Greater;
+        }
+        if self.y < other.y {
+            return Ordering::Less;
+        }
+        if self.z > other.z {
+            return Ordering::Greater;
+        }
+        if self.z < other.z {
+            return Ordering::Less;
+        }
+        return Ordering::Equal;
+    }
+}
+
+impl<T: Reflect + Copy + Clone + PartialOrd + Eq> PartialOrd for Pos<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+#[derive(Debug, Clone, Copy, Reflect, FromReflect)]
+pub struct PosIterNeighbors<T: Reflect + Copy + Clone> {
+    x: T,
+    y: T,
+    z: T,
+    pos: Pos<T>,
+    include_self: bool,
+}
+
+impl<T: Reflect + Copy + Clone + num_traits::Signed> PosIterNeighbors<T> {
+    pub fn new(pos: Pos<T>, include_self: bool) -> Self {
+        Self {
+            x: -T::one(),
+            y: -T::one(),
+            z: -T::one(),
+            pos,
+            include_self,
+        }
+    }
+}
+
+impl<T: Reflect + Copy + Clone + num_traits::Signed + Ord + PartialOrd> Iterator
+    for PosIterNeighbors<T>
+{
+    type Item = Pos<T>;
+
+    fn next(&mut self) -> Option<Pos<T>> {
+        if self.z > T::one() {
+            return None;
+        }
+        let result = Pos::new(
+            self.pos.x + self.x,
+            self.pos.y + self.y,
+            self.pos.z + self.z,
+        );
+
+        self.x = self.x + T::one();
+        if self.x > T::one() {
+            self.x = -T::one();
+            self.y = self.y + T::one();
+            if self.y > T::one() {
+                self.y = -T::one();
+                self.z = self.z + T::one();
+            }
+        } else if !self.include_self
+            && self.x == T::zero()
+            && self.y == T::zero()
+            && self.z == T::zero()
+        {
+            self.x = self.x + T::one();
+        }
+
+        return Some(result);
+    }
+}
+
+pub type ChunkPosAroundIterator = PosAroundIterator<i64>;
+pub type GlobalVoxelPosAroundIterator = PosAroundIterator<i64>;
+
+#[derive(Debug, Clone, Copy, Reflect, FromReflect)]
+pub struct PosAroundIterator<T: Reflect + Copy + Clone + num_traits::Signed> {
+    start: Pos<T>,
+    current: Pos<T>,
+    current_radius: T,
+    done: bool,
+    radius: T,
+}
+
+impl<T: Reflect + Copy + Clone + num_traits::Signed + num_traits::FromPrimitive>
+    PosAroundIterator<T>
+{
+    pub fn new(start: Pos<T>, radius: usize) -> Self {
+        Self {
+            radius: T::from_usize(radius).unwrap(),
+            start,
+            done: false,
+            current_radius: T::zero(),
+            current: Pos::new(T::zero(), -T::from_usize(radius).unwrap(), T::zero()),
+        }
+    }
+
+    pub fn is_done(&self) -> bool {
+        self.done
+    }
+}
+
+impl<
+        T: Reflect
+            + Copy
+            + Clone
+            + Ord
+            + PartialOrd
+            + num_traits::Signed
+            + num_traits::PrimInt
+            + From<i64>,
+    > Iterator for PosAroundIterator<T>
+{
+    type Item = Pos<T>;
+
+    fn next(&mut self) -> Option<Pos<T>> {
+        let r = self.current_radius;
+        if self.radius == r {
+            self.done = true;
+            return None;
+        }
+
+        let y_r = self.radius - r + T::one();
+
+        let new_pos = match self.current {
+            p if p.y < y_r => p + Direction::Y,
+            mut p if p.z == r && p.x == -r => {
+                p.y = -y_r + T::one();
+                self.current_radius = self.current_radius + T::one();
+                p + Direction::Z
+            }
+
+            mut p if p.x < r && p.z == r => {
+                p.y = -y_r;
+                p + Direction::X
+            }
+
+            mut p if p.z > -r && p.x == r => {
+                p.y = -y_r;
+                p + Direction::Z_NEG
+            }
+
+            mut p if p.x > -r && p.z == -r => {
+                p.y = -y_r;
+                p + Direction::X_NEG
+            }
+
+            mut p if p.z < r && p.x == -r => {
+                p.y = -y_r;
+                p + Direction::Z
+            }
+
+            _ => {
+                panic!("unreachable");
+            }
+        };
+
+        // new_pos.y = 0;
+
+        self.current = new_pos;
+
+        return Some(new_pos + self.start);
     }
 }
 

@@ -1,16 +1,14 @@
-use bevy_reflect::{FromReflect, Reflect};
-
-use crate::plugins::{
-    game_world::resources::{GameWorld, GameWorldMeta},
-    static_mesh::components::Vertex,
-};
-
 use super::{
     direction::Direction,
     pos::{ChunkPos, GlobalVoxelPos, VoxelPos},
     voxel::{voxels_to_vertex::append_vertex, Voxel},
     voxels_generator::generate_voxels,
 };
+use crate::plugins::{
+    game_world::resources::{GameWorld, GameWorldMeta},
+    static_mesh::components::Vertex,
+};
+use bevy_reflect::{FromReflect, Reflect};
 use std::{
     fmt::{Debug, Formatter},
     sync::{Arc, Mutex, MutexGuard},
