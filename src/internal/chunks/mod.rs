@@ -1,4 +1,3 @@
-use bevy::prelude::Vec3;
 use bevy_reflect::{FromReflect, Reflect};
 
 use crate::plugins::{
@@ -136,7 +135,7 @@ impl Chunk {
         self.voxels[pos.to_index(Self::SIZE)] = voxel;
     }
 
-    pub fn generate_vertices(&mut self, pos: ChunkPos) -> Vec<Vertex> {
+    pub fn generate_vertices(&mut self) -> Vec<Vertex> {
         let mut vertices: Vec<Vertex> = Vec::new();
         for x in 0..Self::SIZE {
             for y in 0..Self::SIZE {
@@ -144,14 +143,6 @@ impl Chunk {
                     append_vertex((x, y, z).into(), self, &mut vertices);
                 }
             }
-        }
-
-        for v in vertices.iter_mut() {
-            v.pos = Vec3::new(
-                v.pos.x + (pos.x * Self::SIZE as i64) as f32,
-                v.pos.y + (pos.y * Self::SIZE as i64) as f32,
-                v.pos.z + (pos.z * Self::SIZE as i64) as f32,
-            )
         }
 
         vertices

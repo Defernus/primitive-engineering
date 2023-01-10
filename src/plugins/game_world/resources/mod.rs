@@ -53,7 +53,8 @@ impl GameWorld {
 
         for (dir, neighbor) in neighbors {
             if let Some(neighbor) = neighbor {
-                neighbor.lock().set_neighbor(dir, Some(chunk.clone()));
+                let mut neighbor = neighbor.lock();
+                neighbor.set_neighbor(dir.opposite(), Some(chunk.clone()));
             }
         }
 

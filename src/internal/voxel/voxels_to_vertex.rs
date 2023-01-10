@@ -122,7 +122,7 @@ fn get_voxel(chunk: &Chunk, pos: VoxelPos) -> Voxel {
 }
 
 fn get_voxels_for_vertex(chunk: &Chunk, base_pos: VoxelPos) -> VoxelsBlock {
-    let voxels: [[[Voxel; 2]; 2]; 2] = [
+    [
         [
             [
                 get_voxel(chunk, base_pos + VoxelPos::new(0, 0, 0)),
@@ -143,18 +143,17 @@ fn get_voxels_for_vertex(chunk: &Chunk, base_pos: VoxelPos) -> VoxelsBlock {
                 get_voxel(chunk, base_pos + VoxelPos::new(1, 1, 1)),
             ],
         ],
-    ];
-    return voxels;
+    ]
 }
 
 fn chose_voxel_for_node(a: Voxel, b: Voxel) -> Voxel {
-    if a.value < 0. {
+    if a.is_empty() {
         return Voxel {
             color: b.color,
             value: (-a.value) / (b.value - a.value),
         };
     }
-    if b.value < 0. {
+    if b.is_empty() {
         return Voxel {
             color: a.color,
             value: 1.0 - (-b.value) / (a.value - b.value),
@@ -167,10 +166,7 @@ fn chose_voxel_for_node(a: Voxel, b: Voxel) -> Voxel {
 }
 
 fn get_vertex_nodes(voxels: VoxelsBlock) -> Nodes {
-    let mut result: Nodes = [Voxel {
-        value: 0.,
-        color: Color::BLACK,
-    }; NODES_POS_COUNT];
+    let mut result: Nodes = [Voxel::EMPTY; NODES_POS_COUNT];
 
     result[get_node_ds().index] = chose_voxel_for_node(voxels[0][0][0], voxels[1][0][0]);
     result[get_node_de().index] = chose_voxel_for_node(voxels[1][0][0], voxels[1][0][1]);
@@ -216,7 +212,7 @@ fn append_triangle(
     let b_v = nodes[b.index];
     let c_v = nodes[c.index];
 
-    if a_v.value < 0. || a_v.value < 0. || c_v.value < 0. {
+    if a_v.is_empty() || a_v.is_empty() || c_v.is_empty() {
         return;
     }
 

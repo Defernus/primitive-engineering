@@ -11,7 +11,7 @@ pub struct Voxel {
 
 impl Voxel {
     pub const EMPTY: Self = Self {
-        value: 0.,
+        value: -f32::MIN_POSITIVE,
         color: Color::BLACK,
     };
 
@@ -20,7 +20,7 @@ impl Voxel {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.value <= 0.
+        self.value < 0.
     }
 
     pub fn get_color(&self) -> Color {

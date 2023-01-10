@@ -249,7 +249,7 @@ fn select_asset(
 fn setup(mut commands: Commands) {
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 4.0)
+            transform: Transform::from_xyz(0.0, 0.0, 16.0)
                 .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
             ..Default::default()
         },

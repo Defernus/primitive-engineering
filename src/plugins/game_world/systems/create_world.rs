@@ -8,7 +8,13 @@ use crate::{
 
 pub fn start_world_creating(mut commands: Commands, world_meta: Res<GameWorldMeta>) {
     let mut world = GameWorld::new();
-    world.generate_chunk(world_meta.clone(), ChunkPos::new(0, 0, 0));
+    for x in -1..1 {
+        for y in -1..1 {
+            for z in -1..1 {
+                world.generate_chunk(world_meta.clone(), ChunkPos::new(x, y, z));
+            }
+        }
+    }
 
     commands.insert_resource(world);
 }

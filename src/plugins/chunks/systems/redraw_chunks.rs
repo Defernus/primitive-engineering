@@ -4,7 +4,10 @@ use crate::{
         pos::ChunkPos,
     },
     plugins::{
-        chunks::{components::ChunkComponent, resources::ChunksRedrawTimer},
+        chunks::{
+            components::{ChunkComponent, ChunkState},
+            resources::ChunksRedrawTimer,
+        },
         game_world::resources::GameWorld,
         static_mesh::components::StaticMeshComponent,
     },
@@ -56,11 +59,9 @@ fn draw_chunk(
     meshes: &mut Assets<Mesh>,
     materials: &mut Assets<StandardMaterial>,
 ) {
-    println!("Draw chunk: {:?}", pos);
-
     let chunk_pos_vec = (pos * Chunk::SIZE as i64).to_vec3();
 
-    let chunk_vertices = chunk.lock().generate_vertices(pos);
+    let chunk_vertices = chunk.lock().generate_vertices();
     let mesh = StaticMeshComponent::spawn(commands, meshes, materials, chunk_vertices);
 
     commands
@@ -68,6 +69,7 @@ fn draw_chunk(
             ChunkComponent {
                 chunk: chunk.clone(),
             },
+            ChunkState::Ready,
             Name::new(format!("Chunk: {:?}", pos)),
             GlobalTransform::default(),
             Transform::from_translation(chunk_pos_vec),

@@ -11,7 +11,11 @@ fn generate_voxel(_seed: u64, pos: GlobalVoxelPos) -> Voxel {
 
     // let value = 4.0 - (pos - GlobalVoxelPos::from_scalar(6)).to_vec3().length();
 
-    let color = if value > 0. { Color::RED } else { Color::BLACK };
+    let color = if value >= 0. {
+        Color::GREEN
+    } else {
+        Color::BLACK
+    };
 
     Voxel::new(value, color)
 }
