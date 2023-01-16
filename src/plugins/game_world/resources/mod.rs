@@ -96,7 +96,8 @@ impl GameWorld {
             match in_world_chunk {
                 InWorldChunk::Loading => {}
                 InWorldChunk::Loaded(chunk) => {
-                    chunk.0.lock().update_neighbors(self, pos);
+                    let mut chunk = chunk.0.lock();
+                    chunk.update_neighbors(self, pos);
                 }
             };
         }
@@ -106,10 +107,8 @@ impl GameWorld {
                 match in_world_chunk {
                     InWorldChunk::Loading => {}
                     InWorldChunk::Loaded(neighbor) => {
-                        neighbor
-                            .0
-                            .lock()
-                            .set_neighbor(dir.opposite(), chunk.clone());
+                        let mut neighbor = neighbor.0.lock();
+                        neighbor.set_neighbor(dir.opposite(), chunk.clone());
                     }
                 };
             }

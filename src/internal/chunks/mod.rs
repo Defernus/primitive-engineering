@@ -69,10 +69,7 @@ impl Chunk {
     /// **WARNING**: This function only update **THIS** chunk, you also need to add this chunk to each neighbor.
     pub fn update_neighbors(&mut self, world: &GameWorld, pos: ChunkPos) {
         Direction::iter_map(|dir| {
-            if self.get_neighbor(dir).is_some() {
-                return;
-            }
-            self.need_redraw = true;
+            self.set_need_redraw(true);
             let neighbor_pos: ChunkPos = pos + dir;
             let neighbor_chunk = world.get_chunk(neighbor_pos);
             self.set_neighbor(dir, neighbor_chunk);
@@ -93,6 +90,7 @@ impl Chunk {
         } else {
             None
         };
+        self.set_need_redraw(true);
         self.neighbors[dir as usize] = chunk.map(|v| v.0);
     }
 

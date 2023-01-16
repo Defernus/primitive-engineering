@@ -2,7 +2,7 @@ use crate::{
     internal::chunks::{Chunk, ChunkPointer},
     plugins::{
         chunks::{
-            components::{ChunkComponent, ChunkStateComponent, ComputeChunkGeneration},
+            components::{ChunkComponent, ComputeChunkGeneration},
             resources::{ChunkLoadIterator, CHUNKS_SPAWN_AT_ONCE},
         },
         game_world::resources::{GameWorld, GameWorldMeta},
@@ -29,10 +29,9 @@ fn generate_chunk(
 
         let meta = meta.clone();
         std::thread::spawn(move || {
-            let mut chunk = Chunk::generate(meta, pos);
-            let chunk_vertices = chunk.generate_vertices();
+            let chunk = Chunk::generate(meta, pos);
 
-            match tx.send((pos, Box::new(chunk), chunk_vertices)) {
+            match tx.send((pos, Box::new(chunk))) {
                 Err(err) => {
                     panic!("failed to send chunk data after generation: {}", err);
                 }
@@ -88,16 +87,10 @@ pub fn spawn_chunk_system(
 ) {
     for (e, ComputeChunkGeneration(rx)) in generation_task.iter() {
         match rx.try_recv() {
-            Ok((pos, mut chunk, vertices)) => {
-                let mesh = StaticMeshComponent::spawn(
-                    &mut commands,
-                    &mut meshes,
-                    &mut materials,
-                    vertices,
-                );
-                commands.entity(mesh);
+            Ok((pos, chunk)) => {
+                let mesh =
+                    StaticMeshComponent::spawn(&mut commands, &mut meshes, &mut materials, vec![]);
 
-                chunk.set_need_redraw(false);
                 let chunk_pos_vec = (pos * Chunk::SIZE as i64).to_vec3();
 
                 let chunk = ChunkPointer::new(*chunk, pos);
@@ -112,7 +105,6 @@ pub fn spawn_chunk_system(
                         Transform::from_translation(chunk_pos_vec),
                         VisibilityBundle::default(),
                     ))
-                    .insert(ChunkStateComponent::NotInitialized)
                     .add_child(mesh)
                     .id();
 

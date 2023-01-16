@@ -35,6 +35,25 @@ impl StaticMeshComponent {
             .id();
     }
 
+    pub fn update(
+        children: &Children,
+        commands: &mut Commands,
+        meshes: &mut Assets<Mesh>,
+        meshes_q: &Query<(Entity, &Handle<Mesh>), With<StaticMeshComponent>>,
+        vertices: Vec<Vertex>,
+    ) {
+        for child in children.into_iter() {
+            if let Ok((entity, mesh)) = meshes_q.get(*child) {
+                meshes.remove(mesh);
+                commands
+                    .entity(entity)
+                    .remove::<Handle<Mesh>>()
+                    .insert(meshes.add(Self::generate_mesh(vertices)));
+                return;
+            }
+        }
+    }
+
     pub fn generate_mesh(vertices: Vec<Vertex>) -> Mesh {
         let mut indices_vec = Vec::new();
 
