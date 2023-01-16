@@ -1,4 +1,4 @@
-use super::{components::MainCamera, resources::MovementSettings};
+use super::{components::PlayerComponent, resources::MovementSettings};
 use bevy::{
     ecs::event::ManualEventReader,
     input::mouse::MouseMotion,
@@ -26,7 +26,7 @@ pub fn setup_player(mut commands: Commands) {
                 .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
             ..Default::default()
         },
-        MainCamera,
+        PlayerComponent,
     ));
 }
 
@@ -35,7 +35,7 @@ pub fn player_move(
     time: Res<Time>,
     windows: Res<Windows>,
     settings: Res<MovementSettings>,
-    mut query: Query<&mut Transform, With<MainCamera>>,
+    mut query: Query<&mut Transform, With<PlayerComponent>>,
 ) {
     if let Some(window) = windows.get_primary() {
         for mut transform in query.iter_mut() {
@@ -80,7 +80,7 @@ pub fn player_look(
     windows: Res<Windows>,
     mut delta_state: Local<InputState>,
     motion: Res<Events<MouseMotion>>,
-    mut query: Query<&mut Transform, With<MainCamera>>,
+    mut query: Query<&mut Transform, With<PlayerComponent>>,
 ) {
     if let Some(window) = windows.get_primary() {
         for mut transform in query.iter_mut() {

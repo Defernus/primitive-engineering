@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::internal::pos::ChunkPos;
+
 #[derive(Resource)]
 pub struct MovementSettings {
     pub sensitivity: f32,
@@ -14,3 +16,6 @@ impl Default for MovementSettings {
         }
     }
 }
+
+#[derive(Resource, Debug, Clone, Copy, Default, PartialEq, Eq, Reflect, FromReflect)]
+pub struct PrevPlayerChunkPos(pub ChunkPos);

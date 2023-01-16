@@ -3,9 +3,12 @@ use crate::{
     plugins::{
         chunks::{
             components::{ChunkComponent, ComputeChunkGeneration},
-            resources::{ChunkLoadIterator, ChunkLoadingEnabled, CHUNKS_SPAWN_AT_ONCE},
+            resources::{
+                ChunkLoadIterator, ChunkLoadingEnabled, CHUNKS_SPAWN_AT_ONCE, DEFAULT_RADIUS,
+            },
         },
         game_world::resources::{GameWorld, GameWorldMeta},
+        player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
         static_mesh::components::StaticMeshComponent,
     },
 };
@@ -47,24 +50,24 @@ fn generate_chunk(
 pub fn chunk_load_system(
     mut world: ResMut<GameWorld>,
     world_meta: Res<GameWorldMeta>,
-    // mut prev_player_chunk_pos: ResMut<PrevPlayerPos>,
+    mut prev_player_chunk_pos: ResMut<PrevPlayerChunkPos>,
     mut chunk_load_iter: ResMut<ChunkLoadIterator>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
-    // player_transform_q: Query<&Transform, With<PlayerComponent>>,
+    player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut commands: Commands,
 ) {
     if !chunk_load_enabled.0 {
         return;
     }
 
-    // let player_transform = player_transform_q.single();
+    let player_transform = player_transform_q.single();
 
-    // let player_chunk_pos = Chunk::get_chunk_pos_by_transform(player_transform);
+    let player_chunk_pos = Chunk::get_chunk_pos_by_transform(player_transform);
 
-    // if player_chunk_pos != prev_player_chunk_pos.0 {
-    //     prev_player_chunk_pos.0 = player_chunk_pos;
-    //     chunk_load_iter.0 = player_chunk_pos.iter_around(DEFAULT_RADIUS);
-    // }
+    if player_chunk_pos != prev_player_chunk_pos.0 {
+        prev_player_chunk_pos.0 = player_chunk_pos;
+        chunk_load_iter.0 = player_chunk_pos.iter_around(DEFAULT_RADIUS);
+    }
 
     if chunk_load_iter.0.is_done() {
         return;

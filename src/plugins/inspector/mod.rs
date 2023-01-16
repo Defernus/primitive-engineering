@@ -19,7 +19,7 @@ use bevy_inspector_egui::{
 use bevy_reflect::TypeRegistry;
 use egui_dock::{NodeIndex, Tree};
 
-use super::player::components::MainCamera;
+use super::player::components::PlayerComponent;
 
 pub struct InspectorPlugin;
 
@@ -50,7 +50,7 @@ fn set_camera_viewport(
     ui_state: Res<UiState>,
     windows: Res<Windows>,
     egui_settings: Res<bevy_egui::EguiSettings>,
-    mut cameras: Query<&mut Camera, With<MainCamera>>,
+    mut cameras: Query<&mut Camera, With<PlayerComponent>>,
 ) {
     let mut cam = cameras.single_mut();
 

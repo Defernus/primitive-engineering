@@ -8,7 +8,7 @@ use crate::plugins::{
     game_world::resources::{GameWorld, GameWorldMeta},
     static_mesh::components::Vertex,
 };
-use bevy::prelude::Entity;
+use bevy::prelude::{Entity, Transform};
 use bevy_reflect::{FromReflect, Reflect};
 use std::{
     fmt::{Debug, Formatter},
@@ -192,6 +192,15 @@ impl Chunk {
             .into_iter()
             .enumerate()
             .map(|(dir, neighbor)| (dir.try_into().unwrap(), neighbor))
+    }
+
+    pub fn get_chunk_pos_by_transform(transform: &Transform) -> ChunkPos {
+        let pos = transform.translation;
+        ChunkPos::new(
+            (pos.x / Self::SIZE_I64 as f32) as i64,
+            (pos.y / Self::SIZE_I64 as f32) as i64,
+            (pos.z / Self::SIZE_I64 as f32) as i64,
+        )
     }
 }
 
