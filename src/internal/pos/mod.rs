@@ -334,10 +334,10 @@ pub fn test_direction() {
     let pos: ChunkPos = (1, 2, 3).into();
     assert_eq!(pos + Direction::UP, (1, 3, 3).into());
     assert_eq!(pos + Direction::DOWN, (1, 1, 3).into());
-    assert_eq!(pos + Direction::LEFT, (0, 2, 3).into());
-    assert_eq!(pos + Direction::RIGHT, (2, 2, 3).into());
-    assert_eq!(pos + Direction::FORWARD, (1, 2, 2).into());
-    assert_eq!(pos + Direction::BACKWARD, (1, 2, 4).into());
+    assert_eq!(pos + Direction::WEST, (0, 2, 3).into());
+    assert_eq!(pos + Direction::EAST, (2, 2, 3).into());
+    assert_eq!(pos + Direction::NORTH, (1, 2, 2).into());
+    assert_eq!(pos + Direction::SOUTH, (1, 2, 4).into());
 }
 
 #[test]
