@@ -34,6 +34,16 @@ impl Default for InWorldChunk {
     }
 }
 
+pub fn map_chunk(chunk: &Option<InWorldChunk>) -> Option<MutexGuard<Chunk>> {
+    match chunk {
+        Some(chunk) => match chunk {
+            InWorldChunk::Loading => None,
+            InWorldChunk::Loaded((chunk, _)) => Some(chunk.lock()),
+        },
+        None => None,
+    }
+}
+
 #[derive(Default)]
 pub struct Chunk {
     voxels: Vec<Voxel>,
