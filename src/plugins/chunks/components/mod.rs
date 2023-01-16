@@ -1,24 +1,24 @@
-use crate::internal::chunks::ChunkPointer;
-use bevy::prelude::{Component, ReflectComponent};
+use crate::internal::chunks::{Chunk, ChunkPointer};
+use crate::internal::pos::ChunkPos;
+use crate::plugins::static_mesh::components::Vertex;
+use bevy::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
-
-#[derive(Debug, Component, Clone, Copy, PartialEq, Eq, Reflect, FromReflect)]
-#[reflect(Component)]
-pub enum ChunkState {
-    Initial,
-    Generating,
-    NeedRedraw,
-    Ready,
-}
-
-impl Default for ChunkState {
-    fn default() -> Self {
-        ChunkState::Initial
-    }
-}
+use crossbeam_channel::Receiver;
 
 #[derive(Debug, Default, Clone, Component, Reflect, FromReflect)]
 #[reflect(Component)]
 pub struct ChunkComponent {
     pub chunk: ChunkPointer,
+}
+
+#[derive(Component)]
+pub struct ComputeChunkGeneration(pub Receiver<(ChunkPos, Box<Chunk>, Vec<Vertex>)>);
+
+#[derive(Debug, Default, Clone, Component, Reflect, FromReflect)]
+#[reflect(Component)]
+pub enum ChunkStateComponent {
+    #[default]
+    NotInitialized,
+    Initializing,
+    Ready,
 }

@@ -8,6 +8,7 @@ use crate::plugins::{
     game_world::resources::{GameWorld, GameWorldMeta},
     static_mesh::components::Vertex,
 };
+use bevy::prelude::Entity;
 use bevy_reflect::{FromReflect, Reflect};
 use std::{
     fmt::{Debug, Formatter},
@@ -19,6 +20,18 @@ pub struct ChunkPointer {
     #[reflect(ignore)]
     chunk: Arc<Mutex<Chunk>>,
     pos: ChunkPos,
+}
+
+#[derive(Debug, Clone, Reflect, FromReflect)]
+pub enum InWorldChunk {
+    Loading,
+    Loaded((ChunkPointer, Entity)),
+}
+
+impl Default for InWorldChunk {
+    fn default() -> Self {
+        Self::Loading
+    }
 }
 
 #[derive(Default)]
@@ -56,14 +69,31 @@ impl Chunk {
     /// **WARNING**: This function only update **THIS** chunk, you also need to add this chunk to each neighbor.
     pub fn update_neighbors(&mut self, world: &GameWorld, pos: ChunkPos) {
         Direction::iter_map(|dir| {
+            if self.get_neighbor(dir).is_some() {
+                return;
+            }
+            self.need_redraw = true;
             let neighbor_pos: ChunkPos = pos + dir;
             let neighbor_chunk = world.get_chunk(neighbor_pos);
             self.set_neighbor(dir, neighbor_chunk);
         });
     }
 
-    pub fn set_neighbor(&mut self, dir: Direction, chunk: Option<ChunkPointer>) {
-        self.neighbors[dir as usize] = chunk;
+    pub fn prepare_despawn(&mut self) {
+        self.need_redraw = false;
+        self.neighbors = Direction::iter_map(|_| None);
+    }
+
+    pub fn set_neighbor(&mut self, dir: Direction, chunk: Option<InWorldChunk>) {
+        let chunk = if let Some(chunk) = chunk {
+            match chunk {
+                InWorldChunk::Loading => None,
+                InWorldChunk::Loaded(chunk) => Some(chunk),
+            }
+        } else {
+            None
+        };
+        self.neighbors[dir as usize] = chunk.map(|v| v.0);
     }
 
     /// Returns the voxel at the given relative to chunk position.

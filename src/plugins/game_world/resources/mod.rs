@@ -1,5 +1,6 @@
 use crate::internal::{
-    chunks::{Chunk, ChunkPointer},
+    chunks::{ChunkPointer, InWorldChunk},
+    direction::Direction,
     pos::ChunkPos,
 };
 use bevy::{
@@ -8,6 +9,7 @@ use bevy::{
     utils::{HashMap, Uuid},
 };
 use bevy_inspector_egui::InspectorOptions;
+use strum::IntoEnumIterator;
 
 #[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions)]
 #[reflect(Resource)]
@@ -28,7 +30,7 @@ impl GameWorldMeta {
 #[derive(Resource, Debug, Reflect, Default, InspectorOptions)]
 #[reflect(Resource)]
 pub struct GameWorld {
-    pub chunks: HashMap<ChunkPos, ChunkPointer>,
+    pub chunks: HashMap<ChunkPos, InWorldChunk>,
 }
 
 impl GameWorld {
@@ -38,26 +40,79 @@ impl GameWorld {
         }
     }
 
-    pub fn get_chunk(&self, pos: ChunkPos) -> Option<ChunkPointer> {
+    pub fn get_chunk(&self, pos: ChunkPos) -> Option<InWorldChunk> {
         self.chunks.get(&pos).cloned()
     }
 
-    pub fn generate_chunk(&mut self, meta: GameWorldMeta, pos: ChunkPos) -> ChunkPointer {
-        let mut chunk = Chunk::generate(meta, pos);
-        chunk.update_neighbors(self, pos);
+    /**
+     * Try to spawn a chunk at the given position.
+     * If the chunk already exists, return false, otherwise, return true.
+     */
+    pub fn spawn_chunk_at(&mut self, pos: ChunkPos) -> bool {
+        let mut chunk_spawned = false;
+        self.chunks.entry(pos).or_insert_with(|| {
+            let chunk = InWorldChunk::Loading;
+            chunk_spawned = true;
+            chunk
+        });
 
-        let neighbors = chunk.iter_neighbors();
+        chunk_spawned
+    }
 
-        let chunk = ChunkPointer::new(chunk, pos);
-        self.chunks.insert(pos, chunk.clone());
+    /**
+     * Set the chunk at the given position to the given chunk and update its neighbors.
+     * If the chunk already exists, it will be prepared for despawn and the entity will be returned.
+     */
+    pub fn update_chunk_at(
+        &mut self,
+        pos: ChunkPos,
+        chunk: ChunkPointer,
+        entity: Entity,
+    ) -> Option<Entity> {
+        let mut prev_entity = None;
 
-        for (dir, neighbor) in neighbors {
-            if let Some(neighbor) = neighbor {
-                let mut neighbor = neighbor.lock();
-                neighbor.set_neighbor(dir.opposite(), Some(chunk.clone()));
-            }
+        if let Some(prev) = self
+            .chunks
+            .insert(pos, InWorldChunk::Loaded((chunk, entity)))
+        {
+            match prev {
+                InWorldChunk::Loading => {}
+                InWorldChunk::Loaded(prev) => {
+                    prev_entity = Some(prev.1);
+                    prev.0.lock().prepare_despawn();
+                }
+            };
+        };
+
+        self.update_chunk_neighbors(pos);
+
+        prev_entity
+    }
+
+    pub fn update_chunk_neighbors(&mut self, pos: ChunkPos) {
+        let chunk = self.get_chunk(pos);
+
+        if let Some(in_world_chunk) = chunk.clone() {
+            match in_world_chunk {
+                InWorldChunk::Loading => {}
+                InWorldChunk::Loaded(chunk) => {
+                    chunk.0.lock().update_neighbors(self, pos);
+                }
+            };
         }
 
-        chunk
+        for dir in Direction::iter() {
+            if let Some(in_world_chunk) = self.get_chunk(pos + dir) {
+                match in_world_chunk {
+                    InWorldChunk::Loading => {}
+                    InWorldChunk::Loaded(neighbor) => {
+                        neighbor
+                            .0
+                            .lock()
+                            .set_neighbor(dir.opposite(), chunk.clone());
+                    }
+                };
+            }
+        }
     }
 }

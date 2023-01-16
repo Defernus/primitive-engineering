@@ -1366,6 +1366,7 @@ dependencies = [
  "bevy_egui",
  "bevy_flycam",
  "bevy_reflect",
+ "crossbeam-channel",
  "egui_dock",
  "num-traits",
  "rand",

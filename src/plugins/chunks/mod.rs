@@ -1,8 +1,10 @@
-use crate::states::game_state::GameState;
+use crate::{internal::pos::ChunkPos, states::game_state::GameState};
 use bevy::prelude::*;
 
 use self::{
-    components::ChunkComponent, resources::ChunksRedrawTimer, systems::redraw_chunks::redraw_chunks,
+    components::ChunkComponent,
+    resources::{ChunkLoadIterator, ChunksRedrawTimer},
+    systems::loading::*,
 };
 
 pub mod components;
@@ -15,6 +17,11 @@ impl Plugin for ChunksPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<ChunkComponent>()
             .insert_resource(ChunksRedrawTimer::default())
-            .add_system_set(SystemSet::on_update(GameState::InGame).with_system(redraw_chunks));
+            .insert_resource(ChunkLoadIterator::new(ChunkPos::new(0, 0, 0)))
+            .add_system_set(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(chunk_load_system)
+                    .with_system(spawn_chunk_system),
+            );
     }
 }
