@@ -90,8 +90,10 @@ impl Chunk {
         } else {
             None
         };
-        self.set_need_redraw(true);
         self.neighbors[dir as usize] = chunk.map(|v| v.0);
+
+        // redraw the chunk only if the neighbors needed for rendering have changed.
+        self.need_redraw |= dir == Direction::X || dir == Direction::Y || dir == Direction::Z;
     }
 
     /// Returns the voxel at the given relative to chunk position.
