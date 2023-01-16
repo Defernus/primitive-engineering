@@ -15,7 +15,6 @@ opt-level = 3
 
 [dependencies]
 bevy = { version = "0.9.0", features = ["dynamic"] }
-bevy_flycam = "0.9.0"
 bevy_egui = "0.18"
 bevy-inspector-egui = "0.16.5"
 rand = "0.8.5"

@@ -24,3 +24,6 @@ impl Default for ChunksRedrawTimer {
         Self(Timer::new(REDRAW_DURATION, TimerMode::Repeating))
     }
 }
+
+#[derive(Debug, Clone, Resource, Reflect, FromReflect)]
+pub struct ChunkLoadingEnabled(pub bool);

@@ -3,7 +3,7 @@ use crate::{
     plugins::{
         chunks::{
             components::{ChunkComponent, ComputeChunkGeneration},
-            resources::{ChunkLoadIterator, CHUNKS_SPAWN_AT_ONCE},
+            resources::{ChunkLoadIterator, ChunkLoadingEnabled, CHUNKS_SPAWN_AT_ONCE},
         },
         game_world::resources::{GameWorld, GameWorldMeta},
         static_mesh::components::StaticMeshComponent,
@@ -49,13 +49,13 @@ pub fn chunk_load_system(
     world_meta: Res<GameWorldMeta>,
     // mut prev_player_chunk_pos: ResMut<PrevPlayerPos>,
     mut chunk_load_iter: ResMut<ChunkLoadIterator>,
-    // chunk_load_enabled: Res<ChunkLoadingEnabled>,
+    chunk_load_enabled: Res<ChunkLoadingEnabled>,
     // player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut commands: Commands,
 ) {
-    // if !chunk_load_enabled.0 {
-    //     return;
-    // }
+    if !chunk_load_enabled.0 {
+        return;
+    }
 
     // let player_transform = player_transform_q.single();
 

@@ -8,7 +8,6 @@ use bevy::{
     render::camera::Viewport,
 };
 use bevy_egui::egui;
-use bevy_flycam::FlyCam;
 use bevy_inspector_egui::{
     bevy_inspector::{
         self,
@@ -20,6 +19,8 @@ use bevy_inspector_egui::{
 use bevy_reflect::TypeRegistry;
 use egui_dock::{NodeIndex, Tree};
 
+use super::player::components::MainCamera;
+
 pub struct InspectorPlugin;
 
 impl Plugin for InspectorPlugin {
@@ -29,16 +30,12 @@ impl Plugin for InspectorPlugin {
             .insert_resource(UiState::new())
             .add_plugin(StateInspectorPlugin::<GameState>::default())
             .add_system_to_stage(CoreStage::PreUpdate, show_ui_system.at_end())
-            .add_startup_system(setup)
             .add_system(set_camera_viewport)
             .insert_resource(ClearColor(Color::rgb(0.7, 0.9, 1.0)))
             .register_type::<Option<Handle<Image>>>()
             .register_type::<AlphaMode>();
     }
 }
-
-#[derive(Component)]
-pub struct MainCamera;
 
 fn show_ui_system(world: &mut World) {
     let mut egui_context = world
@@ -244,16 +241,4 @@ fn select_asset(
             }
         });
     }
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 16.0)
-                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-            ..Default::default()
-        },
-        FlyCam,
-        MainCamera,
-    ));
 }

@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 use self::{
     components::ChunkComponent,
-    resources::{ChunkLoadIterator, ChunksRedrawTimer},
+    resources::{ChunkLoadIterator, ChunkLoadingEnabled, ChunksRedrawTimer},
     systems::{loading::*, redraw::*},
 };
 
@@ -16,6 +16,8 @@ pub struct ChunksPlugin;
 impl Plugin for ChunksPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<ChunkComponent>()
+            .register_type::<ChunkLoadingEnabled>()
+            .insert_resource(ChunkLoadingEnabled(true))
             .insert_resource(ChunksRedrawTimer::default())
             .insert_resource(ChunkLoadIterator::new(ChunkPos::new(0, 0, 0)))
             .add_system_set(

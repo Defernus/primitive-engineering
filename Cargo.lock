@@ -474,15 +474,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_flycam"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a032f6fc53b6ab0901c2b5d01034691a6b27f1ae49dd035ccf392705eec09b5f"
-dependencies = [
- "bevy",
-]
-
-[[package]]
 name = "bevy_gilrs"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1364,7 +1355,6 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_egui",
- "bevy_flycam",
  "bevy_reflect",
  "crossbeam-channel",
  "egui_dock",
