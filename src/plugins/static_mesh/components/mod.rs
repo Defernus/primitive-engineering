@@ -1,6 +1,7 @@
 use crate::internal::color::Color;
 use bevy::prelude::*;
 use bevy::render::mesh::{self, PrimitiveTopology};
+use bevy_rapier3d::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 #[derive(Debug, Clone, Copy, Component, PartialEq, Eq, Hash, Reflect, FromReflect)]
 pub struct StaticMeshComponent;
@@ -21,7 +22,7 @@ impl StaticMeshComponent {
     ) -> Entity {
         return commands
             .spawn(PbrBundle {
-                mesh: meshes.add(Self::generate_mesh(vertices)),
+                mesh: meshes.add(Self::generate_mesh(&vertices)),
                 material: materials.add(StandardMaterial {
                     base_color: Color::rgb(1.0, 1.0, 1.0).into(),
                     perceptual_roughness: 1.,
@@ -32,6 +33,7 @@ impl StaticMeshComponent {
                 ..default()
             })
             .insert(StaticMeshComponent)
+            .insert(Self::generate_collider(&vertices))
             .id();
     }
 
@@ -48,13 +50,36 @@ impl StaticMeshComponent {
                 commands
                     .entity(entity)
                     .remove::<Handle<Mesh>>()
-                    .insert(meshes.add(Self::generate_mesh(vertices)));
+                    .remove::<Collider>()
+                    .insert(meshes.add(Self::generate_mesh(&vertices)))
+                    .insert(Self::generate_collider(&vertices));
                 return;
             }
         }
     }
 
-    pub fn generate_mesh(vertices: Vec<Vertex>) -> Mesh {
+    pub fn generate_collider(vertices: &Vec<Vertex>) -> Collider {
+        if vertices.len() == 0 {
+            return Collider::ball(0.5);
+        }
+
+        let mut vert: Vec<Vec3> = Vec::with_capacity(vertices.len());
+        let mut indices: Vec<[u32; 3]> = Vec::new();
+
+        println!("vertices.len() = {}", vertices.len());
+
+        for vertex_i in 0..(vertices.len() / 3) {
+            let offset = vertex_i * 3;
+            indices.push([offset as u32, offset as u32 + 1, offset as u32 + 2]);
+            vert.push(vertices[offset].pos);
+            vert.push(vertices[offset + 1].pos);
+            vert.push(vertices[offset + 2].pos);
+        }
+
+        Collider::trimesh(vert, indices)
+    }
+
+    pub fn generate_mesh(vertices: &Vec<Vertex>) -> Mesh {
         let mut indices_vec = Vec::new();
 
         let mut positions: Vec<[f32; 3]> = Vec::new();
