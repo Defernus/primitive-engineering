@@ -13,7 +13,6 @@ use crate::{
     },
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
 use crossbeam_channel::unbounded;
 
 fn generate_chunk(

@@ -8,6 +8,7 @@ pub struct ChunksRedrawTimer(pub Timer);
 
 pub const DEFAULT_RADIUS: usize = 2;
 pub const CHUNKS_SPAWN_AT_ONCE: usize = 6;
+pub const CHUNK_UNLOAD_RADIUS: usize = 3;
 
 #[derive(Debug, Clone, Resource, Reflect, FromReflect)]
 pub struct ChunkLoadIterator(pub ChunkPosAroundIterator);
