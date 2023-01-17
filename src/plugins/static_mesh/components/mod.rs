@@ -71,8 +71,6 @@ impl StaticMeshComponent {
         let mut vert: Vec<Vec3> = Vec::with_capacity(vertices.len());
         let mut indices: Vec<[u32; 3]> = Vec::new();
 
-        println!("vertices.len() = {}", vertices.len());
-
         for vertex_i in 0..(vertices.len() / 3) {
             let offset = vertex_i * 3;
             indices.push([offset as u32, offset as u32 + 1, offset as u32 + 2]);
