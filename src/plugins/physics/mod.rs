@@ -9,16 +9,8 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugin(RapierDebugRenderPlugin::default())
-            .add_startup_system(setup_physics)
             .add_system(spawn_ball);
     }
-}
-
-fn setup_physics(mut commands: Commands) {
-    commands.spawn((
-        TransformBundle::from(Transform::from_xyz(0.0, -2.0, 0.0)),
-        Collider::cuboid(100.0, 0.1, 100.0),
-    ));
 }
 
 fn spawn_ball(mut commands: Commands, keys: Res<Input<KeyCode>>) {

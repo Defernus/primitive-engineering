@@ -20,8 +20,8 @@ impl StaticMeshComponent {
         materials: &mut Assets<StandardMaterial>,
         vertices: Vec<Vertex>,
     ) -> Entity {
-        return commands
-            .spawn(PbrBundle {
+        let mut e = commands.spawn((
+            PbrBundle {
                 mesh: meshes.add(Self::generate_mesh(&vertices)),
                 material: materials.add(StandardMaterial {
                     base_color: Color::rgb(1.0, 1.0, 1.0).into(),
@@ -31,10 +31,13 @@ impl StaticMeshComponent {
                     ..default()
                 }),
                 ..default()
-            })
-            .insert(StaticMeshComponent)
-            .insert(Self::generate_collider(&vertices))
-            .id();
+            },
+            StaticMeshComponent,
+        ));
+        if let Some(collider) = Self::generate_collider(&vertices) {
+            e.insert(collider);
+        }
+        e.id()
     }
 
     pub fn update(
@@ -47,20 +50,22 @@ impl StaticMeshComponent {
         for child in children.into_iter() {
             if let Ok((entity, mesh)) = meshes_q.get(*child) {
                 meshes.remove(mesh);
-                commands
-                    .entity(entity)
-                    .remove::<Handle<Mesh>>()
+                let mut e = commands.entity(entity);
+                e.remove::<Handle<Mesh>>()
                     .remove::<Collider>()
-                    .insert(meshes.add(Self::generate_mesh(&vertices)))
-                    .insert(Self::generate_collider(&vertices));
+                    .insert(meshes.add(Self::generate_mesh(&vertices)));
+                if let Some(collider) = Self::generate_collider(&vertices) {
+                    e.insert(collider);
+                }
+
                 return;
             }
         }
     }
 
-    pub fn generate_collider(vertices: &Vec<Vertex>) -> Collider {
+    pub fn generate_collider(vertices: &Vec<Vertex>) -> Option<Collider> {
         if vertices.len() == 0 {
-            return Collider::ball(0.5);
+            return None;
         }
 
         let mut vert: Vec<Vec3> = Vec::with_capacity(vertices.len());
@@ -76,7 +81,7 @@ impl StaticMeshComponent {
             vert.push(vertices[offset + 2].pos);
         }
 
-        Collider::trimesh(vert, indices)
+        Some(Collider::trimesh(vert, indices))
     }
 
     pub fn generate_mesh(vertices: &Vec<Vertex>) -> Mesh {

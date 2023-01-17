@@ -7,7 +7,7 @@ use std::time::Duration;
 pub struct ChunksRedrawTimer(pub Timer);
 
 pub const DEFAULT_RADIUS: usize = 2;
-pub const CHUNKS_SPAWN_AT_ONCE: usize = 2;
+pub const CHUNKS_SPAWN_AT_ONCE: usize = 6;
 
 #[derive(Debug, Clone, Resource, Reflect, FromReflect)]
 pub struct ChunkLoadIterator(pub ChunkPosAroundIterator);
