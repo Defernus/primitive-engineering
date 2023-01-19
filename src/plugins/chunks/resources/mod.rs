@@ -10,7 +10,8 @@ pub const DEFAULT_RADIUS: usize = 2;
 pub const CHUNKS_SPAWN_AT_ONCE: usize = 6;
 pub const CHUNK_UNLOAD_RADIUS: usize = 3;
 
-#[derive(Debug, Clone, Resource, Reflect, FromReflect)]
+#[derive(Debug, Default, Clone, Resource, Reflect, FromReflect)]
+#[reflect(Resource)]
 pub struct ChunkLoadIterator(pub ChunkPosAroundIterator);
 impl ChunkLoadIterator {
     pub fn new(pos: ChunkPos) -> Self {
@@ -26,5 +27,6 @@ impl Default for ChunksRedrawTimer {
     }
 }
 
-#[derive(Debug, Clone, Resource, Reflect, FromReflect)]
+#[derive(Debug, Default, Clone, Resource, Reflect, FromReflect)]
+#[reflect(Resource)]
 pub struct ChunkLoadingEnabled(pub bool);

@@ -25,7 +25,7 @@ fn generate_chunk(
         let mut pos = chunk_load_iter.0.next()?;
 
         while !world.spawn_chunk_at(pos) {
-            pos = chunk_load_iter.0.next()?
+            pos = chunk_load_iter.0.next()?;
         }
 
         let (tx, rx) = unbounded();

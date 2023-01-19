@@ -239,7 +239,7 @@ impl<T: Reflect + Copy + Clone + num_traits::Signed + Ord + PartialOrd> Iterator
 pub type ChunkPosAroundIterator = PosAroundIterator<i64>;
 pub type GlobalVoxelPosAroundIterator = PosAroundIterator<i64>;
 
-#[derive(Debug, Clone, Copy, Reflect, FromReflect)]
+#[derive(Debug, Default, Clone, Copy, Reflect, FromReflect)]
 pub struct PosAroundIterator<T: Reflect + Copy + Clone + num_traits::Signed> {
     start: Pos<T>,
     current: Pos<T>,

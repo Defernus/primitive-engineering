@@ -17,6 +17,7 @@ impl Plugin for ChunksPlugin {
     fn build(&self, app: &mut App) {
         app.register_type::<ChunkComponent>()
             .register_type::<ChunkLoadingEnabled>()
+            .register_type::<ChunkLoadIterator>()
             .insert_resource(ChunkLoadingEnabled(true))
             .insert_resource(ChunksRedrawTimer::default())
             .insert_resource(ChunkLoadIterator::new(ChunkPos::new(0, 0, 0)))

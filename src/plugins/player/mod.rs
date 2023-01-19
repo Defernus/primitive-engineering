@@ -13,7 +13,9 @@ mod systems;
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<MovementSettings>()
+        app.register_type::<PrevPlayerChunkPos>()
+            .register_type::<MovementSettings>()
+            .init_resource::<MovementSettings>()
             .insert_resource(PrevPlayerChunkPos(ChunkPos::new(0, 0, 0)))
             .add_startup_system(setup_player)
             .add_system_set(

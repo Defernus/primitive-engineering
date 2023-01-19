@@ -194,12 +194,20 @@ impl Chunk {
             .map(|(dir, neighbor)| (dir.try_into().unwrap(), neighbor))
     }
 
+    fn axis_pos_to_chunk_pos(val: f32) -> i64 {
+        if val >= 0.0 {
+            (val / Self::SIZE_I64 as f32) as i64
+        } else {
+            (val / Self::SIZE_I64 as f32).floor() as i64
+        }
+    }
+
     pub fn get_chunk_pos_by_transform(transform: &Transform) -> ChunkPos {
         let pos = transform.translation;
         ChunkPos::new(
-            (pos.x / Self::SIZE_I64 as f32) as i64,
-            (pos.y / Self::SIZE_I64 as f32) as i64,
-            (pos.z / Self::SIZE_I64 as f32) as i64,
+            Self::axis_pos_to_chunk_pos(pos.x),
+            Self::axis_pos_to_chunk_pos(pos.y),
+            Self::axis_pos_to_chunk_pos(pos.z),
         )
     }
 }
