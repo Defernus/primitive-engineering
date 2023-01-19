@@ -293,6 +293,10 @@ impl<
             mut p if p.z == r && p.x == -r => {
                 p.y = -y_r + T::one();
                 self.current_radius = self.current_radius + T::one();
+                if self.radius == self.current_radius {
+                    self.done = true;
+                    return None;
+                }
                 p + Direction::Z
             }
 
