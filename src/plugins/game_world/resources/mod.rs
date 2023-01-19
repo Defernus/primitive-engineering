@@ -116,4 +116,23 @@ impl GameWorld {
             }
         }
     }
+
+    pub fn despawn_chunk(&mut self, pos: ChunkPos) -> Option<ChunkPointer> {
+        let mut chunk_pointer = None;
+
+        if let Some(prev) = self.chunks.remove(&pos) {
+            match prev {
+                InWorldChunk::Loading => {}
+                InWorldChunk::Loaded(prev) => {
+                    chunk_pointer = Some(prev.0.clone());
+                    let mut prev = prev.0.lock();
+                    prev.prepare_despawn();
+                }
+            };
+        };
+
+        self.update_chunk_neighbors(pos);
+
+        chunk_pointer
+    }
 }
