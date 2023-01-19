@@ -1,8 +1,7 @@
+use self::resources::{MovementSettings, PrevPlayerChunkPos};
+use self::systems::{cursor::*, look::*, movements::*, *};
 use crate::internal::pos::ChunkPos;
 use crate::states::game_state::GameState;
-
-use self::resources::{MovementSettings, PrevPlayerChunkPos};
-use self::systems::*;
 use bevy::prelude::*;
 
 pub mod components;
