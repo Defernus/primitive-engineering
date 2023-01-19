@@ -9,8 +9,6 @@ pub fn load_assets(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {
-    println!("state:loading_resources");
-
     let game_assets = GameAssets {
         main_font: asset_server.load("fonts/roboto.ttf"),
         voxel_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
