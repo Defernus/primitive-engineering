@@ -1,4 +1,5 @@
 use crate::internal::pos::ChunkPos;
+use crate::states::game_state::GameState;
 
 use self::resources::{MovementSettings, PrevPlayerChunkPos};
 use self::systems::*;
@@ -15,8 +16,13 @@ impl Plugin for PlayerPlugin {
         app.init_resource::<MovementSettings>()
             .insert_resource(PrevPlayerChunkPos(ChunkPos::new(0, 0, 0)))
             .add_startup_system(setup_player)
-            .add_system(player_move)
-            .add_system(player_look)
-            .add_system(cursor_grab);
+            .add_system_set(
+                SystemSet::on_update(GameState::InGame)
+                    .with_system(player_move)
+                    .with_system(player_look)
+                    .with_system(cursor_toggle),
+            )
+            .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(cursor_grab))
+            .add_system_set(SystemSet::on_exit(GameState::InGame).with_system(cursor_release));
     }
 }
