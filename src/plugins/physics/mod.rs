@@ -1,28 +1,22 @@
+use crate::states::game_state::GameState;
+
+use self::systems::*;
 use bevy::prelude::*;
-use bevy_rapier3d::{
-    prelude::{Collider, NoUserData, RapierPhysicsPlugin, Restitution, RigidBody},
-    render::RapierDebugRenderPlugin,
-};
+use bevy_rapier3d::{prelude::*, render::RapierDebugRenderPlugin};
+
+mod systems;
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugin(RapierDebugRenderPlugin::default())
-            .add_system(spawn_ball);
-    }
-}
-
-fn spawn_ball(mut commands: Commands, keys: Res<Input<KeyCode>>) {
-    if keys.just_pressed(KeyCode::B) {
-        let x = rand::random::<f32>() * 4.0;
-        let y = rand::random::<f32>() * 4.0;
-        let z = rand::random::<f32>() * 4.0;
-        commands.spawn((
-            RigidBody::Dynamic,
-            Collider::ball(0.5),
-            Restitution::coefficient(0.7),
-            TransformBundle::from(Transform::from_xyz(x, y + 10., z)),
-        ));
+            .add_system(spawn_ball)
+            .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(enable_physics))
+            .add_system_set(SystemSet::on_exit(GameState::InGame).with_system(disable_physics))
+            .insert_resource(RapierConfiguration {
+                physics_pipeline_active: false,
+                ..Default::default()
+            });
     }
 }

@@ -19,7 +19,9 @@ impl Plugin for PlayerPlugin {
             .add_startup_system(setup_player)
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
-                    .with_system(player_move)
+                    .with_system(player_fly_movement)
+                    .with_system(player_walk_movement)
+                    .with_system(toggle_movement_mode)
                     .with_system(player_look)
                     .with_system(cursor_toggle),
             )

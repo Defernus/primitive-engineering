@@ -1,17 +1,33 @@
-use super::components::PlayerComponent;
+use super::components::{PlayerCameraComponent, PlayerComponent};
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::*;
 
 pub mod cursor;
 pub mod look;
 pub mod movements;
 
 pub fn setup_player(mut commands: Commands) {
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 10.0, 16.0)
-                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-            ..Default::default()
-        },
-        PlayerComponent,
-    ));
+    commands
+        .spawn((
+            PlayerComponent::default(),
+            Collider::capsule_y(0.75, 0.25),
+            RigidBodyDisabled,
+            KinematicCharacterControllerOutput::default(),
+            KinematicCharacterController {
+                up: Vec3::Y,
+
+                ..Default::default()
+            },
+            Transform::from_xyz(0.0, 10.0, 16.0),
+            GlobalTransform::default(),
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                PlayerCameraComponent,
+                Camera3dBundle {
+                    transform: Transform::from_xyz(0.0, 0.75, 0.0),
+                    ..Default::default()
+                },
+            ));
+        });
 }

@@ -1,7 +1,5 @@
-use std::any::TypeId;
-
+use super::player::components::PlayerCameraComponent;
 use crate::states::game_state::GameState;
-
 use bevy::{
     asset::{HandleId, ReflectAsset},
     prelude::*,
@@ -18,8 +16,7 @@ use bevy_inspector_egui::{
 };
 use bevy_reflect::TypeRegistry;
 use egui_dock::{NodeIndex, Tree};
-
-use super::player::components::PlayerComponent;
+use std::any::TypeId;
 
 pub struct InspectorPlugin;
 
@@ -50,7 +47,7 @@ fn set_camera_viewport(
     ui_state: Res<UiState>,
     windows: Res<Windows>,
     egui_settings: Res<bevy_egui::EguiSettings>,
-    mut cameras: Query<&mut Camera, With<PlayerComponent>>,
+    mut cameras: Query<&mut Camera, With<PlayerCameraComponent>>,
 ) {
     let mut cam = cameras.single_mut();
 
