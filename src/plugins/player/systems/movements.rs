@@ -1,42 +1,59 @@
 use crate::plugins::player::{
     components::PlayerComponent,
+    events::*,
     resources::{MovementSettings, PlayerMovementMode},
 };
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 pub fn player_fly_movement(
-    keys: Res<Input<KeyCode>>,
     time: Res<Time>,
     settings: Res<MovementSettings>,
-    mut query: Query<&mut Transform, With<PlayerComponent>>,
+    mut transform_q: Query<&mut Transform, With<PlayerComponent>>,
+    mut go_forward_e: EventReader<GoForwardEvent>,
+    mut go_backward_e: EventReader<GoBackwardEvent>,
+    mut go_left_e: EventReader<GoLeftEvent>,
+    mut go_right_e: EventReader<GoRightEvent>,
+    mut jump_e: EventReader<JumpEvent>,
+    mut go_down_e: EventReader<GoDownEvent>,
 ) {
     if settings.mode != PlayerMovementMode::Fly {
         return;
     }
 
-    for mut transform in query.iter_mut() {
-        let mut velocity = Vec3::ZERO;
-        let local_z = transform.local_z();
-        let forward = -Vec3::new(local_z.x, 0., local_z.z);
-        let right = Vec3::new(local_z.z, 0., -local_z.x);
+    let mut transform = transform_q.single_mut();
+    let mut velocity = Vec3::ZERO;
+    let local_z = transform.local_z();
+    let forward = -Vec3::new(local_z.x, 0., local_z.z);
+    let right = Vec3::new(local_z.z, 0., -local_z.x);
 
-        for key in keys.get_pressed() {
-            match key {
-                KeyCode::W => velocity += forward,
-                KeyCode::S => velocity -= forward,
-                KeyCode::A => velocity -= right,
-                KeyCode::D => velocity += right,
-                KeyCode::Space => velocity += Vec3::Y,
-                KeyCode::LShift => velocity -= Vec3::Y,
-                _ => (),
-            }
-        }
-
-        velocity = velocity.normalize_or_zero();
-
-        transform.translation += velocity * time.delta_seconds() * settings.fly_speed
+    for _ in go_forward_e.iter() {
+        velocity += forward;
     }
+
+    for _ in go_backward_e.iter() {
+        velocity -= forward;
+    }
+
+    for _ in go_left_e.iter() {
+        velocity -= right;
+    }
+
+    for _ in go_right_e.iter() {
+        velocity += right;
+    }
+
+    for _ in jump_e.iter() {
+        velocity += Vec3::Y;
+    }
+
+    for _ in go_down_e.iter() {
+        velocity -= Vec3::Y;
+    }
+
+    velocity = velocity.normalize_or_zero();
+
+    transform.translation += velocity * time.delta_seconds() * settings.fly_speed;
 }
 
 pub fn player_walk_movement(
@@ -50,9 +67,13 @@ pub fn player_walk_movement(
         With<PlayerComponent>,
     >,
     settings: Res<MovementSettings>,
-    keys: Res<Input<KeyCode>>,
     world_physics_config: Res<RapierConfiguration>,
     time: Res<Time>,
+    mut go_forward_ew: EventReader<GoForwardEvent>,
+    mut go_backward_ew: EventReader<GoBackwardEvent>,
+    mut go_left_ew: EventReader<GoLeftEvent>,
+    mut go_right_ew: EventReader<GoRightEvent>,
+    mut jump_ew: EventReader<JumpEvent>,
 ) {
     if settings.mode != PlayerMovementMode::Walk {
         return;
@@ -71,27 +92,34 @@ pub fn player_walk_movement(
         player.speed /= 1. + settings.friction_factor * time.delta_seconds();
     }
 
-    for key in keys.get_pressed() {
-        let speed = if controller_output.grounded {
-            settings.on_ground_speed
-        } else {
-            settings.in_air_speed
-        } * time.delta_seconds();
+    let speed = if controller_output.grounded {
+        settings.on_ground_speed
+    } else {
+        settings.in_air_speed
+    } * time.delta_seconds();
 
-        let right = transform.right();
-        let forward = Vec3::Y.cross(right);
+    let right = transform.right();
+    let forward = Vec3::Y.cross(right);
 
-        match key {
-            KeyCode::W => player.speed += forward * speed,
-            KeyCode::S => player.speed -= forward * speed,
-            KeyCode::A => player.speed -= right * speed,
-            KeyCode::D => player.speed += right * speed,
-            KeyCode::Space => {
-                if controller_output.grounded {
-                    player.speed.y += settings.jump_speed;
-                }
-            }
-            _ => (),
+    for _ in go_forward_ew.iter() {
+        player.speed += forward * speed;
+    }
+
+    for _ in go_backward_ew.iter() {
+        player.speed -= forward * speed;
+    }
+
+    for _ in go_left_ew.iter() {
+        player.speed -= right * speed;
+    }
+
+    for _ in go_right_ew.iter() {
+        player.speed += right * speed;
+    }
+
+    for _ in jump_ew.iter() {
+        if controller_output.grounded {
+            player.speed.y += settings.jump_speed;
         }
     }
 
@@ -99,12 +127,12 @@ pub fn player_walk_movement(
 }
 
 pub fn toggle_movement_mode(
-    keys: Res<Input<KeyCode>>,
     mut commands: Commands,
     mut settings: ResMut<MovementSettings>,
     player_query: Query<Entity, With<PlayerComponent>>,
+    mut toggle_fly_e: EventReader<ToggleFlyEvent>,
 ) {
-    if keys.just_pressed(KeyCode::F) {
+    for _ in toggle_fly_e.iter() {
         let player = player_query.single();
         settings.mode = match settings.mode {
             PlayerMovementMode::Fly => {

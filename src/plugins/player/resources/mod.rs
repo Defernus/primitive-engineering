@@ -1,6 +1,7 @@
+use crate::internal::pos::ChunkPos;
 use bevy::prelude::*;
 
-use crate::internal::pos::ChunkPos;
+pub mod input_settings;
 
 #[derive(Resource, Reflect, FromReflect, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum PlayerMovementMode {

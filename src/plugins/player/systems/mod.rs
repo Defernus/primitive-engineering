@@ -3,8 +3,10 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 pub mod cursor;
+pub mod input;
 pub mod look;
 pub mod movements;
+pub mod spawn_item;
 
 pub fn setup_player(mut commands: Commands) {
     commands

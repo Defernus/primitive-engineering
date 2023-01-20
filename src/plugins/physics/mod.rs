@@ -11,7 +11,6 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugin(RapierDebugRenderPlugin::default())
-            .add_system(spawn_ball)
             .add_system_set(SystemSet::on_enter(GameState::InGame).with_system(enable_physics))
             .add_system_set(SystemSet::on_exit(GameState::InGame).with_system(disable_physics))
             .insert_resource(RapierConfiguration {
