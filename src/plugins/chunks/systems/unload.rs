@@ -16,7 +16,7 @@ pub fn unload(
     mut world: ResMut<GameWorld>,
 ) {
     let player_transform = player_transform_q.single();
-    let player_chunk_pos = Chunk::get_chunk_pos_by_transform(player_transform);
+    let player_chunk_pos = Chunk::transform_to_chunk_pos(*player_transform);
 
     for (e, chunk) in chunk_q.iter() {
         let delta = chunk.chunk.get_pos() - player_chunk_pos;

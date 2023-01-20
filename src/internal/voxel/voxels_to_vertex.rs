@@ -227,17 +227,17 @@ fn append_triangle(
     vertex.push(Vertex {
         color: a_v.color.clone(),
         normal,
-        pos: c_pos,
+        pos: c_pos * Voxel::SCALE,
     });
     vertex.push(Vertex {
         color: a_v.color.clone(),
         normal,
-        pos: b_pos,
+        pos: b_pos * Voxel::SCALE,
     });
     vertex.push(Vertex {
         color: a_v.color.clone(),
         normal,
-        pos: a_pos,
+        pos: a_pos * Voxel::SCALE,
     });
 }
 

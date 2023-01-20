@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use self::{
     components::ChunkComponent,
     resources::{ChunkLoadIterator, ChunkLoadingEnabled, ChunksRedrawTimer},
-    systems::{loading::*, redraw::*, unload::*},
+    systems::{loading::*, mine::*, redraw::*, unload::*},
 };
 
 pub mod components;
@@ -26,6 +26,7 @@ impl Plugin for ChunksPlugin {
                     .with_system(chunk_load_system)
                     .with_system(spawn_chunk_system)
                     .with_system(redraw)
+                    .with_system(mine)
                     .with_system(unload),
             );
     }

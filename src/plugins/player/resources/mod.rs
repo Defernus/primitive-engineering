@@ -25,10 +25,10 @@ impl Default for MovementSettings {
     fn default() -> Self {
         Self {
             sensitivity: 0.00012,
-            fly_speed: 12.,
+            fly_speed: 3.,
             jump_speed: 5.0,
-            in_air_speed: 3.0,
-            on_ground_speed: 50.0,
+            in_air_speed: 2.0,
+            on_ground_speed: 40.0,
             friction_factor: 15.0,
             mode: PlayerMovementMode::Fly,
         }

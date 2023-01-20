@@ -5,7 +5,7 @@ use super::{
 };
 
 fn generate_voxel(_seed: u64, pos: GlobalVoxelPos) -> Voxel {
-    let scale: f32 = 0.5;
+    let scale: f32 = 0.5 * Voxel::SCALE;
     let value =
         (pos.x as f32 * scale).sin() * (pos.z as f32 * scale).sin() - (pos.y as f32 * scale);
 

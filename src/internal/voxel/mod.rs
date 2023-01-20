@@ -1,3 +1,5 @@
+use std::ops::{Add, AddAssign, Sub, SubAssign};
+
 use super::color::Color;
 
 pub(self) mod triangulation_table;
@@ -10,6 +12,8 @@ pub struct Voxel {
 }
 
 impl Voxel {
+    pub const SCALE: f32 = 0.25;
+
     pub const EMPTY: Self = Self {
         value: -f32::MIN_POSITIVE,
         color: Color::BLACK,
@@ -25,5 +29,39 @@ impl Voxel {
 
     pub fn get_color(&self) -> Color {
         self.color
+    }
+}
+
+impl Add<f32> for Voxel {
+    type Output = Self;
+
+    fn add(self, rhs: f32) -> Self::Output {
+        Self {
+            value: self.value + rhs,
+            color: self.color,
+        }
+    }
+}
+
+impl Sub<f32> for Voxel {
+    type Output = Self;
+
+    fn sub(self, rhs: f32) -> Self::Output {
+        Self {
+            value: self.value - rhs,
+            color: self.color,
+        }
+    }
+}
+
+impl SubAssign<f32> for Voxel {
+    fn sub_assign(&mut self, rhs: f32) {
+        self.value -= rhs;
+    }
+}
+
+impl AddAssign<f32> for Voxel {
+    fn add_assign(&mut self, rhs: f32) {
+        self.value += rhs;
     }
 }

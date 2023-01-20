@@ -12,3 +12,7 @@ pub struct ChunkComponent {
 
 #[derive(Component)]
 pub struct ComputeChunkGeneration(pub Receiver<(ChunkPos, Box<Chunk>)>);
+
+#[derive(Debug, Clone, Copy, Component, Default, Reflect, FromReflect)]
+#[reflect(Component)]
+pub struct ChunkMeshComponent;

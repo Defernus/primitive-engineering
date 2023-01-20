@@ -2,7 +2,7 @@ use crate::{
     internal::chunks::{Chunk, ChunkPointer},
     plugins::{
         chunks::{
-            components::{ChunkComponent, ComputeChunkGeneration},
+            components::{ChunkComponent, ChunkMeshComponent, ComputeChunkGeneration},
             resources::{
                 ChunkLoadIterator, ChunkLoadingEnabled, CHUNKS_SPAWN_AT_ONCE, DEFAULT_RADIUS,
             },
@@ -62,7 +62,7 @@ pub fn chunk_load_system(
 
     let player_transform = player_transform_q.single();
 
-    let player_chunk_pos = Chunk::get_chunk_pos_by_transform(player_transform);
+    let player_chunk_pos = Chunk::transform_to_chunk_pos(*player_transform);
 
     if player_chunk_pos != prev_player_chunk_pos.0 {
         prev_player_chunk_pos.0 = player_chunk_pos;
@@ -93,8 +93,9 @@ pub fn spawn_chunk_system(
             Ok((pos, chunk)) => {
                 let mesh =
                     StaticMeshComponent::spawn(&mut commands, &mut meshes, &mut materials, vec![]);
+                commands.entity(mesh).insert(ChunkMeshComponent);
 
-                let chunk_pos_vec = (pos * Chunk::SIZE as i64).to_vec3();
+                let chunk_pos_vec = Chunk::pos_to_vec(pos);
 
                 let chunk = ChunkPointer::new(*chunk, pos);
 

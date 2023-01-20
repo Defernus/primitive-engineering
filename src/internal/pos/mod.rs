@@ -35,6 +35,14 @@ impl<T: Reflect + Copy + Clone> Pos<T> {
 }
 
 impl<T: Reflect + Copy + Clone + num_traits::Num> Pos<T> {
+    pub fn zero() -> Self {
+        Self {
+            x: T::zero(),
+            y: T::zero(),
+            z: T::zero(),
+        }
+    }
+
     pub fn iter(size: Pos<T>) -> PosIter<T> {
         PosIter {
             pos: Pos::new(T::zero(), T::zero(), T::zero()),

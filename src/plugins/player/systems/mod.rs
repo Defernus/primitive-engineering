@@ -20,7 +20,7 @@ pub fn setup_player(mut commands: Commands) {
 
                 ..Default::default()
             },
-            Transform::from_xyz(0.0, 10.0, 16.0),
+            Transform::from_xyz(0.0, 2.0, 0.0),
             GlobalTransform::default(),
         ))
         .with_children(|parent| {

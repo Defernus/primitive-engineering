@@ -8,7 +8,7 @@ use crate::plugins::{
     game_world::resources::{GameWorld, GameWorldMeta},
     static_mesh::components::Vertex,
 };
-use bevy::prelude::{Entity, Transform};
+use bevy::prelude::{Entity, Transform, Vec3};
 use bevy_reflect::{FromReflect, Reflect};
 use std::{
     fmt::{Debug, Formatter},
@@ -51,8 +51,18 @@ pub struct Chunk {
     neighbors: [Option<ChunkPointer>; Direction::COUNT],
 }
 
+/// Result of relative chunk search.
+///
+/// Current - current chunk.
+/// Other - pointer to neighbor chunk.
+pub enum RelativeChunkResult {
+    Other(ChunkPointer),
+    Current,
+}
+
 impl Chunk {
     pub const SIZE: usize = 16;
+    pub const REAL_SIZE: f32 = Self::SIZE as f32 / Voxel::SCALE;
     pub const SIZE_I64: i64 = Self::SIZE as i64;
     pub const VOLUME: usize = Self::SIZE * Self::SIZE * Self::SIZE;
     pub const VOLUME_I64: i64 = Self::VOLUME as i64;
@@ -106,57 +116,323 @@ impl Chunk {
         self.need_redraw |= dir == Direction::X || dir == Direction::Y || dir == Direction::Z;
     }
 
-    /// Returns the voxel at the given relative to chunk position.
+    /// Returns the the chunk at the given relative position.
     ///
-    /// note: If the position is out of bounds this function will try to get the voxel from the neighbor chunk.
+    /// note: If the position is out of bounds this function will try to get the neighbor chunk.
     /// If the neighbor chunk is not loaded, this function will return `None`.
-    pub fn get_voxel(&self, pos: GlobalVoxelPos) -> Option<Voxel> {
+    pub fn get_relative_chunk(&self, pos: GlobalVoxelPos) -> Option<RelativeChunkResult> {
         if pos.x >= Self::SIZE_I64 {
             return self
                 .get_neighbor(Direction::X)?
-                .lock()
-                .get_voxel(pos - GlobalVoxelPos::new(Self::SIZE_I64, 0, 0));
+                .get_relative_chunk(pos - GlobalVoxelPos::new(Self::SIZE_I64, 0, 0))
+                .map(|v| RelativeChunkResult::Other(v));
         }
 
         if pos.y >= Self::SIZE_I64 {
             return self
                 .get_neighbor(Direction::Y)?
-                .lock()
-                .get_voxel(pos - GlobalVoxelPos::new(0, Self::SIZE_I64, 0));
+                .get_relative_chunk(pos - GlobalVoxelPos::new(0, Self::SIZE_I64, 0))
+                .map(|v| RelativeChunkResult::Other(v));
         }
 
         if pos.z >= Self::SIZE_I64 {
             return self
                 .get_neighbor(Direction::Z)?
-                .lock()
-                .get_voxel(pos - GlobalVoxelPos::new(0, 0, Self::SIZE_I64));
+                .get_relative_chunk(pos - GlobalVoxelPos::new(0, 0, Self::SIZE_I64))
+                .map(|v| RelativeChunkResult::Other(v));
         }
 
         if pos.x < 0 {
             return self
                 .get_neighbor(Direction::X_NEG)?
-                .lock()
-                .get_voxel(pos + GlobalVoxelPos::new(Self::SIZE_I64, 0, 0));
+                .get_relative_chunk(pos + GlobalVoxelPos::new(Self::SIZE_I64, 0, 0))
+                .map(|v| RelativeChunkResult::Other(v));
         }
 
         if pos.y < 0 {
             return self
                 .get_neighbor(Direction::Y_NEG)?
-                .lock()
-                .get_voxel(pos + GlobalVoxelPos::new(0, Self::SIZE_I64, 0));
+                .get_relative_chunk(pos + GlobalVoxelPos::new(0, Self::SIZE_I64, 0))
+                .map(|v| RelativeChunkResult::Other(v));
         }
 
         if pos.z < 0 {
             return self
                 .get_neighbor(Direction::Z_NEG)?
-                .lock()
-                .get_voxel(pos + GlobalVoxelPos::new(0, 0, Self::SIZE_I64));
+                .get_relative_chunk(pos + GlobalVoxelPos::new(0, 0, Self::SIZE_I64))
+                .map(|v| RelativeChunkResult::Other(v));
         }
 
-        Some(
-            self.voxels[VoxelPos::new(pos.x as usize, pos.y as usize, pos.z as usize)
-                .to_index(Self::SIZE)],
-        )
+        Some(RelativeChunkResult::Current)
+    }
+
+    /// Returns the voxel at the given relative to chunk position.
+    ///
+    /// note: If the position is out of bounds this function will try to get the voxel from the neighbor chunk.
+    /// If the neighbor chunk is not loaded, this function will return `None`.
+    pub fn get_voxel(&self, pos: GlobalVoxelPos) -> Option<Voxel> {
+        let chunk = self.get_relative_chunk(pos)?;
+
+        let normalized_pos = Self::normalize_pos(pos);
+        match chunk {
+            RelativeChunkResult::Current => Some(self.voxels[normalized_pos.to_index(Self::SIZE)]),
+            RelativeChunkResult::Other(chunk) => {
+                let chunk = chunk.lock();
+                Some(chunk.voxels[normalized_pos.to_index(Self::SIZE)])
+            }
+        }
+    }
+
+    /// Dig a hole at the given position.
+    ///
+    /// This function will update the neighbors of this chunk if needed and will cause a redraw.
+    ///
+    /// note: This functions assumes that the position is in the chunk,
+    /// the radius is less than `Chunk::REAL_SIZE` and all neighbors in 3x3x3 area are loaded.
+    /// Otherwise it will cause a sharp edges on the chunk borders.
+    ///
+    /// // !TODO:optimize iterate only needed voxels
+    pub fn dig(&mut self, relative_pos: Vec3, radius: f32, strength: f32) {
+        self.for_each_around_chunk(move |chunk_pos, chunk| {
+            chunk.need_redraw = true;
+            let chunk_offset = Self::pos_to_vec(chunk_pos);
+
+            let relative_pos = relative_pos - chunk_offset;
+
+            for x in 0..Self::SIZE {
+                for y in 0..Self::SIZE {
+                    for z in 0..Self::SIZE {
+                        let voxel_pos = VoxelPos::new(x, y, z);
+                        let pos = Self::voxel_pos_to_vec(GlobalVoxelPos::new(
+                            x as i64, y as i64, z as i64,
+                        ));
+                        let distance = (pos - relative_pos).length();
+
+                        if distance < radius {
+                            let voxel = &mut chunk.voxels[voxel_pos.to_index(Self::SIZE)];
+                            *voxel -= strength;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /// Iterates cube 3x3x3 of chunks around this chunk including itself
+    ///
+    /// note: If some neighbor is not loaded some other chunks may be skipped.
+    pub fn for_each_around_chunk<F: FnMut(ChunkPos, &mut Chunk)>(&mut self, mut f: F) {
+        let pos = ChunkPos::zero();
+
+        // up face
+        if let Some(chunk) = self.get_neighbor(Direction::UP) {
+            let mut chunk = chunk.lock();
+            let pos = pos + Direction::UP;
+
+            // up west edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::WEST) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::WEST;
+
+                // up west north corner
+                if let Some(chunk) = chunk.get_neighbor(Direction::NORTH) {
+                    let mut chunk = chunk.lock();
+                    let pos = pos + Direction::NORTH;
+
+                    f(pos, &mut chunk);
+                }
+
+                // up west south corner
+                if let Some(chunk) = chunk.get_neighbor(Direction::SOUTH) {
+                    let mut chunk = chunk.lock();
+                    let pos = pos + Direction::SOUTH;
+
+                    f(pos, &mut chunk);
+                }
+
+                f(pos, &mut chunk);
+            }
+
+            // up east edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::EAST) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::EAST;
+
+                // up east north corner
+                if let Some(chunk) = chunk.get_neighbor(Direction::NORTH) {
+                    let mut chunk = chunk.lock();
+                    let pos = pos + Direction::NORTH;
+
+                    f(pos, &mut chunk);
+                }
+
+                // up east south corner
+                if let Some(chunk) = chunk.get_neighbor(Direction::SOUTH) {
+                    let mut chunk = chunk.lock();
+                    let pos = pos + Direction::SOUTH;
+
+                    f(pos, &mut chunk);
+                }
+
+                f(pos, &mut chunk);
+            }
+
+            // up north edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::NORTH) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::NORTH;
+
+                f(pos, &mut chunk);
+            }
+
+            // up south edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::SOUTH) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::SOUTH;
+
+                f(pos, &mut chunk);
+            }
+
+            f(pos, &mut chunk);
+        }
+
+        // down face
+        if let Some(chunk) = self.get_neighbor(Direction::DOWN) {
+            let mut chunk = chunk.lock();
+            let pos = pos + Direction::DOWN;
+
+            // down west edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::WEST) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::WEST;
+
+                // down west north corner
+                if let Some(chunk) = chunk.get_neighbor(Direction::NORTH) {
+                    let mut chunk = chunk.lock();
+                    let pos = pos + Direction::NORTH;
+
+                    f(pos, &mut chunk);
+                }
+
+                // down west south corner
+                if let Some(chunk) = chunk.get_neighbor(Direction::SOUTH) {
+                    let mut chunk = chunk.lock();
+                    let pos = pos + Direction::SOUTH;
+
+                    f(pos, &mut chunk);
+                }
+
+                f(pos, &mut chunk);
+            }
+
+            // down east edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::EAST) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::EAST;
+
+                // down east north corner
+                if let Some(chunk) = chunk.get_neighbor(Direction::NORTH) {
+                    let mut chunk = chunk.lock();
+                    let pos = pos + Direction::NORTH;
+
+                    f(pos, &mut chunk);
+                }
+
+                // down east south corner
+                if let Some(chunk) = chunk.get_neighbor(Direction::SOUTH) {
+                    let mut chunk = chunk.lock();
+                    let pos = pos + Direction::SOUTH;
+
+                    f(pos, &mut chunk);
+                }
+
+                f(pos, &mut chunk);
+            }
+
+            // down north edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::NORTH) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::NORTH;
+
+                f(pos, &mut chunk);
+            }
+
+            // down south edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::SOUTH) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::SOUTH;
+
+                f(pos, &mut chunk);
+            }
+
+            f(pos, &mut chunk);
+        }
+
+        // west face
+        if let Some(chunk) = self.get_neighbor(Direction::WEST) {
+            let mut chunk = chunk.lock();
+            let pos = pos + Direction::WEST;
+
+            // west north edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::NORTH) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::NORTH;
+
+                f(pos, &mut chunk);
+            }
+
+            // west south edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::SOUTH) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::SOUTH;
+
+                f(pos, &mut chunk);
+            }
+
+            f(pos, &mut chunk);
+        }
+
+        // east face
+        if let Some(chunk) = self.get_neighbor(Direction::EAST) {
+            let mut chunk = chunk.lock();
+            let pos = pos + Direction::EAST;
+
+            // east north edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::NORTH) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::NORTH;
+
+                f(pos, &mut chunk);
+            }
+
+            // east south edge
+            if let Some(chunk) = chunk.get_neighbor(Direction::SOUTH) {
+                let mut chunk = chunk.lock();
+                let pos = pos + Direction::SOUTH;
+
+                f(pos, &mut chunk);
+            }
+
+            f(pos, &mut chunk);
+        }
+
+        // north face
+        if let Some(chunk) = self.get_neighbor(Direction::NORTH) {
+            let mut chunk = chunk.lock();
+            let pos = pos + Direction::NORTH;
+
+            f(pos, &mut chunk);
+        }
+
+        // south face
+        if let Some(chunk) = self.get_neighbor(Direction::SOUTH) {
+            let mut chunk = chunk.lock();
+            let pos = pos + Direction::SOUTH;
+
+            f(pos, &mut chunk);
+        }
+
+        f(ChunkPos::zero(), self);
     }
 
     pub fn get_neighbor(&self, dir: Direction) -> Option<ChunkPointer> {
@@ -194,7 +470,54 @@ impl Chunk {
             .map(|(dir, neighbor)| (dir.try_into().unwrap(), neighbor))
     }
 
+    fn normalize_axis(axis: i64) -> usize {
+        ((axis % Self::SIZE_I64 + Self::SIZE_I64) % Self::SIZE_I64) as usize
+    }
+
+    /// Transform global pos to local pos.
+    pub fn normalize_pos(pos: GlobalVoxelPos) -> VoxelPos {
+        VoxelPos::new(
+            Self::normalize_axis(pos.x),
+            Self::normalize_axis(pos.y),
+            Self::normalize_axis(pos.z),
+        )
+    }
+
+    fn axis_pos_to_voxel_pos(val: f32) -> i64 {
+        let val = val / Voxel::SCALE;
+        if val >= 0.0 {
+            val as i64
+        } else {
+            val.floor() as i64
+        }
+    }
+
+    pub fn vec_to_voxel_pos(vec: Vec3) -> GlobalVoxelPos {
+        GlobalVoxelPos::new(
+            Self::axis_pos_to_voxel_pos(vec.x),
+            Self::axis_pos_to_voxel_pos(vec.y),
+            Self::axis_pos_to_voxel_pos(vec.z),
+        )
+    }
+
+    pub fn voxel_pos_to_vec(pos: GlobalVoxelPos) -> Vec3 {
+        Vec3::new(
+            pos.x as f32 * Voxel::SCALE,
+            pos.y as f32 * Voxel::SCALE,
+            pos.z as f32 * Voxel::SCALE,
+        )
+    }
+
+    pub fn pos_to_vec(pos: ChunkPos) -> Vec3 {
+        Vec3::new(
+            pos.x as f32 * Self::SIZE_I64 as f32 * Voxel::SCALE,
+            pos.y as f32 * Self::SIZE_I64 as f32 * Voxel::SCALE,
+            pos.z as f32 * Self::SIZE_I64 as f32 * Voxel::SCALE,
+        )
+    }
+
     fn axis_pos_to_chunk_pos(val: f32) -> i64 {
+        let val = val / Voxel::SCALE;
         if val >= 0.0 {
             (val / Self::SIZE_I64 as f32) as i64
         } else {
@@ -202,13 +525,15 @@ impl Chunk {
         }
     }
 
-    pub fn get_chunk_pos_by_transform(transform: &Transform) -> ChunkPos {
-        let pos = transform.translation;
+    pub fn vec_to_chunk_pos(pos: Vec3) -> ChunkPos {
         ChunkPos::new(
             Self::axis_pos_to_chunk_pos(pos.x),
             Self::axis_pos_to_chunk_pos(pos.y),
             Self::axis_pos_to_chunk_pos(pos.z),
         )
+    }
+    pub fn transform_to_chunk_pos(transform: Transform) -> ChunkPos {
+        Self::vec_to_chunk_pos(transform.translation)
     }
 }
 
@@ -222,6 +547,18 @@ impl ChunkPointer {
 
     pub fn lock(&self) -> MutexGuard<Chunk> {
         self.chunk.lock().unwrap()
+    }
+
+    pub fn get_relative_chunk(&self, pos: GlobalVoxelPos) -> Option<ChunkPointer> {
+        let chunk = self.lock();
+
+        match chunk.get_relative_chunk(pos) {
+            Some(chunk) => match chunk {
+                RelativeChunkResult::Current => Some(self.clone()),
+                RelativeChunkResult::Other(chunk) => Some(chunk),
+            },
+            None => None,
+        }
     }
 
     pub fn get_pos(&self) -> ChunkPos {
