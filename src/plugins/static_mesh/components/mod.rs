@@ -1,6 +1,7 @@
 use crate::internal::color::Color;
 use bevy::prelude::*;
 use bevy::render::mesh::{self, PrimitiveTopology};
+use bevy::render::view::NoFrustumCulling;
 use bevy_rapier3d::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 #[derive(Debug, Clone, Copy, Component, PartialEq, Eq, Hash, Reflect, FromReflect)]
@@ -32,6 +33,8 @@ impl StaticMeshComponent {
                 }),
                 ..default()
             },
+            // !FIXME: figure out why frustum culling is broken for chunk meshes
+            NoFrustumCulling,
             StaticMeshComponent,
         ));
         if let Some(collider) = Self::generate_collider(&vertices) {
