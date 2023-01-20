@@ -96,7 +96,7 @@ impl Default for PlayerInputSettings {
             go_left: InputCondition::key_repeat(KeyCode::A),
             go_right: InputCondition::key_repeat(KeyCode::D),
 
-            jump: InputCondition::key_single(KeyCode::Space),
+            jump: InputCondition::key_repeat(KeyCode::Space),
             go_down: InputCondition::key_repeat(KeyCode::LControl),
             sprint: InputCondition::key_repeat(KeyCode::LShift),
 
