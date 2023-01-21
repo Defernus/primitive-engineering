@@ -75,9 +75,10 @@ pub struct PlayerInputSettings {
     pub go_backward: InputCondition,
     pub go_left: InputCondition,
     pub go_right: InputCondition,
+    pub go_up: InputCondition,
+    pub go_down: InputCondition,
 
     pub jump: InputCondition,
-    pub go_down: InputCondition,
     pub sprint: InputCondition,
 
     pub toggle_fly: InputCondition,
@@ -95,9 +96,10 @@ impl Default for PlayerInputSettings {
             go_backward: InputCondition::key_repeat(KeyCode::S),
             go_left: InputCondition::key_repeat(KeyCode::A),
             go_right: InputCondition::key_repeat(KeyCode::D),
-
-            jump: InputCondition::key_repeat(KeyCode::Space),
+            go_up: InputCondition::key_repeat(KeyCode::Space),
             go_down: InputCondition::key_repeat(KeyCode::LControl),
+
+            jump: InputCondition::key_single(KeyCode::Space),
             sprint: InputCondition::key_repeat(KeyCode::LShift),
 
             toggle_fly: InputCondition::key_single(KeyCode::F),

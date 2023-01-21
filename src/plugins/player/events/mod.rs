@@ -13,10 +13,13 @@ pub struct GoLeftEvent;
 pub struct GoRightEvent;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
-pub struct JumpEvent;
+pub struct GoUpEvent;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
 pub struct GoDownEvent;
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
+pub struct JumpEvent;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
 pub struct SprintEvent;

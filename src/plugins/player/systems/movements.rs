@@ -14,7 +14,7 @@ pub fn player_fly_movement(
     mut go_backward_e: EventReader<GoBackwardEvent>,
     mut go_left_e: EventReader<GoLeftEvent>,
     mut go_right_e: EventReader<GoRightEvent>,
-    mut jump_e: EventReader<JumpEvent>,
+    mut go_up_e: EventReader<GoUpEvent>,
     mut go_down_e: EventReader<GoDownEvent>,
 ) {
     if settings.mode != PlayerMovementMode::Fly {
@@ -43,7 +43,7 @@ pub fn player_fly_movement(
         velocity += right;
     }
 
-    for _ in jump_e.iter() {
+    for _ in go_up_e.iter() {
         velocity += Vec3::Y;
     }
 

@@ -41,8 +41,9 @@ pub fn process_input(
     mut go_backward_ew: EventWriter<GoBackwardEvent>,
     mut go_left_ew: EventWriter<GoLeftEvent>,
     mut go_right_ew: EventWriter<GoRightEvent>,
-    mut jump_ew: EventWriter<JumpEvent>,
+    mut go_up_ew: EventWriter<GoUpEvent>,
     mut go_down_ew: EventWriter<GoDownEvent>,
+    mut jump_ew: EventWriter<JumpEvent>,
     mut toggle_fly_ew: EventWriter<ToggleFlyEvent>,
     mut sprint_ew: EventWriter<SprintEvent>,
     mut spawn_item_ew: EventWriter<SpawnItemEvent>,
@@ -54,8 +55,9 @@ pub fn process_input(
     process(&k, &m, s.go_backward, &mut go_backward_ew);
     process(&k, &m, s.go_left, &mut go_left_ew);
     process(&k, &m, s.go_right, &mut go_right_ew);
-    process(&k, &m, s.jump, &mut jump_ew);
+    process(&k, &m, s.go_up, &mut go_up_ew);
     process(&k, &m, s.go_down, &mut go_down_ew);
+    process(&k, &m, s.jump, &mut jump_ew);
     process(&k, &m, s.toggle_fly, &mut toggle_fly_ew);
     process(&k, &m, s.sprint, &mut sprint_ew);
     process(&k, &m, s.spawn_item, &mut spawn_item_ew);
