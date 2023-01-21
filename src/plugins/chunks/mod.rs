@@ -3,7 +3,7 @@ use bevy::prelude::*;
 
 use self::{
     components::ChunkComponent,
-    resources::{ChunkLoadIterator, ChunkLoadingEnabled, ChunksRedrawTimer},
+    resources::{ChunkLoadIterator, ChunkLoadingEnabled},
     systems::{loading::*, mine::*, redraw::*, unload::*},
 };
 
@@ -19,7 +19,6 @@ impl Plugin for ChunksPlugin {
             .register_type::<ChunkLoadingEnabled>()
             .register_type::<ChunkLoadIterator>()
             .insert_resource(ChunkLoadingEnabled(true))
-            .insert_resource(ChunksRedrawTimer::default())
             .insert_resource(ChunkLoadIterator::new(ChunkPos::new(0, 0, 0)))
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
