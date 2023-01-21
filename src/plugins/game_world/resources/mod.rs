@@ -11,11 +11,13 @@ use bevy::{
 use bevy_inspector_egui::InspectorOptions;
 use strum::IntoEnumIterator;
 
+pub type WorldSeed = u32;
+
 #[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions)]
 #[reflect(Resource)]
 pub struct GameWorldMeta {
     pub name: String,
-    pub seed: u64,
+    pub seed: WorldSeed,
     pub id: String,
 }
 

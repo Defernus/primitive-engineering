@@ -1,6 +1,9 @@
 use std::hash::{Hash, Hasher};
 
-use crate::{plugins::game_world::resources::GameWorldMeta, states::game_state::GameState};
+use crate::{
+    plugins::game_world::resources::{GameWorldMeta, WorldSeed},
+    states::game_state::GameState,
+};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext};
 
@@ -43,7 +46,7 @@ pub fn new_game(
                 let mut hasher = std::collections::hash_map::DefaultHasher::new();
                 local_state.seed.hash(&mut hasher);
                 hasher.finish()
-            });
+            }) as WorldSeed;
         });
 
         if ui.button("Generate world").clicked() {
