@@ -191,7 +191,7 @@ impl Chunk {
     /// the radius is less than `Chunk::REAL_SIZE` and all neighbors in 3x3x3 area are loaded.
     /// Otherwise it will cause a sharp edges on the chunk borders.
     ///
-    /// // !TODO:optimize iterate only needed voxels
+    /// !TODO:optimize iterate only needed voxels
     pub fn dig(&mut self, relative_pos: Vec3, radius: f32, strength: f32) {
         self.for_each_around_chunk(move |chunk_pos, chunk| {
             chunk.need_redraw = true;
