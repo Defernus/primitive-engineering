@@ -103,7 +103,7 @@ impl Default for PlayerInputSettings {
             toggle_fly: InputCondition::key_single(KeyCode::F),
 
             spawn_item: InputCondition::key_single(KeyCode::B),
-            mine: InputCondition::mouse_repeat(MouseButton::Left),
+            mine: InputCondition::mouse_single(MouseButton::Left),
             use_or_place: InputCondition::mouse_single(MouseButton::Right),
             interact: InputCondition::key_single(KeyCode::E),
         }

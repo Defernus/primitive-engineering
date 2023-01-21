@@ -18,7 +18,6 @@ pub fn mine(
     player_rigid_body_q: Query<Entity, With<PlayerComponent>>,
     chunk_q: Query<&ChunkComponent>,
     chunk_mesh_q: Query<&Parent, With<ChunkMeshComponent>>,
-    time: Res<Time>,
 ) {
     for _ in mine_e.iter() {
         let transform = transform_q.single().compute_transform();
@@ -39,9 +38,7 @@ pub fn mine(
                     let ChunkComponent { chunk } = chunk_q.get(parent.get()).unwrap();
                     let hit_pos = ray_origin + dir * far;
                     let chunk_offset = Chunk::pos_to_vec(chunk.get_pos());
-                    chunk
-                        .lock()
-                        .dig(hit_pos - chunk_offset, 1.0, time.delta_seconds());
+                    chunk.lock().dig(hit_pos - chunk_offset, 0.5, 1.0);
                 }
                 Err(_) => {}
             }
