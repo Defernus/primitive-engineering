@@ -8,6 +8,7 @@ use crate::{
             },
         },
         game_world::resources::{GameWorld, GameWorldMeta},
+        loading::resources::GameAssets,
         player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
         static_mesh::components::StaticMeshComponent,
     },
@@ -85,14 +86,13 @@ pub fn spawn_chunk_system(
     mut world: ResMut<GameWorld>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    assets: Res<GameAssets>,
     generation_task: Query<(Entity, &mut ComputeChunkGeneration)>,
 ) {
     for (e, ComputeChunkGeneration(rx)) in generation_task.iter() {
         match rx.try_recv() {
             Ok((pos, chunk)) => {
-                let mesh =
-                    StaticMeshComponent::spawn(&mut commands, &mut meshes, &mut materials, vec![]);
+                let mesh = StaticMeshComponent::spawn(&mut commands, &mut meshes, &assets, vec![]);
                 commands.entity(mesh).insert(ChunkMeshComponent);
 
                 let chunk_pos_vec = Chunk::pos_to_vec(pos);

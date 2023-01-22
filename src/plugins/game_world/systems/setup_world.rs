@@ -7,14 +7,14 @@ pub struct WorldSun;
 
 pub fn setup_world(mut commands: Commands) {
     commands.insert_resource(AmbientLight {
-        color: Color::WHITE,
+        color: Color::rgb_u8(227, 255, 255),
         brightness: 0.2,
     });
     commands
         .spawn(DirectionalLightBundle {
             directional_light: DirectionalLight {
                 illuminance: 10000.0,
-                shadows_enabled: false,
+                shadows_enabled: true,
                 ..Default::default()
             },
             transform: Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::PI / 2.0)),

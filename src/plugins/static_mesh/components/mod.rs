@@ -1,4 +1,5 @@
 use crate::internal::color::Color;
+use crate::plugins::loading::resources::GameAssets;
 use bevy::prelude::*;
 use bevy::render::mesh::{self, PrimitiveTopology};
 use bevy::render::primitives::Aabb;
@@ -18,19 +19,13 @@ impl StaticMeshComponent {
     pub fn spawn(
         commands: &mut Commands,
         meshes: &mut Assets<Mesh>,
-        materials: &mut Assets<StandardMaterial>,
+        assets: &GameAssets,
         vertices: Vec<Vertex>,
     ) -> Entity {
         let mut e = commands.spawn((
             PbrBundle {
                 mesh: meshes.add(Self::generate_mesh(&vertices)),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::rgb(1.0, 1.0, 1.0).into(),
-                    perceptual_roughness: 1.,
-                    metallic: 0.,
-                    reflectance: 0.,
-                    ..default()
-                }),
+                material: assets.default_material.clone(),
                 ..default()
             },
             StaticMeshComponent,

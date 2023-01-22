@@ -11,8 +11,17 @@ pub fn load_assets(
 ) {
     let game_assets = GameAssets {
         main_font: asset_server.load("fonts/roboto.ttf"),
-        voxel_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.5 })),
-        voxel_material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+        default_material: materials.add(StandardMaterial {
+            base_color: Color::rgb(1.0, 1.0, 1.0).into(),
+            perceptual_roughness: 1.,
+            metallic: 0.,
+            reflectance: 0.,
+            ..default()
+        }),
+        item_mesh: meshes.add(Mesh::from(shape::Icosphere {
+            radius: 0.5,
+            subdivisions: 7,
+        })),
     };
 
     commands.insert_resource(game_assets);

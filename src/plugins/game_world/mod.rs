@@ -7,7 +7,7 @@ use self::{
     },
 };
 use crate::states::game_state::GameState;
-use bevy::prelude::*;
+use bevy::{pbr::DirectionalLightShadowMap, prelude::*};
 
 pub mod resources;
 mod systems;
@@ -28,6 +28,7 @@ impl Plugin for GameWorldPlugin {
         .add_system_set(
             SystemSet::on_update(GameState::WorldLoading).with_system(world_loading_progress),
         )
+        .insert_resource(DirectionalLightShadowMap { size: 16384 })
         .register_type::<WorldSun>()
         .register_type::<GameWorldMeta>()
         .register_type::<GameWorld>()
