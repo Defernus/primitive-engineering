@@ -18,7 +18,8 @@ pub fn load_assets(
             reflectance: 0.,
             ..default()
         }),
-        item_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
+        tree_scene: asset_server.load("models/tree.glb#Scene0"),
+        debug_item_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
     };
 
     commands.insert_resource(game_assets);

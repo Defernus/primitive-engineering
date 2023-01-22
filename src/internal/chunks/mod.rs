@@ -2,7 +2,7 @@ use super::{
     direction::Direction,
     pos::{ChunkPos, GlobalVoxelPos, VoxelPos},
     voxel::{voxels_to_vertex::append_vertex, Voxel},
-    voxels_generator::generate_voxels,
+    world_generator::generate_voxels,
 };
 use crate::plugins::{
     game_world::resources::{GameWorld, GameWorldMeta},
@@ -62,7 +62,7 @@ pub enum RelativeChunkResult {
 
 impl Chunk {
     pub const SIZE: usize = 16;
-    pub const REAL_SIZE: f32 = Self::SIZE as f32 / Voxel::SCALE;
+    pub const REAL_SIZE: f32 = Self::SIZE as f32 * Voxel::SCALE;
     pub const SIZE_I64: i64 = Self::SIZE as i64;
     pub const VOLUME: usize = Self::SIZE * Self::SIZE * Self::SIZE;
     pub const VOLUME_I64: i64 = Self::VOLUME as i64;

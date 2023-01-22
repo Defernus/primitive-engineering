@@ -17,7 +17,7 @@ pub fn setup_world(mut commands: Commands) {
                 shadows_enabled: true,
                 ..Default::default()
             },
-            transform: Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::PI / 2.0)),
+            transform: Transform::default().looking_at(Vec3::new(0.3, -1.0, 0.1), Vec3::Y),
             ..Default::default()
         })
         .insert(WorldSun)

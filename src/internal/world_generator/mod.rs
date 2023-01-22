@@ -1,15 +1,19 @@
-use std::f32::consts::E;
-
-use noise::{NoiseFn, OpenSimplex};
-use num_traits::Pow;
-
-use crate::plugins::game_world::resources::WorldSeed;
+use self::landscape_height::get_landscape_height;
 
 use super::{
     color::Color,
     pos::{GlobalVoxelPos, VoxelPos},
     voxel::Voxel,
 };
+use crate::plugins::game_world::resources::WorldSeed;
+use noise::{NoiseFn, OpenSimplex};
+use num_traits::Pow;
+use std::f32::consts::E;
+
+pub mod landscape_height;
+pub mod objects;
+
+const SCALE: f64 = 0.15 * Voxel::SCALE as f64;
 
 /// Simple sigmoid like function. Bound value to (-1, 1)
 ///
@@ -29,25 +33,24 @@ fn blend_color(a: Color, b: Color, t: f32) -> Color {
 }
 
 fn generate_voxel(simplex: &OpenSimplex, pos: GlobalVoxelPos) -> Voxel {
-    let scale = 0.15 * Voxel::SCALE as f64;
-    let bumps_scale = (1.0 * Voxel::SCALE) as f64 / scale;
-    let bumps_factor = (0.05 * Voxel::SCALE) as f64;
+    let bumps_scale = 1.0 / SCALE;
+    let bumps_factor: f64 = 0.005;
 
     let pos = pos.to_vec3();
 
-    let x = pos.x as f64;
-    let y = pos.y as f64;
-    let z = pos.z as f64;
+    let x = pos.x as f64 * Voxel::SCALE as f64;
+    let y = pos.y as f64 * Voxel::SCALE as f64;
+    let z = pos.z as f64 * Voxel::SCALE as f64;
 
-    let value = simplex.get([x * scale, z * scale]);
-    let value = value + bumps_factor * simplex.get([x * bumps_scale, z * bumps_scale]);
-    let value = value - y * scale * 3.0;
+    let landscape = get_landscape_height(simplex, x, z);
+    let bumps = bumps_factor * simplex.get([x * bumps_scale, y * bumps_scale, z * bumps_scale]);
+    let value = (landscape - y) * SCALE + bumps;
     let value = value as f32;
 
     let dirt_start = 3.0;
     let grass_to_dirt_transition = 1.0;
 
-    let color = match value / scale as f32 {
+    let color = match value / SCALE as f32 {
         v if v >= 0.0 => blend_color(
             Color::GREEN,
             Color::rgb_u8(155, 118, 83),

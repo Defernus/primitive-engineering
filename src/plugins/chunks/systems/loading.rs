@@ -1,5 +1,9 @@
 use crate::{
-    internal::chunks::{Chunk, ChunkPointer},
+    internal::{
+        chunks::{Chunk, ChunkPointer},
+        pos::ChunkPos,
+        world_generator::objects::get_ground_object_pos,
+    },
     plugins::{
         chunks::{
             components::{ChunkComponent, ChunkMeshComponent, ComputeChunkGeneration},
@@ -9,6 +13,7 @@ use crate::{
         },
         game_world::resources::{GameWorld, GameWorldMeta},
         loading::resources::GameAssets,
+        objects::components::presets::tree::TreeObjectBundle,
         player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
         static_mesh::components::StaticMeshComponent,
     },
@@ -82,18 +87,39 @@ pub fn chunk_load_system(
     );
 }
 
+fn spawn_tree(
+    pos: ChunkPos,
+    chunk_entity: Entity,
+    commands: &mut Commands,
+    assets: &GameAssets,
+    world_meta: &GameWorldMeta,
+) {
+    if let Some(tree_pos) = get_ground_object_pos(world_meta.seed, pos, 1, 0.2, 0) {
+        commands.entity(chunk_entity).with_children(|parent| {
+            parent.spawn(TreeObjectBundle::new(
+                &assets,
+                Transform::from_translation(tree_pos),
+            ));
+        });
+    }
+}
+
 pub fn spawn_chunk_system(
     mut world: ResMut<GameWorld>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
+    world_meta: Res<GameWorldMeta>,
     generation_task: Query<(Entity, &mut ComputeChunkGeneration)>,
 ) {
     for (e, ComputeChunkGeneration(rx)) in generation_task.iter() {
         match rx.try_recv() {
             Ok((pos, chunk)) => {
                 let mesh = StaticMeshComponent::spawn(&mut commands, &mut meshes, &assets, vec![]);
-                commands.entity(mesh).insert(ChunkMeshComponent);
+                commands
+                    .entity(mesh)
+                    .insert(ChunkMeshComponent)
+                    .insert(Name::new("Chunk Mesh"));
 
                 let chunk_pos_vec = Chunk::pos_to_vec(pos);
 
@@ -111,6 +137,8 @@ pub fn spawn_chunk_system(
                     ))
                     .add_child(mesh)
                     .id();
+
+                spawn_tree(pos, chunk_entity, &mut commands, &assets, &world_meta);
 
                 commands.entity(e).despawn();
                 let prev_chunk_entity = world.update_chunk_at(pos, chunk, chunk_entity);

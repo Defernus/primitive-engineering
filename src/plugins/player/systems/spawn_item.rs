@@ -23,7 +23,7 @@ pub fn spawn_item(
             Collider::cuboid(0.1, 0.1, 0.1),
             Restitution::coefficient(0.7),
             PbrBundle {
-                mesh: assets.item_mesh.clone(),
+                mesh: assets.debug_item_mesh.clone(),
                 material: assets.default_material.clone(),
                 transform: Transform::from_translation(pos),
                 ..Default::default()
