@@ -18,10 +18,7 @@ pub fn load_assets(
             reflectance: 0.,
             ..default()
         }),
-        item_mesh: meshes.add(Mesh::from(shape::Icosphere {
-            radius: 0.5,
-            subdivisions: 7,
-        })),
+        item_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
     };
 
     commands.insert_resource(game_assets);

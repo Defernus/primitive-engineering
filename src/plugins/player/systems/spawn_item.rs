@@ -20,7 +20,7 @@ pub fn spawn_item(
 
         commands.spawn((
             RigidBody::Dynamic,
-            Collider::ball(0.5),
+            Collider::cuboid(0.1, 0.1, 0.1),
             Restitution::coefficient(0.7),
             PbrBundle {
                 mesh: assets.item_mesh.clone(),
@@ -28,6 +28,7 @@ pub fn spawn_item(
                 transform: Transform::from_translation(pos),
                 ..Default::default()
             },
+            Name::new("Item"),
         ));
     }
 }
