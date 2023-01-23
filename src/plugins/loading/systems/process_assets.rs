@@ -14,7 +14,7 @@ pub fn process_assets(
         .map(|(i, _)| i)
         .collect();
 
-    let has_not_loaded = fields.iter().any(|&index| {
+    let all_loaded = fields.iter().all(|&index| {
         let field_name = {
             let name = game_assets.name_at(index).unwrap();
             name.to_string()
@@ -23,14 +23,14 @@ pub fn process_assets(
 
         // Try to process field as specific asset type.
         // If field is not loaded yet, return true and skip frame
-        if process_physic_objects(field_name, field, &mut scenes, &meshes) {
+        if !process_physic_objects(field_name.clone(), field, &mut scenes, &meshes) {
             return false;
         }
 
         return true;
     });
 
-    if has_not_loaded {
+    if !all_loaded {
         return;
     }
 

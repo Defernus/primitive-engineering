@@ -1,9 +1,9 @@
 use crate::plugins::{
+    items::components::presets::BranchItemBundle,
     loading::resources::GameAssets,
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
 
 pub fn spawn_item(
     mut commands: Commands,
@@ -18,17 +18,9 @@ pub fn spawn_item(
 
         let pos = camera_transform.translation + camera_transform.forward() * far;
 
-        commands.spawn((
-            RigidBody::Dynamic,
-            Collider::cuboid(0.1, 0.1, 0.1),
-            Restitution::coefficient(0.7),
-            PbrBundle {
-                mesh: assets.debug_item_mesh.clone(),
-                material: assets.default_material.clone(),
-                transform: Transform::from_translation(pos),
-                ..Default::default()
-            },
-            Name::new("Item"),
+        commands.spawn(BranchItemBundle::new(
+            &assets,
+            Transform::from_translation(pos),
         ));
     }
 }

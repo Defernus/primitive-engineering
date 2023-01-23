@@ -31,6 +31,7 @@ pub fn load_assets(
         debug_item_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
 
         tree_object: load_scene_with_physics("models/tree.glb#Scene0", &asset_server),
+        branch_object: load_scene_with_physics("models/branch.glb#Scene0", &asset_server),
     };
 
     commands.insert_resource(game_assets);

@@ -53,7 +53,7 @@ fn collider_from_mesh(field_name: String, mesh: &Mesh) -> Option<Collider> {
 
     let collider = Collider::trimesh(vertices, triple_indices);
 
-    debug!("collider loaded for {}", field_name);
+    println!("collider loaded for {}", field_name);
 
     return Some(collider);
 }
@@ -115,9 +115,11 @@ pub fn process_physic_objects(
                 );
             }
             despawn_with_children_recursive(&mut scene.world, e);
-            break;
+            return true;
         }
     }
+
+    warn!("collider not found for {}", field_name);
 
     return true;
 }

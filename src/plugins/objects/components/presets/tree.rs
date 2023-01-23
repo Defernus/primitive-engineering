@@ -19,17 +19,11 @@ pub struct TreeObjectBundle {
 
 impl TreeObjectBundle {
     pub fn new(assets: &GameAssets, transform: Transform) -> Self {
-        let collider = if let Some(c) = assets.tree_object.collider.clone() {
-            c
-        } else {
-            Collider::ball(0.1)
-        };
-
         Self {
             o: GameWorldObject,
             s: TreeObject,
-            name: Name::new("Tree"),
-            collider,
+            name: Name::new("object:tree"),
+            collider: assets.tree_object.collider.clone().unwrap(),
             scene_bundle: SceneBundle {
                 scene: assets.tree_object.scene.clone(),
                 transform,

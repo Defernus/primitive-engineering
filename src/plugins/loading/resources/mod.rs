@@ -17,4 +17,5 @@ pub struct GameAssets {
     pub debug_item_mesh: Handle<Mesh>,
 
     pub tree_object: PhysicsObject,
+    pub branch_object: PhysicsObject,
 }
