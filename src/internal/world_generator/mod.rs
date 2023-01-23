@@ -1,5 +1,4 @@
-use self::landscape_height::get_landscape_height;
-
+use self::{landscape_height::get_landscape_height, randomize_color::randomize_color};
 use super::{
     color::Color,
     pos::{GlobalVoxelPos, VoxelPos},
@@ -12,6 +11,7 @@ use std::f32::consts::E;
 
 pub mod landscape_height;
 pub mod objects;
+pub mod randomize_color;
 
 const SCALE: f64 = 0.15 * Voxel::SCALE as f64;
 
@@ -36,28 +36,30 @@ fn generate_voxel(simplex: &OpenSimplex, pos: GlobalVoxelPos) -> Voxel {
     let bumps_scale = 1.0 / SCALE;
     let bumps_factor: f64 = 0.005;
 
-    let pos = pos.to_vec3();
+    let pos_vec = pos.to_vec3();
 
-    let x = pos.x as f64 * Voxel::SCALE as f64;
-    let y = pos.y as f64 * Voxel::SCALE as f64;
-    let z = pos.z as f64 * Voxel::SCALE as f64;
+    let x = pos_vec.x as f64 * Voxel::SCALE as f64;
+    let y = pos_vec.y as f64 * Voxel::SCALE as f64;
+    let z = pos_vec.z as f64 * Voxel::SCALE as f64;
 
     let landscape = get_landscape_height(simplex, x, z);
     let bumps = bumps_factor * simplex.get([x * bumps_scale, y * bumps_scale, z * bumps_scale]);
     let value = (landscape - y) * SCALE + bumps;
     let value = value as f32;
 
-    let dirt_start = 3.0;
-    let grass_to_dirt_transition = 1.0;
+    let dirt_start = 1.0 * Voxel::SCALE;
+    let grass_to_dirt_transition = 1.0 * Voxel::SCALE;
 
     let color = match value / SCALE as f32 {
         v if v >= 0.0 => blend_color(
             Color::GREEN,
-            Color::rgb_u8(155, 118, 83),
+            Color::rgb_u8(41, 15, 0),
             (v - dirt_start) / grass_to_dirt_transition,
         ),
         _ => Color::GREEN,
     };
+
+    let color = randomize_color(simplex, pos, color);
 
     let value = normalize_value(value);
 

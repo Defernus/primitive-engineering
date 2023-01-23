@@ -8,6 +8,8 @@ use noise::{NoiseFn, OpenSimplex};
 
 pub type ObjectGeneratorID = usize;
 
+const OFFSET: f64 = 0.07692307692;
+
 fn get_chunk_random(
     simplex: &OpenSimplex,
     chunk_offset: Vec3,
@@ -15,10 +17,10 @@ fn get_chunk_random(
     variant: usize,
 ) -> f32 {
     (simplex.get([
-        chunk_offset.x as f64 + 0.012,
-        chunk_offset.z as f64,
-        (id * Chunk::SIZE) as f64,
-        (variant * Chunk::SIZE) as f64,
+        chunk_offset.x as f64 + OFFSET,
+        chunk_offset.z as f64 + OFFSET,
+        (id * Chunk::SIZE) as f64 + OFFSET,
+        (variant * Chunk::SIZE) as f64 + OFFSET,
     ]) * 0.5
         + 0.25) as f32
 }
