@@ -1,9 +1,19 @@
-use bevy::prelude::*;
+use crate::plugins::loading::resources::{GameAssets, PhysicsObject};
+use bevy::{asset::AssetPath, prelude::*};
 
-use crate::{plugins::loading::resources::GameAssets, states::game_state::GameState};
+fn load_scene_with_physics<'a>(
+    path: impl Into<AssetPath<'a>>,
+    asset_server: &AssetServer,
+) -> PhysicsObject {
+    let scene_h: Handle<Scene> = asset_server.load(path);
+
+    PhysicsObject {
+        scene: scene_h,
+        ..default()
+    }
+}
 
 pub fn load_assets(
-    mut game_state: ResMut<State<GameState>>,
     asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
@@ -18,10 +28,10 @@ pub fn load_assets(
             reflectance: 0.,
             ..default()
         }),
-        tree_scene: asset_server.load("models/tree.glb#Scene0"),
         debug_item_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
+
+        tree_object: load_scene_with_physics("models/tree.glb#Scene0", &asset_server),
     };
 
     commands.insert_resource(game_assets);
-    game_state.set(GameState::MenuMain).unwrap();
 }
