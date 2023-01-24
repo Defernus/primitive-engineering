@@ -9,4 +9,8 @@ pub struct PlayerComponent {
 
 #[derive(Component, Debug, Clone, Copy, Default, Reflect, FromReflect)]
 #[reflect(Component)]
+pub struct PlayerHand;
+
+#[derive(Component, Debug, Clone, Copy, Default, Reflect, FromReflect)]
+#[reflect(Component)]
 pub struct PlayerCameraComponent;

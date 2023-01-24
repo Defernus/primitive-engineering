@@ -21,5 +21,5 @@ pub fn setup_world(mut commands: Commands) {
             ..Default::default()
         })
         .insert(WorldSun)
-        .insert(Name::new("WorldSun"));
+        .insert(Name::new("sun"));
 }

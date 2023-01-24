@@ -3,6 +3,8 @@ use bevy::prelude::*;
 
 pub mod input_settings;
 
+pub const PLAYER_ACCESS_RADIUS: f32 = 4.0;
+
 #[derive(Resource, Reflect, FromReflect, PartialEq, Eq, Debug, Clone, Copy)]
 pub enum PlayerMovementMode {
     Fly,

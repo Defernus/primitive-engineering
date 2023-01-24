@@ -1,3 +1,4 @@
+use self::components::DisableHierarchyDisplay;
 use super::player::components::PlayerCameraComponent;
 use crate::states::game_state::GameState;
 use bevy::{
@@ -9,7 +10,7 @@ use bevy_egui::egui;
 use bevy_inspector_egui::{
     bevy_inspector::{
         self,
-        hierarchy::{hierarchy_ui, SelectedEntities},
+        hierarchy::{Hierarchy, SelectedEntities},
         ui_for_entities_shared_components, ui_for_entity_with_children,
     },
     quick::StateInspectorPlugin,
@@ -19,6 +20,7 @@ use egui_dock::{NodeIndex, Tree};
 use std::any::TypeId;
 
 pub struct InspectorPlugin;
+pub mod components;
 
 impl Plugin for InspectorPlugin {
     fn build(&self, app: &mut App) {
@@ -133,7 +135,20 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 (*self.viewport_rect, _) =
                     ui.allocate_exact_size(ui.available_size(), egui::Sense::hover());
             }
-            Window::Hierarchy => hierarchy_ui(self.world, ui, self.selected_entities),
+            Window::Hierarchy => {
+                let type_registry = self.world.resource::<AppTypeRegistry>().clone();
+                let type_registry = type_registry.read();
+
+                Hierarchy {
+                    world: self.world,
+                    type_registry: &type_registry,
+                    selected: self.selected_entities,
+                    context_menu: None,
+                    shortcircuit_entity: None,
+                    extra_state: &mut (),
+                }
+                .show::<Without<DisableHierarchyDisplay>>(ui);
+            }
             Window::Resources => select_resource(ui, &type_registry, self.selection),
             Window::Assets => select_asset(ui, &type_registry, self.world, self.selection),
             Window::Inspector => match *self.selection {

@@ -1,4 +1,4 @@
-use super::components::{PlayerCameraComponent, PlayerComponent};
+use super::components::{PlayerCameraComponent, PlayerComponent, PlayerHand};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -11,6 +11,7 @@ pub mod spawn_item;
 pub fn setup_player(mut commands: Commands) {
     commands
         .spawn((
+            Name::new("player"),
             PlayerComponent::default(),
             Collider::capsule_y(0.75, 0.25),
             RigidBodyDisabled,
@@ -25,11 +26,21 @@ pub fn setup_player(mut commands: Commands) {
         ))
         .with_children(|parent| {
             parent.spawn((
+                Name::new("player:camera"),
                 PlayerCameraComponent,
                 Camera3dBundle {
                     transform: Transform::from_xyz(0.0, 0.75, 0.0),
                     ..Default::default()
                 },
+            ));
+        })
+        .with_children(|parent| {
+            parent.spawn((
+                Name::new("player:hand"),
+                PlayerHand,
+                VisibilityBundle::default(),
+                Transform::from_xyz(0.2, 0.3, -0.4),
+                GlobalTransform::default(),
             ));
         });
 }

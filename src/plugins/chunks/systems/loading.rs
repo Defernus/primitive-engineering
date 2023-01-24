@@ -12,6 +12,7 @@ use crate::{
             },
         },
         game_world::resources::{GameWorld, GameWorldMeta},
+        inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
         objects::components::presets::tree::TreeObjectBundle,
         player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
@@ -119,7 +120,7 @@ pub fn spawn_chunk_system(
                 commands
                     .entity(mesh)
                     .insert(ChunkMeshComponent)
-                    .insert(Name::new("Chunk Mesh"));
+                    .insert(Name::new("chunk:mesh"));
 
                 let chunk_pos_vec = Chunk::pos_to_vec(pos);
 
@@ -130,7 +131,8 @@ pub fn spawn_chunk_system(
                         ChunkComponent {
                             chunk: chunk.clone(),
                         },
-                        Name::new(format!("Chunk: {:?}", pos)),
+                        DisableHierarchyDisplay,
+                        Name::new(format!("chunk[{:?}]", pos)),
                         GlobalTransform::default(),
                         Transform::from_translation(chunk_pos_vec),
                         VisibilityBundle::default(),

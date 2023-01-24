@@ -48,7 +48,7 @@ pub fn process_input(
     mut sprint_ew: EventWriter<SprintEvent>,
     mut spawn_item_ew: EventWriter<SpawnItemEvent>,
     mut mine_ew: EventWriter<MineEvent>,
-    mut use_or_place_ew: EventWriter<UseOrPlaceEvent>,
+    mut use_place_grab_ew: EventWriter<UseGrabPlaceEvent>,
     mut interact_ew: EventWriter<InteractEvent>,
 ) {
     process(&k, &m, s.go_forward, &mut go_forward_ew);
@@ -62,6 +62,6 @@ pub fn process_input(
     process(&k, &m, s.sprint, &mut sprint_ew);
     process(&k, &m, s.spawn_item, &mut spawn_item_ew);
     process(&k, &m, s.mine, &mut mine_ew);
-    process(&k, &m, s.use_or_place, &mut use_or_place_ew);
+    process(&k, &m, s.use_place_grab, &mut use_place_grab_ew);
     process(&k, &m, s.interact, &mut interact_ew);
 }

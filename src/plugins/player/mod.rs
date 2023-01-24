@@ -1,3 +1,4 @@
+use self::components::{PlayerComponent, PlayerHand};
 use self::events::*;
 use self::resources::{input_settings::PlayerInputSettings, MovementSettings, PrevPlayerChunkPos};
 use self::systems::{cursor::*, input::*, look::*, movements::*, spawn_item::*, *};
@@ -23,11 +24,13 @@ impl Plugin for PlayerPlugin {
             .add_event::<SprintEvent>()
             .add_event::<SpawnItemEvent>()
             .add_event::<MineEvent>()
-            .add_event::<UseOrPlaceEvent>()
+            .add_event::<UseGrabPlaceEvent>()
             .add_event::<InteractEvent>()
             .add_event::<ToggleFlyEvent>()
             .register_type::<MovementSettings>()
             .register_type::<PlayerInputSettings>()
+            .register_type::<PlayerHand>()
+            .register_type::<PlayerComponent>()
             .register_type::<PrevPlayerChunkPos>()
             .insert_resource(MovementSettings::default())
             .insert_resource(PlayerInputSettings::default())

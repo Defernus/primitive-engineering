@@ -5,6 +5,7 @@ use crate::{
         player::{
             components::{PlayerCameraComponent, PlayerComponent},
             events::MineEvent,
+            resources::PLAYER_ACCESS_RADIUS,
         },
     },
 };
@@ -29,7 +30,7 @@ pub fn mine(
         if let Some((entity, far)) = rapier_context.cast_ray(
             ray_origin,
             dir,
-            4.0,
+            PLAYER_ACCESS_RADIUS,
             false,
             QueryFilter::default().exclude_collider(player),
         ) {
