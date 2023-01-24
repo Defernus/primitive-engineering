@@ -14,9 +14,12 @@ pub struct PhysicsObject {
 pub struct GameAssets {
     pub main_font: Handle<Font>,
     pub default_material: Handle<StandardMaterial>,
-    pub debug_item_mesh: Handle<Mesh>,
+    pub craft_zone_material: Handle<StandardMaterial>,
+    pub pointer_mesh: Handle<Mesh>,
+    pub craft_zone_mesh: Handle<Mesh>,
 
     pub tree_object: PhysicsObject,
     pub branch_object: PhysicsObject,
     pub rock_object: PhysicsObject,
+    pub fire_object: PhysicsObject,
 }

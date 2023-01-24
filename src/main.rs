@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use digg::{
     plugins::{
-        chunks::ChunksPlugin, game_world::GameWorldPlugin, inspector::InspectorPlugin,
-        items::ItemsPlugin, loading::LoadingPlugin, main_menu::MainMenuPlugin,
-        objects::ObjectsPlugin, physics::PhysicsPlugin, player::PlayerPlugin,
-        static_mesh::StaticMeshPlugin,
+        chunks::ChunksPlugin, craft::CraftPlugin, game_world::GameWorldPlugin,
+        inspector::InspectorPlugin, items::ItemsPlugin, loading::LoadingPlugin,
+        main_menu::MainMenuPlugin, objects::ObjectsPlugin, physics::PhysicsPlugin,
+        player::PlayerPlugin, static_mesh::StaticMeshPlugin,
     },
     states::game_state::GameState,
 };
@@ -24,5 +24,6 @@ fn main() {
         .add_plugin(ItemsPlugin)
         .add_plugin(ObjectsPlugin)
         .add_plugin(PhysicsPlugin)
+        .add_plugin(CraftPlugin)
         .run();
 }

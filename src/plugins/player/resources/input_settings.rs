@@ -86,6 +86,7 @@ pub struct PlayerInputSettings {
     pub spawn_item: InputCondition,
     pub mine: InputCondition,
     pub use_place_grab: InputCondition,
+    pub craft: InputCondition,
     pub interact: InputCondition,
 }
 
@@ -107,6 +108,7 @@ impl Default for PlayerInputSettings {
             spawn_item: InputCondition::key_single(KeyCode::B),
             mine: InputCondition::mouse_single(MouseButton::Left),
             use_place_grab: InputCondition::mouse_single(MouseButton::Right),
+            craft: InputCondition::mouse_single(MouseButton::Right),
             interact: InputCondition::key_single(KeyCode::E),
         }
     }

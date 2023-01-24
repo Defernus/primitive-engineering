@@ -1,4 +1,5 @@
 pub mod chunks;
+pub mod craft;
 pub mod game_world;
 pub mod inspector;
 pub mod items;

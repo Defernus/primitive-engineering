@@ -28,11 +28,24 @@ pub fn load_assets(
             reflectance: 0.,
             ..default()
         }),
-        debug_item_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
+        craft_zone_material: materials.add(StandardMaterial {
+            base_color: Color::rgba(1.0, 1.0, 1.0, 0.1).into(),
+            perceptual_roughness: 1.,
+            metallic: 0.,
+            alpha_mode: AlphaMode::Blend,
+            reflectance: 0.,
+            ..default()
+        }),
+        pointer_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
+        craft_zone_mesh: meshes.add(Mesh::from(shape::Icosphere {
+            radius: 0.5,
+            subdivisions: 9,
+        })),
 
         tree_object: load_scene_with_physics("models/tree.glb#Scene0", &asset_server),
         branch_object: load_scene_with_physics("models/branch.glb#Scene0", &asset_server),
         rock_object: load_scene_with_physics("models/rock.glb#Scene0", &asset_server),
+        fire_object: load_scene_with_physics("models/fire.glb#Scene0", &asset_server),
     };
 
     commands.insert_resource(game_assets);

@@ -34,6 +34,9 @@ pub struct SpawnItemEvent;
 pub struct MineEvent;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
+pub struct CraftEvent;
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]
 pub struct UseGrabPlaceEvent;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash, Reflect, FromReflect)]

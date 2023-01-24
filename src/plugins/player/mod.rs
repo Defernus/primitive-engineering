@@ -21,6 +21,7 @@ impl Plugin for PlayerPlugin {
             .add_event::<GoUpEvent>()
             .add_event::<GoDownEvent>()
             .add_event::<JumpEvent>()
+            .add_event::<CraftEvent>()
             .add_event::<SprintEvent>()
             .add_event::<SpawnItemEvent>()
             .add_event::<MineEvent>()
@@ -42,7 +43,8 @@ impl Plugin for PlayerPlugin {
                     .with_system(player_walk_movement)
                     .with_system(toggle_movement_mode)
                     .with_system(player_look)
-                    .with_system(process_input)
+                    .with_system(process_input_1)
+                    .with_system(process_input_2)
                     .with_system(spawn_item)
                     .with_system(cursor_toggle),
             )

@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::states::game_state::GameState;
 
 use self::{
-    components::{presets::tree::TreeObject, GameWorldObject},
+    components::{tree::TreeObject, GameWorldObject},
     systems::unload_all::unload_all_objects,
 };
 

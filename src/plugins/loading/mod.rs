@@ -16,7 +16,8 @@ impl Plugin for LoadingPlugin {
         app.init_resource::<GameAssets>()
             .add_system_set(SystemSet::on_enter(GameState::AssetsLoading).with_system(load_assets))
             .add_system_set(
-                SystemSet::on_update(GameState::AssetsLoading).with_system(process_assets),
+                SystemSet::on_update(GameState::AssetsLoading)
+                    .with_system(process_assets.label("loading:process_assets")),
             );
     }
 }

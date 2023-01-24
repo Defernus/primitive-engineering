@@ -33,7 +33,7 @@ fn process<T: Event + Default>(
     }
 }
 
-pub fn process_input(
+pub fn process_input_1(
     k: Res<Input<KeyCode>>,
     m: Res<Input<MouseButton>>,
     s: Res<PlayerInputSettings>,
@@ -44,12 +44,6 @@ pub fn process_input(
     mut go_up_ew: EventWriter<GoUpEvent>,
     mut go_down_ew: EventWriter<GoDownEvent>,
     mut jump_ew: EventWriter<JumpEvent>,
-    mut toggle_fly_ew: EventWriter<ToggleFlyEvent>,
-    mut sprint_ew: EventWriter<SprintEvent>,
-    mut spawn_item_ew: EventWriter<SpawnItemEvent>,
-    mut mine_ew: EventWriter<MineEvent>,
-    mut use_place_grab_ew: EventWriter<UseGrabPlaceEvent>,
-    mut interact_ew: EventWriter<InteractEvent>,
 ) {
     process(&k, &m, s.go_forward, &mut go_forward_ew);
     process(&k, &m, s.go_backward, &mut go_backward_ew);
@@ -58,10 +52,25 @@ pub fn process_input(
     process(&k, &m, s.go_up, &mut go_up_ew);
     process(&k, &m, s.go_down, &mut go_down_ew);
     process(&k, &m, s.jump, &mut jump_ew);
+}
+
+pub fn process_input_2(
+    k: Res<Input<KeyCode>>,
+    m: Res<Input<MouseButton>>,
+    s: Res<PlayerInputSettings>,
+    mut toggle_fly_ew: EventWriter<ToggleFlyEvent>,
+    mut sprint_ew: EventWriter<SprintEvent>,
+    mut spawn_item_ew: EventWriter<SpawnItemEvent>,
+    mut mine_ew: EventWriter<MineEvent>,
+    mut use_place_grab_ew: EventWriter<UseGrabPlaceEvent>,
+    mut craft_ew: EventWriter<CraftEvent>,
+    mut interact_ew: EventWriter<InteractEvent>,
+) {
     process(&k, &m, s.toggle_fly, &mut toggle_fly_ew);
     process(&k, &m, s.sprint, &mut sprint_ew);
     process(&k, &m, s.spawn_item, &mut spawn_item_ew);
     process(&k, &m, s.mine, &mut mine_ew);
     process(&k, &m, s.use_place_grab, &mut use_place_grab_ew);
+    process(&k, &m, s.craft, &mut craft_ew);
     process(&k, &m, s.interact, &mut interact_ew);
 }

@@ -1,3 +1,4 @@
+use super::GameWorldObjectTrait;
 use crate::plugins::{loading::resources::GameAssets, objects::components::GameWorldObject};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
@@ -22,7 +23,7 @@ impl TreeObjectBundle {
         Self {
             o: GameWorldObject,
             s: TreeObject,
-            name: Name::new("object:tree"),
+            name: Name::new(format!("object:{}", TreeObject::id())),
             collider: assets.tree_object.collider.clone().unwrap(),
             scene_bundle: SceneBundle {
                 scene: assets.tree_object.scene.clone(),
@@ -30,5 +31,17 @@ impl TreeObjectBundle {
                 ..Default::default()
             },
         }
+    }
+}
+
+impl GameWorldObjectTrait for TreeObject {
+    fn id() -> &'static str {
+        "tree"
+    }
+
+    fn spawn(commands: &mut Commands, assets: &GameAssets, transform: Transform) -> Entity {
+        commands
+            .spawn(TreeObjectBundle::new(assets, transform))
+            .id()
     }
 }

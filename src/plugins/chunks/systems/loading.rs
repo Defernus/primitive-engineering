@@ -14,7 +14,7 @@ use crate::{
         game_world::resources::{GameWorld, GameWorldMeta},
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
-        objects::components::presets::tree::TreeObjectBundle,
+        objects::components::{tree::TreeObject, GameWorldObjectTrait},
         player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
         static_mesh::components::StaticMeshComponent,
     },
@@ -96,12 +96,8 @@ fn spawn_tree(
     world_meta: &GameWorldMeta,
 ) {
     if let Some(tree_pos) = get_ground_object_pos(world_meta.seed, pos, 1, 0.2, 0) {
-        commands.entity(chunk_entity).with_children(|parent| {
-            parent.spawn(TreeObjectBundle::new(
-                &assets,
-                Transform::from_translation(tree_pos),
-            ));
-        });
+        let tree = TreeObject::spawn(commands, &assets, Transform::from_translation(tree_pos));
+        commands.entity(chunk_entity).add_child(tree);
     }
 }
 

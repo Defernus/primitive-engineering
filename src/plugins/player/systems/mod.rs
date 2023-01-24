@@ -23,13 +23,13 @@ pub fn setup_player(mut commands: Commands) {
 
                 ..Default::default()
             },
-            Transform::from_xyz(0.0, 2.0, 0.0),
-            GlobalTransform::default(),
+            TransformBundle::from_transform(Transform::from_xyz(0.0, 2.0, 0.0)),
         ))
         .with_children(|parent| {
             parent.spawn((
                 Name::new("player:camera"),
                 PlayerCameraComponent,
+                VisibilityBundle::default(),
                 Camera3dBundle {
                     transform: Transform::from_xyz(0.0, 0.75, 0.0),
                     ..Default::default()
@@ -41,8 +41,7 @@ pub fn setup_player(mut commands: Commands) {
                 Name::new("player:hand"),
                 PlayerHand,
                 VisibilityBundle::default(),
-                Transform::from_xyz(0.2, 0.3, -0.4),
-                GlobalTransform::default(),
+                TransformBundle::from_transform(Transform::from_xyz(0.2, 0.3, -0.4)),
             ));
         });
 }
