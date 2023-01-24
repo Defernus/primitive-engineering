@@ -38,9 +38,12 @@ pub fn grab_item(mut item: EntityCommands, hand: Entity) {
     set_item_physics_enabled(&mut item, false);
 }
 
-pub fn drop_item(mut item: EntityCommands) {
+pub fn drop_item(mut item: EntityCommands, transform: Transform) {
     item.remove::<ItemGrabbed>();
     item.remove_parent();
+
+    item.remove::<Transform>();
+    item.insert(transform);
 
     set_item_physics_enabled(&mut item, true);
 }

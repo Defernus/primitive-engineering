@@ -13,7 +13,7 @@ pub fn grab(
     mut use_place_grab_e: EventReader<UseGrabPlaceEvent>,
     rapier_context: Res<RapierContext>,
     transform_q: Query<&GlobalTransform, With<PlayerCameraComponent>>,
-    player_hand_q: Query<Entity, With<PlayerHand>>,
+    player_hand_q: Query<(Entity, &GlobalTransform), With<PlayerHand>>,
     mut commands: Commands,
     player_rigid_body_q: Query<Entity, (With<PlayerComponent>, Without<PlayerHand>)>,
     mut item_grabbed_q: Query<Entity, With<ItemGrabbed>>,
@@ -21,7 +21,8 @@ pub fn grab(
 ) {
     for _ in use_place_grab_e.iter() {
         for item in item_grabbed_q.iter_mut() {
-            drop_item(commands.entity(item));
+            let (_, transform) = player_hand_q.single();
+            drop_item(commands.entity(item), transform.compute_transform());
         }
 
         let transform = transform_q.single().compute_transform();
@@ -39,7 +40,7 @@ pub fn grab(
         ) {
             match item_q.get(entity) {
                 Ok(item) => {
-                    let hand = player_hand_q.single();
+                    let (hand, _) = player_hand_q.single();
                     grab_item(commands.entity(item), hand);
                 }
                 Err(_) => {}
