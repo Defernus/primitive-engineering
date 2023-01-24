@@ -1,19 +1,18 @@
-use crate::plugins::{items::components::ItemComponent, loading::resources::GameAssets};
+use super::{ItemComponent, ItemTrait};
+use crate::plugins::loading::resources::GameAssets;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 
-use super::ItemPreset;
-
 #[derive(Component, Debug, Default, Clone, Copy, Reflect, FromReflect)]
 #[reflect(Component)]
-pub struct RockItem;
+pub struct BranchItem;
 
 #[derive(Bundle)]
-pub struct RockItemBundle {
+pub struct BranchItemBundle {
     pub name: Name,
     pub i: ItemComponent,
-    pub s: RockItem,
+    pub s: BranchItem,
     pub restitution: Restitution,
     pub rigid_body: RigidBody,
     pub collider: Collider,
@@ -21,17 +20,17 @@ pub struct RockItemBundle {
     pub scene_bundle: SceneBundle,
 }
 
-impl RockItemBundle {
+impl BranchItemBundle {
     pub fn new(assets: &GameAssets, transform: Transform) -> Self {
         Self {
             i: ItemComponent,
-            s: RockItem,
-            name: Name::new(format!("item:{}", RockItem::id())),
+            s: BranchItem,
+            name: Name::new(format!("item:{}", BranchItem::id())),
             rigid_body: RigidBody::Dynamic,
             restitution: Restitution::coefficient(0.7),
-            collider: assets.rock_object.collider.clone().unwrap(),
+            collider: assets.branch_object.collider.clone().unwrap(),
             scene_bundle: SceneBundle {
-                scene: assets.rock_object.scene.clone(),
+                scene: assets.branch_object.scene.clone(),
                 transform,
                 ..Default::default()
             },
@@ -39,12 +38,14 @@ impl RockItemBundle {
     }
 }
 
-impl ItemPreset for RockItem {
+impl ItemTrait for BranchItem {
     fn id() -> &'static str {
-        "rock"
+        "branch"
     }
 
     fn spawn(commands: &mut Commands, assets: &GameAssets, transform: Transform) -> Entity {
-        commands.spawn(RockItemBundle::new(assets, transform)).id()
+        commands
+            .spawn(BranchItemBundle::new(assets, transform))
+            .id()
     }
 }

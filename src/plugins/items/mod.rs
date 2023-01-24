@@ -1,7 +1,4 @@
-use self::components::{
-    presets::{branch::BranchItem, rock::RockItem},
-    ItemComponent,
-};
+use self::components::{branch::BranchItem, rock::RockItem, ItemComponent};
 use bevy::prelude::*;
 
 pub mod components;

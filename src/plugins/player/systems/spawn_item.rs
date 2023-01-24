@@ -1,5 +1,5 @@
 use crate::plugins::{
-    items::components::presets::{rock::RockItem, ItemPreset},
+    items::components::{rock::RockItem, ItemTrait},
     loading::resources::GameAssets,
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
