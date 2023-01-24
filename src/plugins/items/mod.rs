@@ -1,4 +1,7 @@
-use self::components::{BranchItem, Item};
+use self::components::{
+    presets::{branch::BranchItem, rock::RockItem},
+    ItemComponent,
+};
 use bevy::prelude::*;
 
 pub mod components;
@@ -8,6 +11,8 @@ pub struct ItemsPlugin;
 
 impl Plugin for ItemsPlugin {
     fn build(&self, app: &mut App) {
-        app.register_type::<BranchItem>().register_type::<Item>();
+        app.register_type::<BranchItem>()
+            .register_type::<RockItem>()
+            .register_type::<ItemComponent>();
     }
 }

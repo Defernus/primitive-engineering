@@ -1,5 +1,5 @@
 use crate::plugins::{
-    items::components::presets::BranchItemBundle,
+    items::components::presets::rock::RockItemBundle,
     loading::resources::GameAssets,
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
@@ -18,7 +18,7 @@ pub fn spawn_item(
 
         let pos = camera_transform.translation + camera_transform.forward() * far;
 
-        commands.spawn(BranchItemBundle::new(
+        commands.spawn(RockItemBundle::new(
             &assets,
             Transform::from_translation(pos),
         ));

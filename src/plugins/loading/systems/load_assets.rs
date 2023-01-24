@@ -32,6 +32,7 @@ pub fn load_assets(
 
         tree_object: load_scene_with_physics("models/tree.glb#Scene0", &asset_server),
         branch_object: load_scene_with_physics("models/branch.glb#Scene0", &asset_server),
+        rock_object: load_scene_with_physics("models/rock.glb#Scene0", &asset_server),
     };
 
     commands.insert_resource(game_assets);

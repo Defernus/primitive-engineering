@@ -18,4 +18,5 @@ pub struct GameAssets {
 
     pub tree_object: PhysicsObject,
     pub branch_object: PhysicsObject,
+    pub rock_object: PhysicsObject,
 }
