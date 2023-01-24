@@ -3,6 +3,8 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 
+use super::ItemPreset;
+
 #[derive(Component, Debug, Default, Clone, Copy, Reflect, FromReflect)]
 #[reflect(Component)]
 pub struct RockItem;
@@ -24,7 +26,7 @@ impl RockItemBundle {
         Self {
             i: ItemComponent,
             s: RockItem,
-            name: Name::new("item:rock"),
+            name: Name::new(format!("item:{}", RockItem::id())),
             rigid_body: RigidBody::Dynamic,
             restitution: Restitution::coefficient(0.7),
             collider: assets.rock_object.collider.clone().unwrap(),
@@ -34,5 +36,15 @@ impl RockItemBundle {
                 ..Default::default()
             },
         }
+    }
+}
+
+impl ItemPreset for RockItem {
+    fn id() -> &'static str {
+        "rock"
+    }
+
+    fn spawn(commands: &mut Commands, assets: &GameAssets, transform: Transform) -> Entity {
+        commands.spawn(RockItemBundle::new(assets, transform)).id()
     }
 }
