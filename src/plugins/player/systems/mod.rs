@@ -13,8 +13,10 @@ pub fn setup_player(mut commands: Commands) {
         .spawn((
             Name::new("player"),
             PlayerComponent::default(),
+            VisibilityBundle::default(),
             Collider::capsule_y(0.75, 0.25),
             RigidBodyDisabled,
+            ColliderDisabled,
             KinematicCharacterControllerOutput::default(),
             KinematicCharacterController {
                 up: Vec3::Y,

@@ -136,11 +136,17 @@ pub fn toggle_movement_mode(
         let player = player_query.single();
         settings.mode = match settings.mode {
             PlayerMovementMode::Fly => {
-                commands.entity(player).remove::<RigidBodyDisabled>();
+                commands
+                    .entity(player)
+                    .remove::<RigidBodyDisabled>()
+                    .remove::<ColliderDisabled>();
                 PlayerMovementMode::Walk
             }
             PlayerMovementMode::Walk => {
-                commands.entity(player).insert(RigidBodyDisabled);
+                commands
+                    .entity(player)
+                    .insert(RigidBodyDisabled)
+                    .insert(ColliderDisabled);
                 PlayerMovementMode::Fly
             }
         }
