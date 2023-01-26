@@ -8,6 +8,12 @@ use bevy_reflect::{FromReflect, Reflect};
 #[reflect(Component)]
 pub struct FireObject;
 
+#[derive(Debug, Clone, Default, Component, Reflect, FromReflect)]
+#[reflect(Component)]
+pub struct FireObjectSpawn {
+    pub pos: Vec3,
+}
+
 #[derive(Bundle)]
 pub struct FireObjectBundle {
     pub name: Name,

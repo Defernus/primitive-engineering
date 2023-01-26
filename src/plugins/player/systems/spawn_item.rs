@@ -1,5 +1,5 @@
 use crate::plugins::{
-    items::components::{rock::RockItem, ItemTrait},
+    items::components::{branch::BranchItem, ItemTrait},
     loading::resources::GameAssets,
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
@@ -18,6 +18,6 @@ pub fn spawn_item(
 
         let pos = camera_transform.translation + camera_transform.forward() * far;
 
-        RockItem::spawn(&mut commands, &assets, Transform::from_translation(pos));
+        BranchItem.spawn(&mut commands, &assets, Transform::from_translation(pos));
     }
 }

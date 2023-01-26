@@ -111,7 +111,7 @@ pub fn spawn_chunk_system(
 ) {
     for (e, ComputeChunkGeneration(rx)) in generation_task.iter() {
         match rx.try_recv() {
-            Ok((pos, chunk)) => {
+            Ok((pos, mut chunk)) => {
                 let mesh = StaticMeshComponent::spawn(&mut commands, &mut meshes, &assets, vec![]);
                 commands
                     .entity(mesh)
@@ -120,19 +120,22 @@ pub fn spawn_chunk_system(
 
                 let chunk_pos_vec = Chunk::pos_to_vec(pos);
 
+                let mut chunk_entity = commands.spawn((
+                    Name::new(format!("chunk[{:?}]", pos)),
+                    DisableHierarchyDisplay,
+                    GlobalTransform::default(),
+                    Transform::from_translation(chunk_pos_vec),
+                    VisibilityBundle::default(),
+                ));
+
+                chunk.set_entity(chunk_entity.id());
+
                 let chunk = ChunkPointer::new(*chunk, pos);
 
-                let chunk_entity = commands
-                    .spawn((
-                        ChunkComponent {
-                            chunk: chunk.clone(),
-                        },
-                        DisableHierarchyDisplay,
-                        Name::new(format!("chunk[{:?}]", pos)),
-                        GlobalTransform::default(),
-                        Transform::from_translation(chunk_pos_vec),
-                        VisibilityBundle::default(),
-                    ))
+                let chunk_entity = chunk_entity
+                    .insert(ChunkComponent {
+                        chunk: chunk.clone(),
+                    })
                     .add_child(mesh)
                     .id();
 

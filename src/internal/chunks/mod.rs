@@ -28,6 +28,15 @@ pub enum InWorldChunk {
     Loaded((ChunkPointer, Entity)),
 }
 
+impl InWorldChunk {
+    pub fn get_chunk(&self) -> Option<ChunkPointer> {
+        match self {
+            InWorldChunk::Loading => None,
+            InWorldChunk::Loaded((chunk, _)) => Some(chunk.clone()),
+        }
+    }
+}
+
 impl Default for InWorldChunk {
     fn default() -> Self {
         Self::Loading
@@ -47,6 +56,7 @@ pub fn map_chunk(chunk: &Option<InWorldChunk>) -> Option<MutexGuard<Chunk>> {
 #[derive(Default)]
 pub struct Chunk {
     voxels: Vec<Voxel>,
+    entity: Option<Entity>,
     need_redraw: bool,
     neighbors: [Option<ChunkPointer>; Direction::COUNT],
 }
@@ -70,10 +80,19 @@ impl Chunk {
 
     pub fn generate(world_meta: GameWorldMeta, pos: ChunkPos) -> Self {
         Self {
+            entity: None,
             voxels: generate_voxels(world_meta.seed, pos * Self::SIZE as i64, Self::SIZES),
             need_redraw: true,
             neighbors: Direction::iter_map(|_| None),
         }
+    }
+
+    pub fn get_entity(&self) -> Option<Entity> {
+        self.entity
+    }
+
+    pub fn set_entity(&mut self, entity: Entity) {
+        self.entity = Some(entity);
     }
 
     pub fn is_need_redraw(&self) -> bool {

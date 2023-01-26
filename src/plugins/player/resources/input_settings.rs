@@ -107,7 +107,7 @@ impl Default for PlayerInputSettings {
 
             spawn_item: InputCondition::key_single(KeyCode::B),
             mine: InputCondition::mouse_single(MouseButton::Left),
-            use_place_grab: InputCondition::mouse_single(MouseButton::Right),
+            use_place_grab: InputCondition::mouse_single(MouseButton::Left),
             craft: InputCondition::mouse_single(MouseButton::Right),
             interact: InputCondition::key_single(KeyCode::E),
         }

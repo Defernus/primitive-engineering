@@ -2,50 +2,41 @@ use super::{ItemComponent, ItemTrait};
 use crate::plugins::loading::resources::GameAssets;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
-use bevy_reflect::{FromReflect, Reflect};
+use std::{
+    any::Any,
+    sync::{Arc, Mutex},
+};
 
-#[derive(Component, Debug, Default, Clone, Copy, Reflect, FromReflect)]
-#[reflect(Component)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct BranchItem;
 
-#[derive(Bundle)]
-pub struct BranchItemBundle {
-    pub name: Name,
-    pub i: ItemComponent,
-    pub s: BranchItem,
-    pub restitution: Restitution,
-    pub rigid_body: RigidBody,
-    pub collider: Collider,
-    #[bundle]
-    pub scene_bundle: SceneBundle,
-}
-
-impl BranchItemBundle {
-    pub fn new(assets: &GameAssets, transform: Transform) -> Self {
-        Self {
-            i: ItemComponent,
-            s: BranchItem,
-            name: Name::new(format!("item:{}", BranchItem::id())),
-            rigid_body: RigidBody::Dynamic,
-            restitution: Restitution::coefficient(0.7),
-            collider: assets.branch_object.collider.clone().unwrap(),
-            scene_bundle: SceneBundle {
-                scene: assets.branch_object.scene.clone(),
-                transform,
-                ..Default::default()
-            },
-        }
-    }
+impl BranchItem {
+    pub const ID: &'static str = "branch";
 }
 
 impl ItemTrait for BranchItem {
-    fn id() -> &'static str {
-        "branch"
+    fn id(&self) -> &'static str {
+        Self::ID
     }
 
-    fn spawn(commands: &mut Commands, assets: &GameAssets, transform: Transform) -> Entity {
+    fn spawn(self, commands: &mut Commands, assets: &GameAssets, transform: Transform) -> Entity {
         commands
-            .spawn(BranchItemBundle::new(assets, transform))
+            .spawn((
+                ItemComponent(Arc::new(Mutex::new(self))),
+                Name::new(format!("item:{}", Self::ID)),
+                RigidBody::Dynamic,
+                Restitution::coefficient(0.7),
+                assets.branch_object.collider.clone().unwrap(),
+                SceneBundle {
+                    scene: assets.branch_object.scene.clone(),
+                    transform,
+                    ..Default::default()
+                },
+            ))
             .id()
+    }
+
+    fn to_any(&self) -> &dyn Any {
+        self
     }
 }

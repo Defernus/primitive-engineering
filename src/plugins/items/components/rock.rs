@@ -1,50 +1,42 @@
+use super::{ItemComponent, ItemTrait};
 use crate::plugins::loading::resources::GameAssets;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
-use bevy_reflect::{FromReflect, Reflect};
+use std::{
+    any::Any,
+    sync::{Arc, Mutex},
+};
 
-use super::{ItemComponent, ItemTrait};
-
-#[derive(Component, Debug, Default, Clone, Copy, Reflect, FromReflect)]
-#[reflect(Component)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct RockItem;
 
-#[derive(Bundle)]
-pub struct RockItemBundle {
-    pub name: Name,
-    pub i: ItemComponent,
-    pub s: RockItem,
-    pub restitution: Restitution,
-    pub rigid_body: RigidBody,
-    pub collider: Collider,
-    #[bundle]
-    pub scene_bundle: SceneBundle,
-}
-
-impl RockItemBundle {
-    pub fn new(assets: &GameAssets, transform: Transform) -> Self {
-        Self {
-            i: ItemComponent,
-            s: RockItem,
-            name: Name::new(format!("item:{}", RockItem::id())),
-            rigid_body: RigidBody::Dynamic,
-            restitution: Restitution::coefficient(0.7),
-            collider: assets.rock_object.collider.clone().unwrap(),
-            scene_bundle: SceneBundle {
-                scene: assets.rock_object.scene.clone(),
-                transform,
-                ..Default::default()
-            },
-        }
-    }
+impl RockItem {
+    pub const ID: &'static str = "rock";
 }
 
 impl ItemTrait for RockItem {
-    fn id() -> &'static str {
-        "rock"
+    fn id(&self) -> &'static str {
+        Self::ID
     }
 
-    fn spawn(commands: &mut Commands, assets: &GameAssets, transform: Transform) -> Entity {
-        commands.spawn(RockItemBundle::new(assets, transform)).id()
+    fn spawn(self, commands: &mut Commands, assets: &GameAssets, transform: Transform) -> Entity {
+        commands
+            .spawn((
+                ItemComponent(Arc::new(Mutex::new(self))),
+                Name::new(format!("item:{}", Self::ID)),
+                RigidBody::Dynamic,
+                Restitution::coefficient(0.7),
+                assets.rock_object.collider.clone().unwrap(),
+                SceneBundle {
+                    scene: assets.rock_object.scene.clone(),
+                    transform,
+                    ..Default::default()
+                },
+            ))
+            .id()
+    }
+
+    fn to_any(&self) -> &dyn Any {
+        self
     }
 }
