@@ -20,6 +20,9 @@ pub fn setup_craft_zone(
         parent.spawn((
             Name::new("player:craft-zone"),
             CraftZoneComponent,
+            Sensor,
+            ColliderDisabled,
+            Collider::ball(0.5),
             PbrBundle {
                 visibility: Visibility::INVISIBLE,
                 transform: Transform::from_xyz(0.0, 0.0, -1.0),

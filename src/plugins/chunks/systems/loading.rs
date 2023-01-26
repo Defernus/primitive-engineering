@@ -49,7 +49,7 @@ fn generate_chunk(
             }
         });
 
-        commands.spawn(ComputeChunkGeneration(rx));
+        commands.spawn((ComputeChunkGeneration(rx), DisableHierarchyDisplay));
     }
     Some(())
 }

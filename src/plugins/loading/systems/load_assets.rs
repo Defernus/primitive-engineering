@@ -46,6 +46,8 @@ pub fn load_assets(
         branch_object: load_scene_with_physics("models/branch.glb#Scene0", &asset_server),
         rock_object: load_scene_with_physics("models/rock.glb#Scene0", &asset_server),
         fire_object: load_scene_with_physics("models/fire.glb#Scene0", &asset_server),
+
+        crosshair_image: asset_server.load("textures/crosshair.png"),
     };
 
     commands.insert_resource(game_assets);

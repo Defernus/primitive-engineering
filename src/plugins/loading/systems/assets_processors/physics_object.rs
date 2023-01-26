@@ -53,8 +53,6 @@ fn collider_from_mesh(field_name: String, mesh: &Mesh) -> Option<Collider> {
 
     let collider = Collider::trimesh(vertices, triple_indices);
 
-    println!("collider loaded for {}", field_name);
-
     return Some(collider);
 }
 

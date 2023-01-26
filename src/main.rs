@@ -4,7 +4,7 @@ use digg::{
         chunks::ChunksPlugin, craft::CraftPlugin, game_world::GameWorldPlugin,
         inspector::InspectorPlugin, items::ItemsPlugin, loading::LoadingPlugin,
         main_menu::MainMenuPlugin, objects::ObjectsPlugin, physics::PhysicsPlugin,
-        player::PlayerPlugin, static_mesh::StaticMeshPlugin,
+        player::PlayerPlugin, static_mesh::StaticMeshPlugin, ui::UiPlugin,
     },
     states::game_state::GameState,
 };
@@ -25,5 +25,6 @@ fn main() {
         .add_plugin(ObjectsPlugin)
         .add_plugin(PhysicsPlugin)
         .add_plugin(CraftPlugin)
+        .add_plugin(UiPlugin)
         .run();
 }
