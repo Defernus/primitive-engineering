@@ -1,5 +1,5 @@
 use crate::plugins::{
-    items::components::{drop_item, grab_item, ItemComponent, ItemGrabbed},
+    objects::components::items::{drop_item, grab_item, ItemComponent, ItemGrabbed},
     player::{
         components::{PlayerCameraComponent, PlayerComponent, PlayerHand},
         events::UseGrabPlaceEvent,

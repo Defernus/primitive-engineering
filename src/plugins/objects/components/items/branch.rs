@@ -1,17 +1,20 @@
-use super::{GameWorldObjectTrait, ObjectSpawn};
-use crate::plugins::{loading::resources::GameAssets, objects::components::GameWorldObject};
+use super::ItemComponent;
+use crate::plugins::{
+    loading::resources::GameAssets,
+    objects::components::{GameWorldObject, GameWorldObjectTrait, ObjectSpawn},
+};
 use bevy::prelude::*;
-use bevy_reflect::{FromReflect, Reflect};
+use bevy_rapier3d::prelude::*;
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Clone, Default, Reflect, FromReflect)]
-pub struct TreeObject;
+#[derive(Debug, Default, Clone)]
+pub struct BranchItem;
 
-impl TreeObject {
-    const ID: &'static str = "tree";
+impl BranchItem {
+    pub const ID: &'static str = "branch";
 }
 
-impl GameWorldObjectTrait for TreeObject {
+impl GameWorldObjectTrait for BranchItem {
     fn id(&self) -> &'static str {
         Self::ID
     }
@@ -25,10 +28,13 @@ impl GameWorldObjectTrait for TreeObject {
         commands
             .spawn((
                 GameWorldObject(Arc::new(Mutex::new(std::mem::take(self)))),
-                Name::new(format!("object:{}", TreeObject::ID)),
-                assets.tree_object.collider.clone().unwrap(),
+                ItemComponent,
+                Name::new(format!("item:{}", Self::ID)),
+                RigidBody::Dynamic,
+                Restitution::coefficient(0.7),
+                assets.branch_object.collider.clone().unwrap(),
                 SceneBundle {
-                    scene: assets.tree_object.scene.clone(),
+                    scene: assets.branch_object.scene.clone(),
                     transform,
                     ..Default::default()
                 },
@@ -38,7 +44,7 @@ impl GameWorldObjectTrait for TreeObject {
 
     fn get_spawn(self, pos: Vec3) -> ObjectSpawn {
         ObjectSpawn {
-            chunk_child: true,
+            chunk_child: false,
             id: Self::ID,
             object: Some(Arc::new(Mutex::new(self))),
             pos,

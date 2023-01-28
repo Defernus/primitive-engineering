@@ -1,8 +1,8 @@
 use super::components::CraftZoneComponent;
 use crate::plugins::{
     craft::{resources::CRAFT_ZONE_RADIUS, systems::crafting::try_craft},
-    items::components::ItemComponent,
     loading::resources::GameAssets,
+    objects::components::{items::ItemComponent, GameWorldObject},
     player::{
         components::{PlayerCameraComponent, PlayerComponent},
         events::CraftEvent,
@@ -42,7 +42,7 @@ pub fn craft_zone(
     player_rigid_body_q: Query<Entity, With<PlayerComponent>>,
     mut zone_q: Query<(&mut Visibility, &mut Transform), With<CraftZoneComponent>>,
     mut craft_e: EventReader<CraftEvent>,
-    items_q: Query<(&GlobalTransform, &ItemComponent, Entity), With<ItemComponent>>,
+    items_q: Query<(&GlobalTransform, &GameWorldObject, Entity), With<ItemComponent>>,
 ) {
     let transform = transform_q.single().compute_transform();
     let ray_origin = transform.translation;

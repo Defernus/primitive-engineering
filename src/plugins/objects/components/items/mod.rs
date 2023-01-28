@@ -1,27 +1,15 @@
-use crate::plugins::loading::resources::GameAssets;
 use bevy::{ecs::system::EntityCommands, prelude::*};
 use bevy_rapier3d::prelude::*;
-use std::{
-    any::Any,
-    fmt::Debug,
-    sync::{Arc, Mutex},
-};
 
 pub mod branch;
 pub mod rock;
 
-#[derive(Component, Debug, Clone)]
-pub struct ItemComponent(pub Arc<Mutex<dyn ItemTrait>>);
+#[derive(Component, Debug, Clone, Copy)]
+pub struct ItemComponent;
 
 #[derive(Component, Debug, Default, Clone, Copy, Reflect, FromReflect)]
 #[reflect(Component)]
 pub struct ItemGrabbed;
-
-pub trait ItemTrait: Send + Sync + Debug + Any {
-    fn id(&self) -> &'static str;
-    fn spawn(self, commands: &mut Commands, assets: &GameAssets, transform: Transform) -> Entity;
-    fn to_any(&self) -> &dyn Any;
-}
 
 pub fn set_item_physics_enabled(item: &mut EntityCommands, state: bool) {
     if state {

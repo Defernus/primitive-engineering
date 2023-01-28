@@ -48,19 +48,19 @@ pub fn get_ground_object_pos(
         return None;
     }
 
-    let tree_x = get_chunk_random(&simplex, chunk_offset, id, 0) * Chunk::REAL_SIZE;
-    let tree_z = get_chunk_random(&simplex, chunk_offset, id, 1) * Chunk::REAL_SIZE;
+    let tree_x =
+        chunk_offset.x + get_chunk_random(&simplex, chunk_offset, id, 0) * Chunk::REAL_SIZE;
+    let tree_z =
+        chunk_offset.z + get_chunk_random(&simplex, chunk_offset, id, 1) * Chunk::REAL_SIZE;
 
-    let tree_y = get_landscape_height(
-        &simplex,
-        (chunk_offset.x + tree_x) as f64,
-        (chunk_offset.z + tree_z) as f64,
-    ) as f32
-        - chunk_offset.y;
+    let tree_y =
+        get_landscape_height(&simplex, tree_x as f64, tree_z as f64) as f32 - chunk_offset.y;
 
     if tree_y < 0.0 || tree_y >= Chunk::REAL_SIZE {
         return None;
     }
+
+    let tree_y = tree_y + chunk_offset.y;
 
     Some(Vec3::new(tree_x as f32, tree_y as f32, tree_z as f32))
 }

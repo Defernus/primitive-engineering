@@ -2,7 +2,6 @@ pub mod chunks;
 pub mod craft;
 pub mod game_world;
 pub mod inspector;
-pub mod items;
 pub mod loading;
 pub mod main_menu;
 pub mod objects;

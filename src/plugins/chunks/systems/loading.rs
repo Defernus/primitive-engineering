@@ -88,16 +88,10 @@ pub fn chunk_load_system(
     );
 }
 
-fn spawn_tree(
-    pos: ChunkPos,
-    chunk_entity: Entity,
-    commands: &mut Commands,
-    assets: &GameAssets,
-    world_meta: &GameWorldMeta,
-) {
+fn spawn_tree(pos: ChunkPos, commands: &mut Commands, world_meta: &GameWorldMeta) {
     if let Some(tree_pos) = get_ground_object_pos(world_meta.seed, pos, 1, 0.2, 0) {
-        let tree = TreeObject::spawn(commands, &assets, Transform::from_translation(tree_pos));
-        commands.entity(chunk_entity).add_child(tree);
+        let tree = TreeObject.get_spawn(tree_pos);
+        commands.spawn(tree);
     }
 }
 
@@ -139,7 +133,7 @@ pub fn spawn_chunk_system(
                     .add_child(mesh)
                     .id();
 
-                spawn_tree(pos, chunk_entity, &mut commands, &assets, &world_meta);
+                spawn_tree(pos, &mut commands, &world_meta);
 
                 commands.entity(e).despawn();
                 let prev_chunk_entity = world.update_chunk_at(pos, chunk, chunk_entity);

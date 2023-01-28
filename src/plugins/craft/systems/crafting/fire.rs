@@ -1,16 +1,14 @@
-use bevy::prelude::*;
-
-use crate::plugins::{
-    items::components::{branch::BranchItem, ItemComponent},
-    objects::components::fire::FireObjectSpawn,
+use crate::plugins::objects::components::{
+    fire::FireObject, items::branch::BranchItem, GameWorldObject, GameWorldObjectTrait,
 };
+use bevy::prelude::*;
 
 const BRANCHES_COUNT: usize = 5;
 
 pub fn craft(
     craft_center: Vec3,
     commands: &mut Commands,
-    items: &Vec<(&ItemComponent, Entity)>,
+    items: &Vec<(&GameWorldObject, Entity)>,
 ) -> bool {
     let branches = items
         .iter()
@@ -25,7 +23,7 @@ pub fn craft(
         commands.entity(branches[i].1).despawn_recursive();
     }
 
-    commands.spawn(FireObjectSpawn { pos: craft_center });
+    commands.spawn(FireObject.get_spawn(craft_center));
 
     true
 }

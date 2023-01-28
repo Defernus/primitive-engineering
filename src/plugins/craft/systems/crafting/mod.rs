@@ -1,4 +1,4 @@
-use crate::plugins::items::components::ItemComponent;
+use crate::plugins::objects::components::GameWorldObject;
 use bevy::prelude::*;
 
 mod fire;
@@ -6,7 +6,7 @@ mod fire;
 pub fn try_craft(
     craft_center: Vec3,
     commands: &mut Commands,
-    items: Vec<(&ItemComponent, Entity)>,
+    items: Vec<(&GameWorldObject, Entity)>,
 ) {
     if fire::craft(craft_center, commands, &items) {
         return;

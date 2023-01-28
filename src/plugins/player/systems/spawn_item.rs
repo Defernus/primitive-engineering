@@ -1,6 +1,6 @@
 use crate::plugins::{
-    items::components::{branch::BranchItem, ItemTrait},
     loading::resources::GameAssets,
+    objects::components::{items::branch::BranchItem, GameWorldObjectTrait},
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
 use bevy::prelude::*;
