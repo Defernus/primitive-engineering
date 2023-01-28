@@ -38,7 +38,12 @@ fn spawn(
         .get_entity()
         .ok_or(ObjectSpawnError::ChunkNotSpawned(chunk_pos))?;
 
-    let transform = Transform::from_translation(object_spawn.pos - Chunk::pos_to_vec(chunk_pos));
+    let translation = if object_spawn.chunk_child {
+        object_spawn.pos - Chunk::pos_to_vec(chunk_pos)
+    } else {
+        object_spawn.pos
+    };
+    let transform = Transform::from_translation(translation);
 
     Ok((
         object_spawn
