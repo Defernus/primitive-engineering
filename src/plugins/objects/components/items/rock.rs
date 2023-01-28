@@ -43,12 +43,12 @@ impl GameWorldObjectTrait for RockItem {
             .id()
     }
 
-    fn get_spawn(self, pos: Vec3) -> ObjectSpawn {
+    fn get_spawn(self, transform: Transform) -> ObjectSpawn {
         ObjectSpawn {
             chunk_child: false,
             id: Self::ID,
             object: Some(Arc::new(Mutex::new(self))),
-            pos,
+            transform,
         }
     }
 

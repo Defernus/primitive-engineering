@@ -23,7 +23,7 @@ pub fn craft(
         commands.entity(branches[i].1).despawn_recursive();
     }
 
-    commands.spawn(FireObject.get_spawn(craft_center));
+    commands.spawn(FireObject.get_spawn(Transform::from_translation(craft_center)));
 
     true
 }

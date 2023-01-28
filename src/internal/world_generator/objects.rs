@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use super::landscape_height::get_landscape_height;
 use crate::{
     internal::{chunks::Chunk, pos::ChunkPos},
@@ -38,7 +40,7 @@ pub fn get_ground_object_pos(
     id: ObjectGeneratorID,
     chance: f32,
     number: usize,
-) -> Option<Vec3> {
+) -> Option<(Vec3, f32)> {
     let simplex = OpenSimplex::new(seed);
 
     let chunk_offset = Chunk::pos_to_vec(pos);
@@ -62,5 +64,10 @@ pub fn get_ground_object_pos(
 
     let tree_y = tree_y + chunk_offset.y;
 
-    Some(Vec3::new(tree_x as f32, tree_y as f32, tree_z as f32))
+    let y_angle = get_chunk_random(&simplex, chunk_offset, id, 2) * PI * 4.0;
+
+    Some((
+        Vec3::new(tree_x as f32, tree_y as f32, tree_z as f32),
+        y_angle,
+    ))
 }

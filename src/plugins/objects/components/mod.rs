@@ -21,7 +21,7 @@ pub struct ObjectSpawn {
     pub chunk_child: bool,
     pub id: &'static str,
     pub object: Option<Arc<Mutex<dyn GameWorldObjectTrait>>>,
-    pub pos: Vec3,
+    pub transform: Transform,
 }
 
 impl ObjectSpawn {
@@ -49,6 +49,6 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
         assets: &GameAssets,
         transform: Transform,
     ) -> Entity;
-    fn get_spawn(self, pos: Vec3) -> ObjectSpawn;
+    fn get_spawn(self, transform: Transform) -> ObjectSpawn;
     fn to_any(&self) -> &dyn Any;
 }

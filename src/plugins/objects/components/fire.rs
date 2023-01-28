@@ -38,12 +38,12 @@ impl GameWorldObjectTrait for FireObject {
             .id()
     }
 
-    fn get_spawn(self, pos: Vec3) -> ObjectSpawn {
+    fn get_spawn(self, transform: Transform) -> ObjectSpawn {
         ObjectSpawn {
             chunk_child: true,
             id: Self::ID,
             object: Some(Arc::new(Mutex::new(self))),
-            pos,
+            transform,
         }
     }
 

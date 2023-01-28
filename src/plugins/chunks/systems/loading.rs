@@ -15,7 +15,9 @@ use crate::{
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
         objects::components::{
-            items::branch::BranchItem, tree::TreeObject, GameWorldObjectTrait, ObjectSpawn,
+            items::{branch::BranchItem, rock::RockItem},
+            tree::TreeObject,
+            GameWorldObjectTrait, ObjectSpawn,
         },
         player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
         static_mesh::components::StaticMeshComponent,
@@ -97,11 +99,11 @@ fn spawn_object(
     id: ObjectGeneratorID,
     chance: f32,
     amount: usize,
-    get_spawn: fn(Vec3) -> ObjectSpawn,
+    get_spawn: fn(Vec3, f32) -> ObjectSpawn,
 ) {
     for i in 0..amount {
-        if let Some(tree_pos) = get_ground_object_pos(world_meta.seed, pos, id, chance, i) {
-            commands.spawn(get_spawn(tree_pos));
+        if let Some((pos, y_angle)) = get_ground_object_pos(world_meta.seed, pos, id, chance, i) {
+            commands.spawn(get_spawn(pos, y_angle));
         }
     }
 }
@@ -113,13 +115,47 @@ fn next_id(id: &mut usize) -> usize {
 
 fn spawn_chunk_objects(pos: ChunkPos, commands: &mut Commands, world_meta: &GameWorldMeta) {
     let mut id = 0;
-    spawn_object(pos, commands, world_meta, 0, 0.2, next_id(&mut id), |pos| {
-        TreeObject.get_spawn(pos)
-    });
+    spawn_object(
+        pos,
+        commands,
+        world_meta,
+        next_id(&mut id),
+        0.2,
+        1,
+        |pos, y_angle| {
+            let mut t = Transform::from_translation(pos);
+            t.rotate_y(y_angle);
+            TreeObject.get_spawn(t)
+        },
+    );
 
-    spawn_object(pos, commands, world_meta, 5, 0.2, next_id(&mut id), |pos| {
-        BranchItem.get_spawn(pos + Vec3::Y * 0.1)
-    });
+    spawn_object(
+        pos,
+        commands,
+        world_meta,
+        next_id(&mut id),
+        0.2,
+        5,
+        |pos, y_angle| {
+            let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
+            t.rotate_y(y_angle);
+            BranchItem.get_spawn(t)
+        },
+    );
+
+    spawn_object(
+        pos,
+        commands,
+        world_meta,
+        next_id(&mut id),
+        0.2,
+        5,
+        |pos, y_angle| {
+            let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
+            t.rotate_y(y_angle);
+            RockItem.get_spawn(t)
+        },
+    );
 }
 
 pub fn spawn_chunk_system(

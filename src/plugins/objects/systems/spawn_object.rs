@@ -22,7 +22,7 @@ fn spawn(
     world: &GameWorld,
     assets: &GameAssets,
 ) -> Result<(Entity, Entity), ObjectSpawnError> {
-    let chunk_pos = Chunk::vec_to_chunk_pos(object_spawn.pos);
+    let chunk_pos = Chunk::vec_to_chunk_pos(object_spawn.transform.translation);
 
     let chunk = world
         .get_chunk(chunk_pos)
@@ -38,12 +38,10 @@ fn spawn(
         .get_entity()
         .ok_or(ObjectSpawnError::ChunkNotSpawned(chunk_pos))?;
 
-    let translation = if object_spawn.chunk_child {
-        object_spawn.pos - Chunk::pos_to_vec(chunk_pos)
-    } else {
-        object_spawn.pos
+    let mut transform = object_spawn.transform;
+    if object_spawn.chunk_child {
+        transform.translation -= Chunk::pos_to_vec(chunk_pos);
     };
-    let transform = Transform::from_translation(translation);
 
     Ok((
         object_spawn
@@ -71,7 +69,7 @@ pub fn spawn_object(
                 ObjectSpawnError::ObjectAlreadySpawned => {
                     warn!(
                         "Error spawning object {} at {:?}: object already spawned",
-                        object_spawn.id, object_spawn.pos
+                        object_spawn.id, object_spawn.transform.translation
                     );
                     commands.entity(spawn_entity).despawn_recursive();
                 }
