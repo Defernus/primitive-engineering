@@ -99,27 +99,36 @@ fn spawn_object(
     id: ObjectGeneratorID,
     chance: f32,
     amount: usize,
-    get_spawn: fn(Vec3, f32) -> ObjectSpawn,
-) {
+    mut get_spawn: impl FnMut(Vec3, f32) -> ObjectSpawn,
+) -> usize {
+    let mut spawned: usize = 0;
     for i in 0..amount {
-        if let Some((pos, y_angle)) = get_ground_object_pos(world_meta.seed, pos, id, chance, i) {
+        if let Some((pos, y_angle)) =
+            get_ground_object_pos(world_meta.seed, pos, id, chance, i, amount)
+        {
+            spawned += 1;
             commands.spawn(get_spawn(pos, y_angle));
         }
     }
+
+    spawned
 }
 
-fn next_id(id: &mut usize) -> usize {
-    *id += 1;
-    *id
-}
+fn spawn_chunk_objects(chunk_pos: ChunkPos, commands: &mut Commands, world_meta: &GameWorldMeta) {
+    let mut id: ObjectGeneratorID = 0;
 
-fn spawn_chunk_objects(pos: ChunkPos, commands: &mut Commands, world_meta: &GameWorldMeta) {
-    let mut id = 0;
+    macro_rules! next_id {
+        () => {{
+            id += 1;
+            id
+        }};
+    }
+
     spawn_object(
-        pos,
+        chunk_pos,
         commands,
         world_meta,
-        next_id(&mut id),
+        next_id!(),
         0.2,
         1,
         |pos, y_angle| {
@@ -130,12 +139,12 @@ fn spawn_chunk_objects(pos: ChunkPos, commands: &mut Commands, world_meta: &Game
     );
 
     spawn_object(
-        pos,
+        chunk_pos,
         commands,
         world_meta,
-        next_id(&mut id),
-        0.2,
-        5,
+        next_id!(),
+        0.6,
+        1,
         |pos, y_angle| {
             let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
             t.rotate_y(y_angle);
@@ -144,12 +153,12 @@ fn spawn_chunk_objects(pos: ChunkPos, commands: &mut Commands, world_meta: &Game
     );
 
     spawn_object(
-        pos,
+        chunk_pos,
         commands,
         world_meta,
-        next_id(&mut id),
-        0.2,
-        5,
+        next_id!(),
+        0.5,
+        1,
         |pos, y_angle| {
             let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
             t.rotate_y(y_angle);
