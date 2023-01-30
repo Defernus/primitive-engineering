@@ -46,6 +46,10 @@ impl GameWorld {
         self.chunks.get(&pos).cloned()
     }
 
+    pub fn iter_chunks(&self) -> impl Iterator<Item = (ChunkPos, InWorldChunk)> + '_ {
+        self.chunks.iter().map(|(pos, chunk)| (*pos, chunk.clone()))
+    }
+
     /// Try to spawn a chunk at the given position.
     ///
     /// If the chunk already exists, return false, otherwise, return true.

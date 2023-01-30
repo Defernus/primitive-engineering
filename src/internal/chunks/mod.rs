@@ -202,7 +202,7 @@ impl Chunk {
         }
     }
 
-    /// Dig a hole at the given position.
+    /// Add (or remove for negative [`strength`]) chunk at the given position.
     ///
     /// This function will update the neighbors of this chunk if needed and will cause a redraw.
     ///
@@ -211,7 +211,7 @@ impl Chunk {
     /// Otherwise it will cause a sharp edges on the chunk borders.
     ///
     /// !TODO:optimize iterate only needed voxels
-    pub fn dig(&mut self, relative_pos: Vec3, radius: f32, strength: f32) {
+    pub fn modify(&mut self, relative_pos: Vec3, radius: f32, strength: f32) {
         self.for_each_around_chunk(move |chunk_pos, chunk| {
             chunk.need_redraw = true;
             let chunk_offset = Self::pos_to_vec(chunk_pos);
@@ -229,7 +229,7 @@ impl Chunk {
 
                         if distance < radius {
                             let voxel = &mut chunk.voxels[voxel_pos.to_index(Self::SIZE)];
-                            *voxel -= strength * (1.0 - distance / radius);
+                            *voxel += strength * (1.0 - distance / radius);
                         }
                     }
                 }
