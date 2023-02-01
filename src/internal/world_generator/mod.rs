@@ -49,14 +49,20 @@ fn generate_voxel(simplex: &OpenSimplex, pos: GlobalVoxelPos) -> Voxel {
 
     let dirt_start = 1.0 * Voxel::SCALE;
     let grass_to_dirt_transition = 1.0 * Voxel::SCALE;
+    let stone_start = 10.0 * Voxel::SCALE;
+
+    let grass_color = Color::rgb_u8(0, 255, 0);
+    let dirt_color = Color::rgb_u8(41, 15, 0);
+    let stone_color = Color::rgb_u8(100, 100, 100);
 
     let color = match value / SCALE as f32 {
+        v if v >= stone_start => stone_color,
         v if v >= 0.0 => blend_color(
-            Color::GREEN,
-            Color::rgb_u8(41, 15, 0),
+            grass_color,
+            dirt_color,
             (v - dirt_start) / grass_to_dirt_transition,
         ),
-        _ => Color::GREEN,
+        _ => grass_color,
     };
 
     let color = randomize_color(simplex, pos, color);
