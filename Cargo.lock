@@ -511,6 +511,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_gltf_collider"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_rapier3d",
+ "rand 0.8.5",
+]
+
+[[package]]
 name = "bevy_hierarchy"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1401,6 +1410,7 @@ dependencies = [
  "bevy",
  "bevy-inspector-egui",
  "bevy_egui",
+ "bevy_gltf_collider",
  "bevy_rapier3d",
  "bevy_reflect",
  "crossbeam-channel",

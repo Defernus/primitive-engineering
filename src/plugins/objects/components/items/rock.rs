@@ -40,10 +40,12 @@ impl GameWorldObjectTrait for RockItem {
                 },
             ))
             .with_children(|parent| {
-                parent.spawn((
-                    assets.rock_object.collider.clone().unwrap(),
-                    TransformBundle::from_transform(assets.rock_object.collider_transform),
-                ));
+                for (collider, transform) in assets.rock_object.colliders.iter() {
+                    parent.spawn((
+                        collider.clone(),
+                        TransformBundle::from_transform(transform.clone()),
+                    ));
+                }
             })
             .id()
     }

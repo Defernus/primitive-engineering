@@ -1,0 +1,3 @@
+[submodule "bevy_gltf_collider"]
+	path = bevy_gltf_collider
+	url = git@github.com:Defernus/bevy_gltf_collider.git

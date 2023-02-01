@@ -6,8 +6,7 @@ pub struct PhysicsObject {
     pub scene: Handle<Scene>,
     pub processed: bool,
     #[reflect(ignore)]
-    pub collider: Option<Collider>,
-    pub collider_transform: Transform,
+    pub colliders: Vec<(Collider, Transform)>,
 }
 
 #[derive(Resource, Default, Reflect, FromReflect)]

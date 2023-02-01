@@ -35,10 +35,12 @@ impl GameWorldObjectTrait for FireObject {
                 },
             ))
             .with_children(|parent| {
-                parent.spawn((
-                    assets.fire_object.collider.clone().unwrap(),
-                    TransformBundle::from_transform(assets.fire_object.collider_transform),
-                ));
+                for (collider, transform) in assets.fire_object.colliders.iter() {
+                    parent.spawn((
+                        collider.clone(),
+                        TransformBundle::from_transform(transform.clone()),
+                    ));
+                }
             })
             .id()
     }

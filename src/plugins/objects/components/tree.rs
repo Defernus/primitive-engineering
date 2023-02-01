@@ -33,10 +33,12 @@ impl GameWorldObjectTrait for TreeObject {
                 },
             ))
             .with_children(|parent| {
-                parent.spawn((
-                    assets.tree_object.collider.clone().unwrap(),
-                    TransformBundle::from_transform(assets.tree_object.collider_transform),
-                ));
+                for (collider, transform) in assets.tree_object.colliders.iter() {
+                    parent.spawn((
+                        collider.clone(),
+                        TransformBundle::from_transform(transform.clone()),
+                    ));
+                }
             })
             .id()
     }

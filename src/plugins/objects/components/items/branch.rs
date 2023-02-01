@@ -39,10 +39,12 @@ impl GameWorldObjectTrait for BranchItem {
                 },
             ))
             .with_children(|parent| {
-                parent.spawn((
-                    assets.branch_object.collider.clone().unwrap(),
-                    TransformBundle::from_transform(assets.branch_object.collider_transform),
-                ));
+                for (collider, transform) in assets.branch_object.colliders.iter() {
+                    parent.spawn((
+                        collider.clone(),
+                        TransformBundle::from_transform(transform.clone()),
+                    ));
+                }
             })
             .id()
     }

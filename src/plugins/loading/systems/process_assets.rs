@@ -6,7 +6,7 @@ pub fn process_assets(
     mut game_assets: ResMut<GameAssets>,
     mut game_state: ResMut<State<GameState>>,
     mut scenes: ResMut<Assets<Scene>>,
-    meshes: Res<Assets<Mesh>>,
+    mut meshes: ResMut<Assets<Mesh>>,
 ) {
     let fields: Vec<_> = game_assets
         .iter_fields()
@@ -23,7 +23,7 @@ pub fn process_assets(
 
         // Try to process field as specific asset type.
         // If field is not loaded yet, return true and skip frame
-        if !process_physic_objects(field_name.clone(), field, &mut scenes, &meshes) {
+        if !process_physic_objects(field_name.clone(), field, &mut scenes, &mut meshes) {
             return false;
         }
 
