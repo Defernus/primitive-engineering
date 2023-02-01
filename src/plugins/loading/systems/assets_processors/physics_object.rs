@@ -1,10 +1,9 @@
+use crate::plugins::loading::resources::PhysicsObject;
 use bevy::{
     prelude::*,
     render::mesh::{Indices, VertexAttributeValues},
 };
 use bevy_rapier3d::prelude::*;
-
-use crate::plugins::loading::resources::PhysicsObject;
 
 fn collider_from_mesh(field_name: String, mesh: &Mesh) -> Option<Collider> {
     let positions = mesh.attribute(Mesh::ATTRIBUTE_POSITION).unwrap();
@@ -94,6 +93,7 @@ pub fn process_physic_objects(
 
                     if let Some(collider) = collider_from_mesh(field_name.clone(), mesh) {
                         obj.collider = Some(collider);
+                        obj.collider_transform = scene.world.get::<Transform>(e).unwrap().clone();
                         return true;
                     }
 

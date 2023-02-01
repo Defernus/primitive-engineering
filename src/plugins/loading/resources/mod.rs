@@ -7,6 +7,7 @@ pub struct PhysicsObject {
     pub processed: bool,
     #[reflect(ignore)]
     pub collider: Option<Collider>,
+    pub collider_transform: Transform,
 }
 
 #[derive(Resource, Default, Reflect, FromReflect)]

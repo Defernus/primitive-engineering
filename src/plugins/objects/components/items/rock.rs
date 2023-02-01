@@ -33,13 +33,18 @@ impl GameWorldObjectTrait for RockItem {
                 Name::new(format!("item:{}", Self::ID)),
                 RigidBody::Dynamic,
                 Restitution::coefficient(0.7),
-                assets.rock_object.collider.clone().unwrap(),
                 SceneBundle {
                     scene: assets.rock_object.scene.clone(),
                     transform,
                     ..Default::default()
                 },
             ))
+            .with_children(|parent| {
+                parent.spawn((
+                    assets.rock_object.collider.clone().unwrap(),
+                    TransformBundle::from_transform(assets.rock_object.collider_transform),
+                ));
+            })
             .id()
     }
 

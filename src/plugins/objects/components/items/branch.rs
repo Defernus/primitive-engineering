@@ -32,13 +32,18 @@ impl GameWorldObjectTrait for BranchItem {
                 Name::new(format!("item:{}", Self::ID)),
                 RigidBody::Dynamic,
                 Restitution::coefficient(0.7),
-                assets.branch_object.collider.clone().unwrap(),
                 SceneBundle {
                     scene: assets.branch_object.scene.clone(),
                     transform,
                     ..Default::default()
                 },
             ))
+            .with_children(|parent| {
+                parent.spawn((
+                    assets.branch_object.collider.clone().unwrap(),
+                    TransformBundle::from_transform(assets.branch_object.collider_transform),
+                ));
+            })
             .id()
     }
 

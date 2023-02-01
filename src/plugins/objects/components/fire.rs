@@ -28,13 +28,18 @@ impl GameWorldObjectTrait for FireObject {
                 GameWorldObject(Arc::new(Mutex::new(std::mem::take(self)))),
                 FireObject,
                 Name::new(format!("object:{}", Self::ID)),
-                assets.fire_object.collider.clone().unwrap(),
                 SceneBundle {
                     scene: assets.fire_object.scene.clone(),
                     transform,
                     ..Default::default()
                 },
             ))
+            .with_children(|parent| {
+                parent.spawn((
+                    assets.fire_object.collider.clone().unwrap(),
+                    TransformBundle::from_transform(assets.fire_object.collider_transform),
+                ));
+            })
             .id()
     }
 

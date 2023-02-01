@@ -26,13 +26,18 @@ impl GameWorldObjectTrait for TreeObject {
             .spawn((
                 GameWorldObject(Arc::new(Mutex::new(std::mem::take(self)))),
                 Name::new(format!("object:{}", TreeObject::ID)),
-                assets.tree_object.collider.clone().unwrap(),
                 SceneBundle {
                     scene: assets.tree_object.scene.clone(),
                     transform,
                     ..Default::default()
                 },
             ))
+            .with_children(|parent| {
+                parent.spawn((
+                    assets.tree_object.collider.clone().unwrap(),
+                    TransformBundle::from_transform(assets.tree_object.collider_transform),
+                ));
+            })
             .id()
     }
 
