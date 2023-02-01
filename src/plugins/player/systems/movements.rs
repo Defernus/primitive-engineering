@@ -101,21 +101,24 @@ pub fn player_walk_movement(
     let right = transform.right();
     let forward = Vec3::Y.cross(right);
 
+    let mut speed_dir = Vec3::ZERO;
     for _ in go_forward_ew.iter() {
-        player.speed += forward * speed;
+        speed_dir += forward;
     }
 
     for _ in go_backward_ew.iter() {
-        player.speed -= forward * speed;
+        speed_dir -= forward;
     }
 
     for _ in go_left_ew.iter() {
-        player.speed -= right * speed;
+        speed_dir -= right;
     }
 
     for _ in go_right_ew.iter() {
-        player.speed += right * speed;
+        speed_dir += right;
     }
+
+    player.speed += speed_dir.normalize_or_zero() * speed;
 
     for _ in jump_ew.iter() {
         if controller_output.grounded {
