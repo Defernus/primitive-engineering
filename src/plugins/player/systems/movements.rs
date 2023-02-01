@@ -1,14 +1,14 @@
 use crate::plugins::player::{
     components::PlayerComponent,
     events::*,
-    resources::{MovementSettings, PlayerMovementMode},
+    resources::{PlayerMovementMode, PlayerStats},
 };
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 pub fn player_fly_movement(
     time: Res<Time>,
-    settings: Res<MovementSettings>,
+    settings: Res<PlayerStats>,
     mut transform_q: Query<&mut Transform, With<PlayerComponent>>,
     mut go_forward_e: EventReader<GoForwardEvent>,
     mut go_backward_e: EventReader<GoBackwardEvent>,
@@ -66,7 +66,7 @@ pub fn player_walk_movement(
         ),
         With<PlayerComponent>,
     >,
-    settings: Res<MovementSettings>,
+    settings: Res<PlayerStats>,
     world_physics_config: Res<RapierConfiguration>,
     time: Res<Time>,
     mut go_forward_ew: EventReader<GoForwardEvent>,
@@ -128,7 +128,7 @@ pub fn player_walk_movement(
 
 pub fn toggle_movement_mode(
     mut commands: Commands,
-    mut settings: ResMut<MovementSettings>,
+    mut settings: ResMut<PlayerStats>,
     player_query: Query<Entity, With<PlayerComponent>>,
     mut toggle_fly_e: EventReader<ToggleFlyEvent>,
 ) {

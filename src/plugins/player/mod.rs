@@ -1,6 +1,6 @@
 use self::components::{PlayerComponent, PlayerHand};
 use self::events::*;
-use self::resources::{input_settings::PlayerInputSettings, MovementSettings, PrevPlayerChunkPos};
+use self::resources::{input_settings::PlayerInputSettings, PlayerStats, PrevPlayerChunkPos};
 use self::systems::{cursor::*, input::*, look::*, movements::*, spawn_item::*, *};
 use crate::states::game_state::GameState;
 use bevy::prelude::*;
@@ -28,12 +28,12 @@ impl Plugin for PlayerPlugin {
             .add_event::<UseGrabPlaceEvent>()
             .add_event::<InteractEvent>()
             .add_event::<ToggleFlyEvent>()
-            .register_type::<MovementSettings>()
+            .register_type::<PlayerStats>()
             .register_type::<PlayerInputSettings>()
             .register_type::<PlayerHand>()
             .register_type::<PlayerComponent>()
             .register_type::<PrevPlayerChunkPos>()
-            .insert_resource(MovementSettings::default())
+            .insert_resource(PlayerStats::default())
             .insert_resource(PlayerInputSettings::default())
             .insert_resource(PrevPlayerChunkPos::default())
             .add_startup_system(setup_player)

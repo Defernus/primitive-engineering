@@ -13,7 +13,7 @@ pub enum PlayerMovementMode {
 
 #[derive(Resource, Reflect, FromReflect)]
 #[reflect(Resource)]
-pub struct MovementSettings {
+pub struct PlayerStats {
     pub sensitivity: f32,
     pub fly_speed: f32,
     pub on_ground_speed: f32,
@@ -21,9 +21,12 @@ pub struct MovementSettings {
     pub jump_speed: f32,
     pub friction_factor: f32,
     pub mode: PlayerMovementMode,
+    pub mining_range: f32,
+    pub mining_radius: f32,
+    pub mining_strength: f32,
 }
 
-impl Default for MovementSettings {
+impl Default for PlayerStats {
     fn default() -> Self {
         Self {
             sensitivity: 0.00012,
@@ -33,6 +36,9 @@ impl Default for MovementSettings {
             on_ground_speed: 40.0,
             friction_factor: 15.0,
             mode: PlayerMovementMode::Fly,
+            mining_radius: 0.5,
+            mining_range: 5.0,
+            mining_strength: 1.0,
         }
     }
 }

@@ -8,7 +8,7 @@ use crate::{
         player::{
             components::{PlayerCameraComponent, PlayerComponent},
             events::MineEvent,
-            resources::PLAYER_ACCESS_RADIUS,
+            resources::{PlayerStats, PLAYER_ACCESS_RADIUS},
         },
         static_mesh::components::StaticMeshComponent,
     },
@@ -23,9 +23,6 @@ fn handle_single_modification(
     entity: Entity,
     translation: Vec3,
     modification: &mut ChunkSmoothModification,
-    meshes: &mut Assets<Mesh>,
-    chunks_q: &Query<&Children>,
-    meshes_q: &Query<(Entity, &Handle<Mesh>), With<StaticMeshComponent>>,
 ) -> Option<()> {
     let delta_str = modification.update(time);
 
@@ -45,6 +42,35 @@ fn handle_single_modification(
             modification.get_radius(),
             delta_str,
         );
+    }
+
+    Some(())
+}
+
+pub fn handle_modifications(
+    mut commands: Commands,
+    world: Res<GameWorld>,
+    time: Res<Time>,
+    mut modify_q: Query<(Entity, &GlobalTransform, &mut ChunkSmoothModification)>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    chunks_q: Query<&Children>,
+    meshes_q: Query<(Entity, &Handle<Mesh>), With<StaticMeshComponent>>,
+) {
+    let mut modified = false;
+    for (entity, transform, mut modification) in modify_q.iter_mut() {
+        handle_single_modification(
+            &mut commands,
+            &time,
+            &world,
+            entity,
+            transform.translation(),
+            &mut modification,
+        );
+        modified = true;
+    }
+
+    if !modified {
+        return;
     }
 
     // redraw chunks immediately to prevent mesh flickering
@@ -67,37 +93,15 @@ fn handle_single_modification(
             continue;
         };
 
-        let children = chunks_q.get(chunk_e).unwrap();
+        let children = if let Ok(children) = chunks_q.get(chunk_e) {
+            children
+        } else {
+            continue;
+        };
 
         let vertices = chunk.generate_vertices();
-        StaticMeshComponent::update(children, commands, meshes, meshes_q, vertices);
+        StaticMeshComponent::update(children, &mut commands, &mut meshes, &meshes_q, vertices);
         chunk.set_need_redraw(false);
-    }
-
-    Some(())
-}
-
-pub fn handle_modifications(
-    mut commands: Commands,
-    world: Res<GameWorld>,
-    time: Res<Time>,
-    mut modify_q: Query<(Entity, &GlobalTransform, &mut ChunkSmoothModification)>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    chunks_q: Query<&Children>,
-    meshes_q: Query<(Entity, &Handle<Mesh>), With<StaticMeshComponent>>,
-) {
-    for (entity, transform, mut modification) in modify_q.iter_mut() {
-        handle_single_modification(
-            &mut commands,
-            &time,
-            &world,
-            entity,
-            transform.translation(),
-            &mut modification,
-            &mut meshes,
-            &chunks_q,
-            &meshes_q,
-        );
     }
 }
 
@@ -109,6 +113,7 @@ pub fn mine(
     transform_q: Query<&GlobalTransform, With<PlayerCameraComponent>>,
     player_rigid_body_q: Query<Entity, With<PlayerComponent>>,
     chunk_q: Query<&ChunkMeshComponent>,
+    player_stats: Res<PlayerStats>,
 ) {
     for _ in mine_e.iter() {
         let transform = transform_q.single().compute_transform();
@@ -129,7 +134,12 @@ pub fn mine(
             }
 
             commands.spawn((
-                ChunkSmoothModification::new(&time, Duration::from_millis(200), -1.0, 0.5),
+                ChunkSmoothModification::new(
+                    &time,
+                    Duration::from_millis(200),
+                    -player_stats.mining_strength,
+                    player_stats.mining_radius,
+                ),
                 TransformBundle::from_transform(Transform::from_translation(
                     ray_origin + dir * far,
                 )),

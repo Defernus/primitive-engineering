@@ -1,6 +1,6 @@
 use crate::plugins::player::{
     components::{PlayerCameraComponent, PlayerComponent},
-    resources::MovementSettings,
+    resources::PlayerStats,
 };
 use bevy::{
     ecs::event::ManualEventReader, input::mouse::MouseMotion, prelude::*, window::CursorGrabMode,
@@ -14,7 +14,7 @@ pub struct InputState {
 }
 
 pub fn player_look(
-    settings: Res<MovementSettings>,
+    settings: Res<PlayerStats>,
     windows: Res<Windows>,
     mut delta_state: Local<InputState>,
     motion: Res<Events<MouseMotion>>,
