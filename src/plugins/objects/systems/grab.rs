@@ -18,6 +18,7 @@ pub fn grab(
     player_rigid_body_q: Query<Entity, (With<PlayerComponent>, Without<PlayerHand>)>,
     mut item_grabbed_q: Query<Entity, With<ItemGrabbed>>,
     item_q: Query<Entity, (With<ItemComponent>, Without<ItemGrabbed>)>,
+    colliders_q: Query<&Parent, With<Collider>>,
 ) {
     for _ in use_place_grab_e.iter() {
         for item in item_grabbed_q.iter_mut() {
@@ -38,7 +39,12 @@ pub fn grab(
             false,
             QueryFilter::default().exclude_collider(player),
         ) {
-            match item_q.get(entity) {
+            let parent = match colliders_q.get(entity) {
+                Ok(parent) => parent,
+                Err(_) => continue,
+            };
+
+            match item_q.get(parent.get()) {
                 Ok(item) => {
                     let (hand, _) = player_hand_q.single();
                     grab_item(commands.entity(item), hand);

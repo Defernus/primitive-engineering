@@ -23,7 +23,7 @@ pub fn process_assets(
 
         // Try to process field as specific asset type.
         // If field is not loaded yet, return true and skip frame
-        if !process_physic_objects(field_name.clone(), field, &mut scenes, &mut meshes) {
+        if !process_physic_objects(&field_name, field, &mut scenes, &mut meshes) {
             return false;
         }
 

@@ -6,7 +6,7 @@ use bevy::prelude::*;
 /// It will return `true` if the asset was loaded successfully or if field is not a [`PhysicsObject`].
 /// It will return `false` if it still loading.
 pub fn process_physic_objects(
-    field_name: String,
+    field_name: &str,
     field: &mut dyn Reflect,
     scenes: &mut Assets<Scene>,
     meshes: &mut Assets<Mesh>,
@@ -23,7 +23,8 @@ pub fn process_physic_objects(
         return false;
     };
 
-    obj.colliders = bevy_gltf_collider::get_scene_colliders(field_name.as_str(), meshes, scene);
+    obj.colliders = bevy_gltf_collider::get_scene_colliders(meshes, &mut scene.world)
+        .expect(format!("Failed to load colliders for {}", field_name).as_str());
 
     return true;
 }
