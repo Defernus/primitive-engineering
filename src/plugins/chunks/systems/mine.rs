@@ -32,11 +32,11 @@ fn handle_single_modification(
 
     let chunk_pos = Chunk::vec_to_chunk_pos(translation);
 
-    let chunk = world.get_chunk(chunk_pos)?.get_chunk()?;
+    for pos in chunk_pos.iter_neighbors(true) {
+        let chunk = world.get_chunk(pos)?.get_chunk()?;
 
-    let chunk_offset = Chunk::pos_to_vec(chunk_pos);
+        let chunk_offset = Chunk::pos_to_vec(pos);
 
-    {
         chunk.lock().modify(
             translation - chunk_offset,
             modification.get_radius(),

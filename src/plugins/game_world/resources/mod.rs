@@ -1,6 +1,5 @@
 use crate::internal::{
-    chunks::{map_chunk, ChunkPointer, InWorldChunk},
-    direction::Direction,
+    chunks::{ChunkPointer, InWorldChunk},
     pos::ChunkPos,
 };
 use bevy::{
@@ -9,7 +8,6 @@ use bevy::{
     utils::{HashMap, Uuid},
 };
 use bevy_inspector_egui::InspectorOptions;
-use strum::IntoEnumIterator;
 
 pub type WorldSeed = u32;
 
@@ -64,7 +62,7 @@ impl GameWorld {
         chunk_spawned
     }
 
-    /// Set the chunk at the given position to the given chunk and update its neighbors.
+    /// Set the chunk at the given position to the given chunk
     ///
     /// If the chunk already exists, it will be prepared for despawn and the entity will be returned.
     pub fn update_chunk_at(
@@ -88,39 +86,7 @@ impl GameWorld {
             };
         };
 
-        self.update_chunk_neighbors(pos);
-
         prev_entity
-    }
-
-    /// Update the neighbors of the chunk at the given position.
-    ///
-    /// This can cause chunks to redraw their meshes.
-    pub fn update_chunk_neighbors(&mut self, pos: ChunkPos) {
-        let chunk = self.get_chunk(pos);
-
-        if let Some(mut chunk) = map_chunk(&chunk) {
-            chunk.update_neighbors(self, pos);
-        }
-
-        for dir in Direction::iter() {
-            if let Some(mut neighbor) = map_chunk(&self.get_chunk(pos + dir)) {
-                neighbor.set_neighbor(dir.opposite(), chunk.clone());
-            }
-        }
-
-        let pos_to_redraw = [
-            pos + Direction::Y_NEG + Direction::Z_NEG,
-            pos + Direction::Y_NEG + Direction::X_NEG,
-            pos + Direction::Y_NEG + Direction::Z_NEG + Direction::X_NEG,
-            pos + Direction::X_NEG + Direction::Z_NEG,
-        ];
-
-        for pos in pos_to_redraw.iter() {
-            if let Some(mut chunk) = map_chunk(&self.get_chunk(*pos)) {
-                chunk.set_need_redraw(true);
-            }
-        }
     }
 
     pub fn despawn_chunk(&mut self, pos: ChunkPos) -> Option<ChunkPointer> {
@@ -136,8 +102,6 @@ impl GameWorld {
                 }
             };
         };
-
-        self.update_chunk_neighbors(pos);
 
         chunk_pointer
     }

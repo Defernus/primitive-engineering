@@ -2,7 +2,7 @@ use crate::internal::pos::{ChunkPos, ChunkPosAroundIterator};
 use bevy::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 
-pub const DEFAULT_RADIUS: usize = 16;
+pub const DEFAULT_RADIUS: usize = 8;
 pub const CHUNKS_SPAWN_AT_ONCE: usize = 18;
 pub const CHUNK_UNLOAD_RADIUS: usize = DEFAULT_RADIUS + 2;
 
