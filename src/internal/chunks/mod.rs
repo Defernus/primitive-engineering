@@ -81,7 +81,7 @@ impl Chunk {
     pub fn generate(world_meta: GameWorldMeta, pos: ChunkPos) -> Self {
         Self {
             entity: None,
-            voxels: generate_voxels(world_meta.seed, pos * Self::SIZE as i64, Self::SIZES),
+            voxels: generate_voxels(world_meta.seed, pos * Self::SIZE as i64, Self::SIZES, 1),
             need_redraw: true,
             neighbors: Direction::iter_map(|_| None),
         }
@@ -473,7 +473,7 @@ impl Chunk {
         for x in 0..Self::SIZE {
             for y in 0..Self::SIZE {
                 for z in 0..Self::SIZE {
-                    append_vertex((x, y, z).into(), self, &mut vertices);
+                    append_vertex((x, y, z).into(), self, &mut vertices, 1.0);
                 }
             }
         }

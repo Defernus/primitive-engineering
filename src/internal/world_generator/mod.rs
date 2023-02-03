@@ -13,7 +13,7 @@ pub mod landscape_height;
 pub mod objects;
 pub mod randomize_color;
 
-const SCALE: f64 = 0.15 * Voxel::SCALE as f64;
+const SCALE: f64 = 0.045;
 
 /// Simple sigmoid like function. Bound value to (-1, 1)
 ///
@@ -30,6 +30,26 @@ fn blend_color(a: Color, b: Color, t: f32) -> Color {
     let b = a.b() + (b.b() - a.b()) * t;
 
     Color::rgb(r, g, b)
+}
+
+fn get_caves(simplex: &OpenSimplex, pos: GlobalVoxelPos) -> f32 {
+    let pos_vec = pos.to_vec3();
+
+    let x = pos_vec.x as f64 * Voxel::SCALE as f64;
+    let y = pos_vec.y as f64 * Voxel::SCALE as f64;
+    let z = pos_vec.z as f64 * Voxel::SCALE as f64;
+
+    let cave_scale = 1.0 / 50.0;
+
+    let cave = simplex.get([x * cave_scale, y * cave_scale * 4.0, z * cave_scale]) * 1.3 - 0.3;
+
+    if cave < 0.0 {
+        return 0.0;
+    }
+
+    let cave = cave * cave * 100.0;
+
+    cave as f32
 }
 
 fn generate_voxel(simplex: &OpenSimplex, pos: GlobalVoxelPos) -> Voxel {
@@ -69,18 +89,27 @@ fn generate_voxel(simplex: &OpenSimplex, pos: GlobalVoxelPos) -> Voxel {
 
     let value = normalize_value(value);
 
+    let value = value - get_caves(simplex, pos);
+
     Voxel::new(value, color)
 }
 
-pub fn generate_voxels(seed: WorldSeed, offset: GlobalVoxelPos, size: VoxelPos) -> Vec<Voxel> {
+pub fn generate_voxels(
+    seed: WorldSeed,
+    offset: GlobalVoxelPos,
+    size: VoxelPos,
+    scale: usize,
+) -> Vec<Voxel> {
     let volume = size.x * size.y * size.z;
 
     let mut voxels = Vec::with_capacity(volume);
 
     let simplex = OpenSimplex::new(seed);
 
+    let offset = offset * scale as i64;
+
     for voxel_index in 0..volume {
-        let voxel_pos = VoxelPos::from_index_rect(voxel_index, size);
+        let voxel_pos = VoxelPos::from_index_rect(voxel_index, size) * scale;
         let pos = offset
             + GlobalVoxelPos::new(voxel_pos.x as i64, voxel_pos.y as i64, voxel_pos.z as i64);
 

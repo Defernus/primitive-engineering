@@ -207,6 +207,7 @@ fn append_triangle(
     a: VertexNode,
     b: VertexNode,
     c: VertexNode,
+    scale: f32,
 ) {
     let a_v = nodes[a.index];
     let b_v = nodes[b.index];
@@ -224,24 +225,25 @@ fn append_triangle(
 
     let normal = (c_pos - a_pos).cross(b_pos - a_pos).normalize();
 
+    let scale = Voxel::SCALE * scale;
     vertex.push(Vertex {
         color: a_v.color.clone(),
         normal,
-        pos: c_pos * Voxel::SCALE,
+        pos: c_pos * scale,
     });
     vertex.push(Vertex {
         color: a_v.color.clone(),
         normal,
-        pos: b_pos * Voxel::SCALE,
+        pos: b_pos * scale,
     });
     vertex.push(Vertex {
         color: a_v.color.clone(),
         normal,
-        pos: a_pos * Voxel::SCALE,
+        pos: a_pos * scale,
     });
 }
 
-pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>) {
+pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, scale: f32) {
     let voxels = get_voxels_for_vertex(chunk, pos);
     let nodes = get_vertex_nodes(voxels);
 
@@ -256,7 +258,7 @@ pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>) {
         let b = nodes_arr[triangle_points[triangle_offset + 1] as usize];
         let c = nodes_arr[triangle_points[triangle_offset + 2] as usize];
 
-        append_triangle(pos, vertices, nodes, a, b, c);
+        append_triangle(pos, vertices, nodes, a, b, c, scale);
 
         triangle_offset += 3;
     }
