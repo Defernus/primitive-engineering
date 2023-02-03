@@ -72,7 +72,7 @@ fn generate_voxel(simplex: &OpenSimplex, pos: GlobalVoxelPos) -> Voxel {
     let stone_start = 10.0 * Voxel::SCALE;
 
     let grass_color = Color::rgb_u8(0, 255, 0);
-    let dirt_color = Color::rgb_u8(41, 15, 0);
+    let dirt_color = Color::rgb_u8(65, 40, 22);
     let stone_color = Color::rgb_u8(100, 100, 100);
 
     let color = match value / SCALE as f32 {
