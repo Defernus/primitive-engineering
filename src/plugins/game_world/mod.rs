@@ -1,14 +1,17 @@
 use self::{
+    components::WorldSun,
     resources::{GameWorld, GameWorldMeta},
     systems::{
         create_world::{start_world_creating, world_creating_progress},
         load_world::{start_world_loading, world_loading_progress},
-        setup_world::{setup_world, WorldSun},
+        setup_world::setup_world,
+        sun_to_player::move_sun_to_player,
     },
 };
 use crate::states::game_state::GameState;
 use bevy::{pbr::DirectionalLightShadowMap, prelude::*};
 
+pub mod components;
 pub mod resources;
 mod systems;
 
@@ -19,6 +22,7 @@ impl Plugin for GameWorldPlugin {
         app.add_system_set(
             SystemSet::on_enter(GameState::WorldCreating).with_system(start_world_creating),
         )
+        .add_system_set(SystemSet::on_update(GameState::InGame).with_system(move_sun_to_player))
         .add_system_set(
             SystemSet::on_update(GameState::WorldCreating).with_system(world_creating_progress),
         )
@@ -28,7 +32,7 @@ impl Plugin for GameWorldPlugin {
         .add_system_set(
             SystemSet::on_update(GameState::WorldLoading).with_system(world_loading_progress),
         )
-        .insert_resource(DirectionalLightShadowMap { size: 16384 })
+        .insert_resource(DirectionalLightShadowMap { size: 4096 })
         .register_type::<WorldSun>()
         .register_type::<GameWorldMeta>()
         .register_type::<GameWorld>()
