@@ -66,7 +66,6 @@ impl InWorldChunk {
                 }
             }
         }
-        *self = InWorldChunk::Loading;
 
         Some(result)
     }

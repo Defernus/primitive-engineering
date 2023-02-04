@@ -41,7 +41,9 @@ pub enum ChunkUpdateError {
 }
 
 impl GameWorld {
-    pub const MAX_DETAIL_LEVEL: usize = 4;
+    pub const MAX_DETAIL_LEVEL: usize = 5;
+    pub const MIN_DETAILS_DIST: usize = 1;
+    pub const MAX_DETAILS_DIST: usize = 5;
 
     pub fn new() -> Self {
         Self {

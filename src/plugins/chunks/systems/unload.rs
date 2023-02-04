@@ -18,15 +18,13 @@ use crate::{
 use bevy::prelude::*;
 use crossbeam_channel::unbounded;
 
-const CHUNK_UNLOAD_DIST: i64 = 4;
-
 fn unload_chunk(
     commands: &mut Commands,
     world: &mut GameWorld,
     meta: GameWorldMeta,
     chunk_e: Entity,
     chunk: ChunkPointer,
-) {
+) -> bool {
     let level = chunk.get_level();
     let pos = chunk.get_pos();
 
@@ -35,7 +33,7 @@ fn unload_chunk(
         world
             .remove_chunk(pos)
             .expect(format!("Chunk {:?}-{} should exists", pos, level).as_str());
-        return;
+        return true;
     }
 
     let parent_pos = GameWorld::scale_down_pos(pos, 2);
@@ -44,23 +42,14 @@ fn unload_chunk(
         .get_chunk_mut(parent_pos, parent_level)
         .expect(format!("Parent chunk for {:?}-{} should exists", pos, level).as_str());
 
-    match parent_chunk {
-        InWorldChunk::SubChunks(_) => {}
-        _ => {
-            panic!(
-                "failed to scale down chunk: {:?}-{} has to sub chunks",
-                parent_pos, parent_level
-            );
-        }
-    }
+    let unloaded_chunks = if let Some(result) = parent_chunk.scale_down() {
+        result
+    } else {
+        // this chunk is already unloading
+        return false;
+    };
 
-    let unloaded_chunks = parent_chunk.scale_down().expect(
-        format!(
-            "Failed to scale_down parent chunk {:?}-{}",
-            parent_pos, parent_level
-        )
-        .as_str(),
-    );
+    *parent_chunk = InWorldChunk::Loading;
 
     for entity in unloaded_chunks.iter() {
         commands.entity(*entity).insert(UnloadingChunkComponent);
@@ -88,7 +77,7 @@ fn unload_chunk(
 
     commands.spawn((ComputeChunkUnloadTask(rx), DisableHierarchyDisplay));
 
-    // TODO add multithreading
+    true
 }
 
 pub fn handle_unload_task_system(
@@ -152,16 +141,18 @@ pub fn unload_system(
 
         let scaled_player_pos = GameWorld::chunk_pos_to_level_pos(player_chunk_pos, level);
 
-        let dist = (pos - scaled_player_pos).dist();
-        if dist > CHUNK_UNLOAD_DIST {
-            unload_chunk(
+        let dist = (pos - scaled_player_pos).dist() as usize;
+        if dist > GameWorld::MAX_DETAILS_DIST {
+            if unload_chunk(
                 &mut commands,
                 &mut world,
                 meta.clone(),
                 entity,
                 chunk.chunk.clone(),
-            );
-            return;
+            ) {
+                // unload only one chunk per frame
+                return;
+            }
         }
     }
 }

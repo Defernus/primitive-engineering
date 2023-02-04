@@ -118,8 +118,8 @@ pub fn chunk_details_system(
         let scaled_player_pos =
             GameWorld::chunk_pos_to_level_pos(player_chunk_pos, chunk.chunk.get_level());
 
-        let dist = (chunk.chunk.get_pos() - scaled_player_pos).dist();
-        if dist <= 1 {
+        let dist = (chunk.chunk.get_pos() - scaled_player_pos).dist() as usize;
+        if dist <= GameWorld::MIN_DETAILS_DIST {
             detail_chunk(
                 &mut commands,
                 &mut world,
