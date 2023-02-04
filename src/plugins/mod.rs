@@ -9,3 +9,4 @@ pub mod physics;
 pub mod player;
 pub mod static_mesh;
 pub mod ui;
+pub mod world_generator;

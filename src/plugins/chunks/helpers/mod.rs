@@ -5,7 +5,7 @@ use crate::{
         world_generator::objects::{get_ground_object_pos, ObjectGeneratorID},
     },
     plugins::{
-        game_world::resources::{GameWorld, GameWorldMeta},
+        game_world::resources::GameWorld,
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
         objects::components::{
@@ -14,6 +14,7 @@ use crate::{
             GameWorldObjectTrait, ObjectSpawn,
         },
         static_mesh::components::{StaticMeshComponent, Vertex},
+        world_generator::resources::WorldGenerator,
     },
 };
 use bevy::prelude::*;
@@ -23,7 +24,7 @@ use super::components::{ChunkComponent, ChunkMeshComponent, RealChunkComponent};
 fn spawn_object(
     pos: ChunkPos,
     commands: &mut Commands,
-    world_meta: &GameWorldMeta,
+    gen: &WorldGenerator,
     id: ObjectGeneratorID,
     chance: f32,
     amount: usize,
@@ -31,9 +32,7 @@ fn spawn_object(
 ) -> usize {
     let mut spawned: usize = 0;
     for i in 0..amount {
-        if let Some((pos, y_angle)) =
-            get_ground_object_pos(world_meta.seed, pos, id, chance, i, amount)
-        {
+        if let Some((pos, y_angle)) = get_ground_object_pos(gen.seed, pos, id, chance, i, amount) {
             spawned += 1;
             commands.spawn(get_spawn(pos, y_angle));
         }
@@ -42,7 +41,7 @@ fn spawn_object(
     spawned
 }
 
-fn spawn_chunk_objects(chunk_pos: ChunkPos, commands: &mut Commands, world_meta: &GameWorldMeta) {
+fn spawn_chunk_objects(chunk_pos: ChunkPos, commands: &mut Commands, gen: &WorldGenerator) {
     let mut id: ObjectGeneratorID = 0;
 
     macro_rules! next_id {
@@ -55,7 +54,7 @@ fn spawn_chunk_objects(chunk_pos: ChunkPos, commands: &mut Commands, world_meta:
     spawn_object(
         chunk_pos,
         commands,
-        world_meta,
+        gen,
         next_id!(),
         0.2,
         1,
@@ -69,7 +68,7 @@ fn spawn_chunk_objects(chunk_pos: ChunkPos, commands: &mut Commands, world_meta:
     spawn_object(
         chunk_pos,
         commands,
-        world_meta,
+        gen,
         next_id!(),
         0.6,
         1,
@@ -83,7 +82,7 @@ fn spawn_chunk_objects(chunk_pos: ChunkPos, commands: &mut Commands, world_meta:
     spawn_object(
         chunk_pos,
         commands,
-        world_meta,
+        gen,
         next_id!(),
         0.5,
         1,
@@ -100,7 +99,7 @@ pub fn spawn_chunk(
     meshes: &mut Assets<Mesh>,
     assets: &GameAssets,
     world: &mut GameWorld,
-    world_meta: GameWorldMeta,
+    gen: &WorldGenerator,
     chunk: ChunkPointer,
     vertices: Vec<Vertex>,
 ) {
@@ -140,6 +139,6 @@ pub fn spawn_chunk(
 
     if chunk.is_real() {
         chunk_entity.insert(RealChunkComponent);
-        spawn_chunk_objects(chunk.get_pos(), commands, &world_meta);
+        spawn_chunk_objects(chunk.get_pos(), commands, gen);
     }
 }

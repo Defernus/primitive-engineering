@@ -4,7 +4,7 @@ use digg::{
         chunks::ChunksPlugin, craft::CraftPlugin, game_world::GameWorldPlugin,
         inspector::InspectorPlugin, loading::LoadingPlugin, main_menu::MainMenuPlugin,
         objects::ObjectsPlugin, physics::PhysicsPlugin, player::PlayerPlugin,
-        static_mesh::StaticMeshPlugin, ui::UiPlugin,
+        static_mesh::StaticMeshPlugin, ui::UiPlugin, world_generator::WorldGeneratorPlugin,
     },
     states::game_state::GameState,
 };
@@ -13,6 +13,7 @@ fn main() {
     App::new()
         .add_state(GameState::default())
         .register_type::<GameState>()
+        .add_plugin(WorldGeneratorPlugin)
         .add_plugins(DefaultPlugins)
         .add_plugin(LoadingPlugin)
         .add_plugin(MainMenuPlugin)

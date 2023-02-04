@@ -1,10 +1,11 @@
+use crate::plugins::world_generator::resources::WorldSeed;
+
 use self::{landscape_height::get_landscape_height, randomize_color::randomize_color};
 use super::{
     color::Color,
     pos::{GlobalVoxelPos, VoxelPos},
     voxel::Voxel,
 };
-use crate::plugins::game_world::resources::WorldSeed;
 use noise::{NoiseFn, OpenSimplex};
 use num_traits::Pow;
 use std::f32::consts::E;

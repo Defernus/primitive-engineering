@@ -4,8 +4,8 @@ use super::{
     world_generator::generate_voxels,
 };
 use crate::plugins::{
-    game_world::resources::{GameWorld, GameWorldMeta},
-    static_mesh::components::Vertex,
+    game_world::resources::GameWorld, static_mesh::components::Vertex,
+    world_generator::resources::WorldGenerator,
 };
 use bevy::prelude::{Entity, Transform, Vec3};
 use bevy_reflect::{FromReflect, Reflect};
@@ -182,10 +182,10 @@ impl Chunk {
     pub const SIZES: VoxelPos = VoxelPos::from_scalar(Self::SIZE);
     pub const SIZES_VOXELS: VoxelPos = VoxelPos::from_scalar(Self::SIZE_VOXELS);
 
-    pub fn generate(world_meta: GameWorldMeta, pos: ChunkPos, level: usize) -> Self {
+    pub fn generate(gen: WorldGenerator, pos: ChunkPos, level: usize) -> Self {
         Self {
             voxels: generate_voxels(
-                world_meta.seed,
+                gen.seed,
                 pos * Self::SIZE as i64,
                 Self::SIZES_VOXELS,
                 GameWorld::level_to_scale(level),

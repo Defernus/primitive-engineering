@@ -10,20 +10,16 @@ use bevy::{
 use bevy_inspector_egui::InspectorOptions;
 use num_traits::Pow;
 
-pub type WorldSeed = u32;
-
 #[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions)]
 #[reflect(Resource)]
 pub struct GameWorldMeta {
     pub name: String,
-    pub seed: WorldSeed,
     pub id: String,
 }
 
 impl GameWorldMeta {
     pub fn reset(&mut self) {
         self.name = "New World".to_string();
-        self.seed = rand::random();
         self.id = Uuid::new_v4().to_string();
     }
 }

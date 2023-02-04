@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use super::landscape_height::get_landscape_height;
 use crate::{
     internal::{chunks::Chunk, pos::ChunkPos},
-    plugins::game_world::resources::WorldSeed,
+    plugins::world_generator::resources::WorldSeed,
 };
 use bevy::prelude::Vec3;
 use noise::{NoiseFn, OpenSimplex};

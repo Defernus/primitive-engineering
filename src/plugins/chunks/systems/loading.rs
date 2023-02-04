@@ -7,9 +7,10 @@ use crate::{
     },
     plugins::{
         chunks::{helpers::spawn_chunk, resources::ChunkLoadingEnabled},
-        game_world::resources::{GameWorld, GameWorldMeta},
+        game_world::resources::GameWorld,
         loading::resources::GameAssets,
         player::components::PlayerComponent,
+        world_generator::resources::WorldGenerator,
     },
 };
 
@@ -27,7 +28,7 @@ pub fn loading_system(
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
     mut world: ResMut<GameWorld>,
-    meta: Res<GameWorldMeta>,
+    gen: Res<WorldGenerator>,
     mut prev_player_chunk_pos: Local<PrevPlayerChunkPos>,
 ) {
     if !chunk_load_enabled.0 {
@@ -53,7 +54,7 @@ pub fn loading_system(
         let level = 0;
         if world.create_chunk(pos) {
             // TODO add multithreading
-            let mut chunk = Chunk::generate(meta.clone(), pos, level);
+            let mut chunk = Chunk::generate(gen.clone(), pos, level);
             let vertices = chunk.generate_vertices(level);
             chunk.set_need_redraw(false);
 
@@ -64,7 +65,7 @@ pub fn loading_system(
                 &mut meshes,
                 &assets,
                 &mut world,
-                meta.clone(),
+                &gen,
                 chunk,
                 vertices,
             );

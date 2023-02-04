@@ -9,10 +9,11 @@ use crate::{
             helpers::spawn_chunk,
             resources::ChunkLoadingEnabled,
         },
-        game_world::resources::{GameWorld, GameWorldMeta},
+        game_world::resources::GameWorld,
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
         player::components::PlayerComponent,
+        world_generator::resources::WorldGenerator,
     },
 };
 use bevy::prelude::*;
@@ -21,7 +22,7 @@ use crossbeam_channel::unbounded;
 fn unload_chunk(
     commands: &mut Commands,
     world: &mut GameWorld,
-    meta: GameWorldMeta,
+    gen: WorldGenerator,
     chunk_e: Entity,
     chunk: ChunkPointer,
 ) -> bool {
@@ -58,7 +59,7 @@ fn unload_chunk(
     let (tx, rx) = unbounded();
 
     std::thread::spawn(move || {
-        let mut chunk = Chunk::generate(meta.clone(), parent_pos, parent_level);
+        let mut chunk = Chunk::generate(gen.clone(), parent_pos, parent_level);
         let vertices = chunk.generate_vertices(parent_level);
         chunk.set_need_redraw(false);
 
@@ -85,7 +86,7 @@ pub fn handle_unload_task_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
-    world_meta: Res<GameWorldMeta>,
+    gen: Res<WorldGenerator>,
     tasks_q: Query<(Entity, &mut ComputeChunkUnloadTask)>,
 ) {
     for (e, ComputeChunkUnloadTask(rx)) in tasks_q.iter() {
@@ -99,7 +100,7 @@ pub fn handle_unload_task_system(
                     &mut meshes,
                     &assets,
                     &mut world,
-                    world_meta.clone(),
+                    &gen,
                     chunk_pointer,
                     chunk_data.1,
                 );
@@ -124,7 +125,7 @@ pub fn unload_system(
     >,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut world: ResMut<GameWorld>,
-    meta: Res<GameWorldMeta>,
+    gen: Res<WorldGenerator>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
 ) {
     if !chunk_load_enabled.0 {
@@ -146,7 +147,7 @@ pub fn unload_system(
             if unload_chunk(
                 &mut commands,
                 &mut world,
-                meta.clone(),
+                gen.clone(),
                 entity,
                 chunk.chunk.clone(),
             ) {

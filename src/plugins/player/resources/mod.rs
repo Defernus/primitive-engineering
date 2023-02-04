@@ -29,7 +29,7 @@ impl Default for PlayerStats {
     fn default() -> Self {
         Self {
             sensitivity: 0.00012,
-            fly_speed: 10.,
+            fly_speed: 50.,
             jump_speed: 5.0,
             in_air_speed: 2.0,
             on_ground_speed: 40.0,

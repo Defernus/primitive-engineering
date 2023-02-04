@@ -12,10 +12,11 @@ use crate::{
             helpers::spawn_chunk,
             resources::ChunkLoadingEnabled,
         },
-        game_world::resources::{GameWorld, GameWorldMeta},
+        game_world::resources::GameWorld,
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
         player::components::PlayerComponent,
+        world_generator::resources::WorldGenerator,
     },
 };
 use bevy::prelude::*;
@@ -26,7 +27,7 @@ fn detail_chunk(
     world: &mut GameWorld,
     entity: Entity,
     prev_chunk: ChunkPointer,
-    meta: GameWorldMeta,
+    gen: WorldGenerator,
 ) -> Option<()> {
     let pos = prev_chunk.get_pos();
     let level = prev_chunk.get_level();
@@ -71,7 +72,7 @@ fn detail_chunk(
             let pos = sub_pos + pos * 2;
             let level = level + 1;
 
-            let mut chunk = Chunk::generate(meta.clone(), pos, level);
+            let mut chunk = Chunk::generate(gen.clone(), pos, level);
             let vertices = chunk.generate_vertices(level);
             chunk.set_need_redraw(false);
 
@@ -93,7 +94,7 @@ fn detail_chunk(
 
 pub fn chunk_details_system(
     mut world: ResMut<GameWorld>,
-    world_meta: Res<GameWorldMeta>,
+    gen: Res<WorldGenerator>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut commands: Commands,
@@ -125,7 +126,7 @@ pub fn chunk_details_system(
                 &mut world,
                 entity,
                 chunk.chunk.clone(),
-                world_meta.clone(),
+                gen.clone(),
             );
         }
     }
@@ -136,7 +137,7 @@ pub fn spawn_detailed_chunk_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
-    world_meta: Res<GameWorldMeta>,
+    gen: Res<WorldGenerator>,
     tasks_q: Query<(Entity, &mut ComputeChunkDetailedTask)>,
 ) {
     for (e, ComputeChunkDetailedTask(rx)) in tasks_q.iter() {
@@ -151,7 +152,7 @@ pub fn spawn_detailed_chunk_system(
                         &mut meshes,
                         &assets,
                         &mut world,
-                        world_meta.clone(),
+                        &gen,
                         chunk.clone(),
                         vertices,
                     );
