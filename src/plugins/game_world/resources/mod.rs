@@ -98,6 +98,10 @@ impl GameWorld {
         new
     }
 
+    pub fn remove_chunk(&mut self, pos: ChunkPos) -> Option<InWorldChunk> {
+        self.chunks.remove(&pos)
+    }
+
     pub fn get_chunk(&self, pos: ChunkPos) -> Option<&InWorldChunk> {
         self.chunks.get(&pos)
     }

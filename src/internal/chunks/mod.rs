@@ -34,11 +34,41 @@ pub enum InWorldChunk {
 
 impl InWorldChunk {
     /// get chunk pointer by relative pos if chunk is loaded
-    pub fn get_chunk(&self) -> Option<ChunkPointer> {
+    pub fn get_chunk(&self) -> Option<(ChunkPointer, Entity)> {
         match self {
-            InWorldChunk::Loaded(chunk, _) => Some(chunk.clone()),
+            InWorldChunk::Loaded(chunk, entity) => Some((chunk.clone(), entity.clone())),
             _ => None,
         }
+    }
+
+    pub fn scale_down(&mut self) -> Option<LinkedList<Entity>> {
+        let sub_chunks = match self {
+            InWorldChunk::SubChunks(sub_chunks) => sub_chunks,
+            _ => return None,
+        };
+
+        let mut result = LinkedList::new();
+        for sub_chunk in sub_chunks {
+            match sub_chunk {
+                InWorldChunk::Loaded(_, entity) => {
+                    result.push_back(*entity);
+                }
+                InWorldChunk::SubChunks(_) => match sub_chunk.scale_down() {
+                    Some(mut list) => {
+                        result.append(&mut list);
+                    }
+                    _ => {
+                        return None;
+                    }
+                },
+                InWorldChunk::Loading => {
+                    return None;
+                }
+            }
+        }
+        *self = InWorldChunk::Loading;
+
+        Some(result)
     }
 
     pub fn get_chunk_mut(&mut self) -> Option<&mut ChunkPointer> {
@@ -108,7 +138,6 @@ pub fn map_chunk(chunk: &Option<InWorldChunk>) -> Option<MutexGuard<Chunk>> {
 #[derive(Default)]
 pub struct Chunk {
     voxels: Vec<Voxel>,
-    entity: Option<Entity>,
     need_redraw: bool,
 }
 
@@ -135,7 +164,6 @@ impl Chunk {
 
     pub fn generate(world_meta: GameWorldMeta, pos: ChunkPos, level: usize) -> Self {
         Self {
-            entity: None,
             voxels: generate_voxels(
                 world_meta.seed,
                 pos * Self::SIZE as i64,
@@ -146,28 +174,12 @@ impl Chunk {
         }
     }
 
-    pub fn get_entity(&self) -> Option<Entity> {
-        self.entity
-    }
-
-    pub fn set_entity(&mut self, entity: Entity) {
-        self.entity = Some(entity);
-    }
-
     pub fn is_need_redraw(&self) -> bool {
         self.need_redraw
     }
 
     pub fn set_need_redraw(&mut self, need_redraw: bool) {
         self.need_redraw = need_redraw;
-    }
-
-    pub fn prepare_despawn(&mut self) -> Option<Entity> {
-        let result = self.entity;
-        self.entity = None;
-        self.need_redraw = false;
-
-        result
     }
 
     pub fn get_voxel(&self, pos: GlobalVoxelPos) -> Option<Voxel> {

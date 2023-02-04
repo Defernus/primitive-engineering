@@ -12,7 +12,6 @@ use crate::{
 enum ObjectSpawnError {
     ChunkNotExist(ChunkPos),
     ChunkNotLoaded(ChunkPos),
-    ChunkNotSpawned(ChunkPos),
     ObjectAlreadySpawned,
 }
 
@@ -28,15 +27,9 @@ fn spawn(
         .get_chunk(chunk_pos)
         .ok_or(ObjectSpawnError::ChunkNotExist(chunk_pos))?;
 
-    let chunk = chunk
+    let (_, chunk_entity) = chunk
         .get_chunk()
         .ok_or(ObjectSpawnError::ChunkNotLoaded(chunk_pos))?;
-
-    let chunk = chunk.lock();
-
-    let chunk_entity = chunk
-        .get_entity()
-        .ok_or(ObjectSpawnError::ChunkNotSpawned(chunk_pos))?;
 
     let mut transform = object_spawn.transform;
     if object_spawn.chunk_child {

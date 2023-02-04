@@ -1,4 +1,3 @@
-use crate::internal::pos::ChunkPos;
 use bevy::prelude::*;
 
 pub mod input_settings;
@@ -42,7 +41,3 @@ impl Default for PlayerStats {
         }
     }
 }
-
-#[derive(Resource, Debug, Clone, Copy, Default, PartialEq, Eq, Reflect, FromReflect)]
-#[reflect(Resource)]
-pub struct PrevPlayerChunkPos(pub ChunkPos);

@@ -25,6 +25,14 @@ pub struct ChunkMeshComponent;
 #[reflect(Component)]
 pub struct RealChunkComponent;
 
+#[derive(Debug, Clone, Copy, Component, Default, Reflect, FromReflect)]
+#[reflect(Component)]
+pub struct DetailingChunkComponent;
+
+#[derive(Debug, Clone, Copy, Component, Default, Reflect, FromReflect)]
+#[reflect(Component)]
+pub struct UnloadingChunkComponent;
+
 #[derive(Debug, Clone, Component, Default, Reflect, FromReflect)]
 #[reflect(Component)]
 pub struct ChunkSmoothModification {

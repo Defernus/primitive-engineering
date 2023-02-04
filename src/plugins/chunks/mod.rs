@@ -27,7 +27,7 @@ impl Plugin for ChunksPlugin {
                     .with_system(redraw)
                     .with_system(mine)
                     // .with_system(handle_modifications)
-                    .with_system(unload),
+                    .with_system(unload_system),
             );
     }
 }

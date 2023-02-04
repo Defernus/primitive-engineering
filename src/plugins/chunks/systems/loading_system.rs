@@ -1,14 +1,24 @@
 use bevy::prelude::*;
 
 use crate::{
-    internal::chunks::{Chunk, ChunkPointer},
+    internal::{
+        chunks::{Chunk, ChunkPointer},
+        pos::ChunkPos,
+    },
     plugins::{
         chunks::{helpers::spawn_chunk, resources::ChunkLoadingEnabled},
         game_world::resources::{GameWorld, GameWorldMeta},
         loading::resources::GameAssets,
-        player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
+        player::components::PlayerComponent,
     },
 };
+
+pub struct PrevPlayerChunkPos(pub ChunkPos);
+impl Default for PrevPlayerChunkPos {
+    fn default() -> Self {
+        Self(ChunkPos::new(1000, 1000, 1000))
+    }
+}
 
 pub fn loading_system(
     mut commands: Commands,
@@ -18,7 +28,7 @@ pub fn loading_system(
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
     mut world: ResMut<GameWorld>,
     meta: Res<GameWorldMeta>,
-    mut prev_player_chunk_pos: ResMut<PrevPlayerChunkPos>,
+    mut prev_player_chunk_pos: Local<PrevPlayerChunkPos>,
 ) {
     if !chunk_load_enabled.0 {
         return;

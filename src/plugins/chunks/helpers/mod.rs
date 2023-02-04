@@ -129,10 +129,6 @@ pub fn spawn_chunk(
 
     chunk_entity.add_child(mesh);
 
-    {
-        chunk.lock().set_entity(chunk_entity.id());
-    }
-
     world.update_chunk(chunk.clone(), chunk_entity.id()).expect(
         format!(
             "Failed to update chunk {:?}-{}",
