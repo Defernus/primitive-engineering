@@ -37,7 +37,7 @@ fn handle_single_modification(
     for pos in chunk_pos.iter_neighbors(true) {
         let (chunk, _) = world.get_real_chunk(pos)?.get_chunk()?;
 
-        let chunk_offset = Chunk::pos_to_vec(pos);
+        let chunk_offset = Chunk::pos_to_translation(pos);
 
         chunk.lock().modify(
             translation - chunk_offset,

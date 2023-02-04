@@ -1,3 +1,4 @@
+use super::direction::Direction;
 use bevy::prelude::Vec3;
 use bevy_reflect::{FromReflect, Reflect};
 use std::{
@@ -5,8 +6,6 @@ use std::{
     hash::Hash,
     ops::{Add, Div, Mul, Sub},
 };
-
-use super::direction::Direction;
 
 pub type VoxelPos = Pos<usize>;
 pub type GlobalVoxelPos = Pos<i64>;
@@ -78,7 +77,21 @@ impl<T: From<V> + Reflect + Copy + Clone, V> From<(V, V, V)> for Pos<T> {
     }
 }
 
-impl<T: num_traits::FromPrimitive + num_traits::ToPrimitive + Reflect + Copy + Clone> Pos<T> {
+impl<
+        T: num_traits::FromPrimitive
+            + num_traits::ToPrimitive
+            + num_traits::Zero
+            + Reflect
+            + Copy
+            + Clone,
+    > Pos<T>
+{
+    pub fn from_index_2d(index: usize, size: usize) -> Self {
+        let x = T::from_usize(index % size).unwrap();
+        let z = T::from_usize(index / size).unwrap();
+        Self::new(x, T::zero(), z)
+    }
+
     pub fn from_index(index: usize, size: usize) -> Self {
         let x = T::from_usize(index % size).unwrap();
         let y = T::from_usize((index / size) % size).unwrap();

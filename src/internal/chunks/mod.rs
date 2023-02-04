@@ -173,7 +173,7 @@ impl Chunk {
     pub const SIZE: usize = 32;
     pub const SIZE_VOXELS: usize = Self::SIZE + 1;
     pub const SIZE_VOXELS_I64: i64 = Self::SIZE_VOXELS as i64;
-    pub const SIZE_VOXELS_VOLUME: usize = Self::SIZE_VOXELS * Self::SIZE_VOXELS * Self::SIZE_VOXELS;
+    pub const VOLUME_VOXELS: usize = Self::SIZE_VOXELS * Self::SIZE_VOXELS * Self::SIZE_VOXELS;
     pub const REAL_SIZE: f32 = Self::SIZE as f32 * Voxel::SCALE;
     pub const SIZE_I64: i64 = Self::SIZE as i64;
     pub const VOLUME: usize = Self::SIZE * Self::SIZE * Self::SIZE;
@@ -183,11 +183,7 @@ impl Chunk {
 
     pub fn generate(gen: WorldGenerator, pos: ChunkPos, level: usize) -> Self {
         Self {
-            voxels: gen.generate_voxels(
-                pos * Self::SIZE as i64,
-                Self::SIZES_VOXELS,
-                GameWorld::level_to_scale(level),
-            ),
+            voxels: gen.generate_voxels(pos, GameWorld::level_to_scale(level)),
             need_redraw: true,
         }
     }
@@ -303,7 +299,8 @@ impl Chunk {
         )
     }
 
-    pub fn pos_to_vec(pos: ChunkPos) -> Vec3 {
+    /// Transform global chunk pos to chunk translation
+    pub fn pos_to_translation(pos: ChunkPos) -> Vec3 {
         Vec3::new(
             pos.x as f32 * Self::SIZE_I64 as f32 * Voxel::SCALE,
             pos.y as f32 * Self::SIZE_I64 as f32 * Voxel::SCALE,
@@ -327,6 +324,23 @@ impl Chunk {
             Self::axis_pos_to_chunk_pos(pos.z),
         )
     }
+
+    fn axis_voxel_pos_to_chunk_pos(val: i64) -> i64 {
+        if val >= 0 {
+            val / Self::SIZE_I64
+        } else {
+            (val + 1) / Self::SIZE_I64 - 1
+        }
+    }
+
+    pub fn global_voxel_pos_to_chunk_pos(pos: GlobalVoxelPos) -> ChunkPos {
+        ChunkPos::new(
+            Self::axis_voxel_pos_to_chunk_pos(pos.x / Self::SIZE_I64),
+            Self::axis_voxel_pos_to_chunk_pos(pos.y / Self::SIZE_I64),
+            Self::axis_voxel_pos_to_chunk_pos(pos.z / Self::SIZE_I64),
+        )
+    }
+
     pub fn transform_to_chunk_pos(transform: Transform) -> ChunkPos {
         Self::vec_to_chunk_pos(transform.translation)
     }

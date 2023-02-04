@@ -33,7 +33,7 @@ fn spawn(
 
     let mut transform = object_spawn.transform;
     if object_spawn.chunk_child {
-        transform.translation -= Chunk::pos_to_vec(chunk_pos);
+        transform.translation -= Chunk::pos_to_translation(chunk_pos);
     };
 
     Ok((

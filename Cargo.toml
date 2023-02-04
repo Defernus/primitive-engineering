@@ -27,3 +27,4 @@ crossbeam-channel = "0.5.6"
 bevy_rapier3d = "0.20.0"
 noise = "0.8.2"
 bevy_gltf_collider = { path = "./bevy_gltf_collider" }
+lerp = { version = "0.4", features = ["derive"] }

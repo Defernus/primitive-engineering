@@ -1,6 +1,7 @@
 use self::resources::WorldGenerator;
 use bevy::prelude::*;
 
+pub mod internal;
 pub mod resources;
 
 pub struct WorldGeneratorPlugin;
