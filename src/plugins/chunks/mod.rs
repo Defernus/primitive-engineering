@@ -1,11 +1,10 @@
-use crate::states::game_state::GameState;
-use bevy::prelude::*;
-
 use self::{
     components::ChunkComponent,
     resources::ChunkLoadingEnabled,
     systems::{details::*, loading_system::loading_system, mine::*, redraw::*, unload::*},
 };
+use crate::states::game_state::GameState;
+use bevy::prelude::*;
 
 pub mod components;
 pub mod helpers;
@@ -26,7 +25,7 @@ impl Plugin for ChunksPlugin {
                     .with_system(loading_system)
                     .with_system(redraw)
                     .with_system(mine)
-                    // .with_system(handle_modifications)
+                    .with_system(handle_modifications)
                     .with_system(unload_system),
             );
     }
