@@ -1,7 +1,7 @@
 use self::{
     components::ChunkComponent,
     resources::ChunkLoadingEnabled,
-    systems::{details::*, loading_system::loading_system, mine::*, redraw::*, unload::*},
+    systems::{details::*, loading::loading_system, mine::*, redraw::*, unload::*},
 };
 use crate::states::game_state::GameState;
 use bevy::prelude::*;
