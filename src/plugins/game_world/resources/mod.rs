@@ -66,6 +66,24 @@ impl GameWorld {
         }
     }
 
+    pub fn get_real_chunk(&self, pos: ChunkPos) -> Option<InWorldChunk> {
+        let c_pos = Self::chunk_pos_to_level_pos(pos, 0);
+
+        let in_chunk_pos = pos - c_pos * Self::level_to_scale(0) as i64;
+
+        let chunk = self.chunks.get(&c_pos)?;
+
+        let in_chunk_pos = VoxelPos::new(
+            in_chunk_pos.x as usize,
+            in_chunk_pos.y as usize,
+            in_chunk_pos.z as usize,
+        );
+
+        chunk
+            .get_sub_chunk(in_chunk_pos, Self::MAX_DETAIL_LEVEL - 1)
+            .cloned()
+    }
+
     pub fn get_chunk_mut(&mut self, pos: ChunkPos, level: usize) -> Option<&mut InWorldChunk> {
         if level == 0 {
             return self.chunks.get_mut(&pos);

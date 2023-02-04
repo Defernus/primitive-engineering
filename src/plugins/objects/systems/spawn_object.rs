@@ -24,7 +24,7 @@ fn spawn(
     let chunk_pos = Chunk::vec_to_chunk_pos(object_spawn.transform.translation);
 
     let chunk = world
-        .get_chunk(chunk_pos)
+        .get_real_chunk(chunk_pos)
         .ok_or(ObjectSpawnError::ChunkNotExist(chunk_pos))?;
 
     let (_, chunk_entity) = chunk
@@ -44,7 +44,7 @@ fn spawn(
     ))
 }
 
-pub fn spawn_object(
+pub fn spawn_object_system(
     mut commands: Commands,
     assets: Res<GameAssets>,
     mut object_spawn_q: Query<(Entity, &mut ObjectSpawn)>,
