@@ -2,23 +2,26 @@ use crate::{
     internal::chunks::{Chunk, ChunkPointer, InWorldChunk},
     plugins::{
         chunks::{
-            components::{ChunkComponent, DetailingChunkComponent, UnloadingChunkComponent},
+            components::{
+                ChunkComponent, ComputeChunkUnloadTask, DetailingChunkComponent,
+                UnloadingChunkComponent,
+            },
             helpers::spawn_chunk,
             resources::ChunkLoadingEnabled,
         },
         game_world::resources::{GameWorld, GameWorldMeta},
+        inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
         player::components::PlayerComponent,
     },
 };
 use bevy::prelude::*;
+use crossbeam_channel::unbounded;
 
 const CHUNK_UNLOAD_DIST: i64 = 4;
 
 fn unload_chunk(
     commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    assets: &GameAssets,
     world: &mut GameWorld,
     meta: GameWorldMeta,
     chunk_e: Entity,
@@ -63,17 +66,61 @@ fn unload_chunk(
         commands.entity(*entity).insert(UnloadingChunkComponent);
     }
 
+    let (tx, rx) = unbounded();
+
+    std::thread::spawn(move || {
+        let mut chunk = Chunk::generate(meta.clone(), parent_pos, parent_level);
+        let vertices = chunk.generate_vertices(parent_level);
+        chunk.set_need_redraw(false);
+
+        match tx.send((
+            unloaded_chunks,
+            parent_pos,
+            parent_level,
+            Box::new((chunk, vertices)),
+        )) {
+            Err(err) => {
+                panic!("failed to send chunk data after generation: {}", err);
+            }
+            _ => {}
+        }
+    });
+
+    commands.spawn((ComputeChunkUnloadTask(rx), DisableHierarchyDisplay));
+
     // TODO add multithreading
-    let mut chunk = Chunk::generate(meta.clone(), parent_pos, parent_level);
-    let vertices = chunk.generate_vertices(parent_level);
-    chunk.set_need_redraw(false);
+}
 
-    let chunk = ChunkPointer::new(chunk, parent_pos, parent_level);
+pub fn handle_unload_task_system(
+    mut world: ResMut<GameWorld>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    assets: Res<GameAssets>,
+    world_meta: Res<GameWorldMeta>,
+    tasks_q: Query<(Entity, &mut ComputeChunkUnloadTask)>,
+) {
+    for (e, ComputeChunkUnloadTask(rx)) in tasks_q.iter() {
+        match rx.try_recv() {
+            Ok((unloaded_chunks, pos, level, chunk_data)) => {
+                commands.entity(e).despawn_recursive();
 
-    spawn_chunk(commands, meshes, assets, world, meta, chunk, vertices);
+                let chunk_pointer = ChunkPointer::new(chunk_data.0, pos, level);
+                spawn_chunk(
+                    &mut commands,
+                    &mut meshes,
+                    &assets,
+                    &mut world,
+                    world_meta.clone(),
+                    chunk_pointer,
+                    chunk_data.1,
+                );
 
-    for entity in unloaded_chunks {
-        commands.entity(entity).despawn_recursive();
+                for entity in unloaded_chunks {
+                    commands.entity(entity).despawn_recursive();
+                }
+            }
+            _ => {}
+        }
     }
 }
 
@@ -90,8 +137,6 @@ pub fn unload_system(
     mut world: ResMut<GameWorld>,
     meta: Res<GameWorldMeta>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    assets: Res<GameAssets>,
 ) {
     if !chunk_load_enabled.0 {
         return;
@@ -111,8 +156,6 @@ pub fn unload_system(
         if dist > CHUNK_UNLOAD_DIST {
             unload_chunk(
                 &mut commands,
-                &mut meshes,
-                &assets,
                 &mut world,
                 meta.clone(),
                 entity,

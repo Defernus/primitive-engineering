@@ -137,9 +137,9 @@ pub fn spawn_detailed_chunk_system(
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
     world_meta: Res<GameWorldMeta>,
-    generation_task: Query<(Entity, &mut ComputeChunkDetailedTask)>,
+    tasks_q: Query<(Entity, &mut ComputeChunkDetailedTask)>,
 ) {
-    for (e, ComputeChunkDetailedTask(rx)) in generation_task.iter() {
+    for (e, ComputeChunkDetailedTask(rx)) in tasks_q.iter() {
         match rx.try_recv() {
             Ok((prev_chunk_entity, pos, level, chunks)) => {
                 for (i, (chunk, vertices)) in chunks.into_iter().enumerate() {

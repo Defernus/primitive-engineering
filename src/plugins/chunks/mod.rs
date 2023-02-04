@@ -22,6 +22,7 @@ impl Plugin for ChunksPlugin {
                 SystemSet::on_update(GameState::InGame)
                     .with_system(chunk_details_system)
                     .with_system(spawn_detailed_chunk_system)
+                    .with_system(handle_unload_task_system)
                     .with_system(loading_system)
                     .with_system(redraw)
                     .with_system(mine)
