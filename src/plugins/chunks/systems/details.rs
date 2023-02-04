@@ -71,8 +71,9 @@ fn detail_chunk(
             let pos = sub_pos + pos * 2;
             let level = level + 1;
 
-            let chunk = Chunk::generate(meta.clone(), pos, level);
+            let mut chunk = Chunk::generate(meta.clone(), pos, level);
             let vertices = chunk.generate_vertices(level);
+            chunk.set_need_redraw(false);
 
             chunks.push((chunk, vertices));
         }

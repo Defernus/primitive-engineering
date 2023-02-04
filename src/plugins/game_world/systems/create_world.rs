@@ -29,8 +29,9 @@ pub fn start_world_creating(
             panic!("Chunk already exists at {:?}:{}", pos, level);
         }
 
-        let chunk = Chunk::generate(meta.clone(), pos, level);
+        let mut chunk = Chunk::generate(meta.clone(), pos, level);
         let vertices = chunk.generate_vertices(level);
+        chunk.set_need_redraw(false);
 
         let chunk = ChunkPointer::new(chunk, pos, level);
 

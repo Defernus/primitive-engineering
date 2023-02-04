@@ -64,8 +64,9 @@ fn unload_chunk(
     }
 
     // TODO add multithreading
-    let chunk = Chunk::generate(meta.clone(), parent_pos, parent_level);
+    let mut chunk = Chunk::generate(meta.clone(), parent_pos, parent_level);
     let vertices = chunk.generate_vertices(parent_level);
+    chunk.set_need_redraw(false);
 
     let chunk = ChunkPointer::new(chunk, parent_pos, parent_level);
 
