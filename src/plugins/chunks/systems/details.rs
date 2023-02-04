@@ -12,7 +12,7 @@ use crate::{
         game_world::resources::{GameWorld, GameWorldMeta},
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
-        player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
+        player::components::PlayerComponent,
     },
 };
 use bevy::prelude::*;
@@ -88,7 +88,6 @@ fn detail_chunk(
 pub fn chunk_details_system(
     mut world: ResMut<GameWorld>,
     world_meta: Res<GameWorldMeta>,
-    mut prev_player_chunk_pos: ResMut<PrevPlayerChunkPos>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut commands: Commands,
@@ -102,13 +101,9 @@ pub fn chunk_details_system(
 
     let player_chunk_pos = Chunk::transform_to_chunk_pos(*player_transform);
 
-    if player_chunk_pos != prev_player_chunk_pos.0 {
-        prev_player_chunk_pos.0 = player_chunk_pos;
-    }
-
     for (entity, chunk) in chunks_q.iter() {
         let scaled_player_pos =
-            GameWorld::level_pos_to_chunk_pos(player_chunk_pos, chunk.chunk.get_level());
+            GameWorld::chunk_pos_to_level_pos(player_chunk_pos, chunk.chunk.get_level());
 
         let dist = (chunk.chunk.get_pos() - scaled_player_pos).dist();
         if dist <= 1 {

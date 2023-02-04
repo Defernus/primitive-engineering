@@ -118,13 +118,13 @@ impl GameWorld {
         )
     }
 
-    pub fn level_pos_to_chunk_pos(pos: ChunkPos, level: usize) -> ChunkPos {
+    pub fn chunk_pos_to_level_pos(pos: ChunkPos, level: usize) -> ChunkPos {
         let scale = Self::level_to_scale(level);
         Self::scale_down_pos(pos, scale)
     }
 
     pub fn level_pos_to_level_pos(pos: ChunkPos, from_level: usize, to_level: usize) -> ChunkPos {
-        let pos = Self::level_pos_to_chunk_pos(pos, from_level);
+        let pos = Self::chunk_pos_to_level_pos(pos, from_level);
 
         pos * Self::level_to_scale(to_level) as i64
     }

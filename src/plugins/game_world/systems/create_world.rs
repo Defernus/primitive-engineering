@@ -15,7 +15,6 @@ use bevy::prelude::*;
 pub fn start_world_creating(
     mut commands: Commands,
     meta: Res<GameWorldMeta>,
-
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
 ) {
