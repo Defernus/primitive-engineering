@@ -32,7 +32,8 @@ fn spawn_object(
 ) -> usize {
     let mut spawned: usize = 0;
     for i in 0..amount {
-        if let Some((pos, y_angle)) = get_ground_object_pos(gen.seed, pos, id, chance, i, amount) {
+        if let Some((pos, y_angle)) = get_ground_object_pos(gen.seed(), pos, id, chance, i, amount)
+        {
             spawned += 1;
             commands.spawn(get_spawn(pos, y_angle));
         }

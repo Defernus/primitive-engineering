@@ -57,11 +57,13 @@ pub fn new_game(
                     local_state.seed = rand::random::<u64>().to_string();
                 }
 
-                generator.seed = local_state.seed.parse().unwrap_or_else(|_| {
+                let seed = local_state.seed.parse().unwrap_or_else(|_| {
                     let mut hasher = std::collections::hash_map::DefaultHasher::new();
                     local_state.seed.hash(&mut hasher);
                     hasher.finish()
-                }) as WorldSeed;
+                });
+
+                generator.set_seed(seed as WorldSeed);
             });
 
             if ui.button("Generate world").clicked() {

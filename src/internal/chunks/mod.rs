@@ -185,7 +185,7 @@ impl Chunk {
     pub fn generate(gen: WorldGenerator, pos: ChunkPos, level: usize) -> Self {
         Self {
             voxels: generate_voxels(
-                gen.seed,
+                gen.seed(),
                 pos * Self::SIZE as i64,
                 Self::SIZES_VOXELS,
                 GameWorld::level_to_scale(level),
