@@ -1,6 +1,6 @@
 use crate::internal::{
     chunks::{ChunkPointer, InWorldChunk},
-    pos::ChunkPos,
+    pos::{ChunkPos, VoxelPos},
 };
 use bevy::{
     prelude::*,
@@ -8,6 +8,7 @@ use bevy::{
     utils::{HashMap, Uuid},
 };
 use bevy_inspector_egui::InspectorOptions;
+use num_traits::Pow;
 
 pub type WorldSeed = u32;
 
@@ -27,82 +28,187 @@ impl GameWorldMeta {
     }
 }
 
-#[derive(Resource, Debug, Reflect, Default, InspectorOptions)]
+#[derive(Resource, Debug, Default, Reflect, FromReflect)]
 #[reflect(Resource)]
 pub struct GameWorld {
     pub chunks: HashMap<ChunkPos, InWorldChunk>,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum ChunkUpdateError {
+    ChunkNotFound,
+    ChunkAlreadyLoaded,
+}
+
 impl GameWorld {
+    pub const MAX_DETAIL_LEVEL: usize = 4;
+
     pub fn new() -> Self {
         Self {
             chunks: HashMap::default(),
         }
     }
 
-    pub fn get_chunk(&self, pos: ChunkPos) -> Option<InWorldChunk> {
-        self.chunks.get(&pos).cloned()
-    }
-
-    pub fn iter_chunks(&self) -> impl Iterator<Item = (ChunkPos, InWorldChunk)> + '_ {
-        self.chunks.iter().map(|(pos, chunk)| (*pos, chunk.clone()))
-    }
-
-    /// Try to spawn a chunk at the given position.
-    ///
-    /// If the chunk already exists, return false, otherwise, return true.
-    pub fn spawn_chunk_at(&mut self, pos: ChunkPos) -> bool {
-        let mut chunk_spawned = false;
-        self.chunks.entry(pos).or_insert_with(|| {
-            let chunk = InWorldChunk::Loading;
-            chunk_spawned = true;
-            chunk
-        });
-
-        chunk_spawned
-    }
-
-    /// Set the chunk at the given position to the given chunk
-    ///
-    /// If the chunk already exists, it will be prepared for despawn and the entity will be returned.
-    pub fn update_chunk_at(
+    pub fn update_chunk(
         &mut self,
-        pos: ChunkPos,
         chunk: ChunkPointer,
         entity: Entity,
-    ) -> Option<Entity> {
-        let mut prev_entity = None;
-
-        if let Some(prev) = self
-            .chunks
-            .insert(pos, InWorldChunk::Loaded((chunk, entity)))
-        {
-            match prev {
-                InWorldChunk::Loading => {}
-                InWorldChunk::Loaded(prev) => {
-                    prev_entity = Some(prev.1);
-                    prev.0.lock().prepare_despawn();
+    ) -> Result<(), ChunkUpdateError> {
+        match self.get_chunk_mut(chunk.get_pos(), chunk.get_level()) {
+            Some(c) => match c {
+                InWorldChunk::Loading => {
+                    *c = InWorldChunk::Loaded(chunk, entity);
+                    Ok(())
                 }
-            };
-        };
-
-        prev_entity
+                _ => Err(ChunkUpdateError::ChunkAlreadyLoaded),
+            },
+            _ => Err(ChunkUpdateError::ChunkNotFound),
+        }
     }
 
-    pub fn despawn_chunk(&mut self, pos: ChunkPos) -> Option<ChunkPointer> {
-        let mut chunk_pointer = None;
+    pub fn get_chunk_mut(&mut self, pos: ChunkPos, level: usize) -> Option<&mut InWorldChunk> {
+        if level == 0 {
+            return self.chunks.get_mut(&pos);
+        }
 
-        if let Some(prev) = self.chunks.remove(&pos) {
-            match prev {
-                InWorldChunk::Loading => {}
-                InWorldChunk::Loaded(prev) => {
-                    chunk_pointer = Some(prev.0.clone());
-                    let mut prev = prev.0.lock();
-                    prev.prepare_despawn();
-                }
-            };
-        };
+        let c_pos = Self::scale_down_pos(pos, Pow::pow(2_usize, level));
 
-        chunk_pointer
+        let in_chunk_pos = pos - c_pos * Pow::pow(2_usize, level) as i64;
+
+        let chunk = self.chunks.get_mut(&c_pos)?;
+
+        let in_chunk_pos = VoxelPos::new(
+            in_chunk_pos.x as usize,
+            in_chunk_pos.y as usize,
+            in_chunk_pos.z as usize,
+        );
+
+        chunk.get_sub_chunk_mut(in_chunk_pos, level - 1)
     }
+
+    /// Try to create a chunk at the given position.
+    ///
+    /// Returns true if the chunk was created, false if it already existed.
+    pub fn create_chunk(&mut self, pos: ChunkPos) -> bool {
+        let mut new = false;
+        self.chunks.entry(pos).or_insert_with(|| {
+            new = true;
+            InWorldChunk::Loading
+        });
+        new
+    }
+
+    pub fn get_chunk(&self, pos: ChunkPos) -> Option<&InWorldChunk> {
+        self.chunks.get(&pos)
+    }
+
+    pub fn scale_down_axis(axis: i64, scale: usize) -> i64 {
+        if axis < 0 {
+            (axis + 1) / (scale as i64) - 1
+        } else {
+            axis / (scale as i64)
+        }
+    }
+
+    pub fn scale_down_pos(pos: ChunkPos, scale: usize) -> ChunkPos {
+        ChunkPos::new(
+            Self::scale_down_axis(pos.x, scale),
+            Self::scale_down_axis(pos.y, scale),
+            Self::scale_down_axis(pos.z, scale),
+        )
+    }
+
+    pub fn level_pos_to_chunk_pos(pos: ChunkPos, level: usize) -> ChunkPos {
+        let scale = Self::level_to_scale(level);
+        Self::scale_down_pos(pos, scale)
+    }
+
+    pub fn level_pos_to_level_pos(pos: ChunkPos, from_level: usize, to_level: usize) -> ChunkPos {
+        let pos = Self::level_pos_to_chunk_pos(pos, from_level);
+
+        pos * Self::level_to_scale(to_level) as i64
+    }
+
+    pub fn level_to_scale(level: usize) -> usize {
+        Pow::pow(2 as usize, Self::MAX_DETAIL_LEVEL - level)
+    }
+
+    pub fn iter_chunks(&self) -> impl Iterator<Item = (ChunkPos, &InWorldChunk)> + '_ {
+        self.chunks.iter().map(|(pos, chunk)| (*pos, chunk))
+    }
+
+    // /// Set the chunk at the given position to the given chunk
+    // ///
+    // /// If the chunk already exists, it will be prepared for despawn and the entity will be returned.
+    // pub fn update_chunk_at(
+    //     &mut self,
+    //     pos: ChunkPos,
+    //     chunk: ChunkPointer,
+    //     entity: Entity,
+    // ) -> Option<Entity> {
+    //     let mut prev_entity = None;
+
+    //     if let Some(prev) = self.chunks.insert(pos, InWorldChunk::Loaded(chunk, entity)) {
+    //         match prev {
+    //             InWorldChunk::Loading(_) => {
+    //                 prev_entity = Some(entity);
+    //             }
+    //             InWorldChunk::Loaded(chunk, e) => {
+    //                 prev_entity = Some(e);
+    //                 chunk.lock().prepare_despawn();
+    //             }
+    //         };
+    //     };
+
+    //     prev_entity
+    // }
+
+    // pub fn despawn_chunk(&mut self, pos: ChunkPos) {
+    //     if let Some(prev) = self.chunks.remove(&pos) {};
+    // }
+}
+
+#[test]
+fn test_chunk_set_and_get() {
+    let mut world = GameWorld::new();
+
+    let in_world_pos = ChunkPos::new(-1, -1, -1);
+
+    assert_eq!(world.create_chunk(in_world_pos), true);
+
+    {
+        let chunk = world.get_chunk_mut(in_world_pos, 0).unwrap();
+        match chunk {
+            InWorldChunk::Loading => {}
+            v => panic!("Chunk should be loading {:?}", v),
+        }
+
+        *chunk = InWorldChunk::SubChunks(vec![InWorldChunk::Loading; 8]);
+    }
+
+    fn test_subchunks(world: &mut GameWorld, pos: ChunkPos, layer: usize) {
+        for i in 0..8 {
+            let pos = pos * 2 + ChunkPos::from_index(i, 2);
+            {
+                let chunk = world.get_chunk_mut(pos, layer);
+
+                assert_eq!(chunk.is_some(), true);
+
+                let chunk = chunk.unwrap();
+
+                match chunk {
+                    InWorldChunk::Loading => {}
+                    v => panic!("Chunk {:?}-{} should be loading {:?}", pos, layer, v),
+                }
+
+                *chunk = InWorldChunk::SubChunks(vec![InWorldChunk::Loading; 8]);
+            }
+
+            if layer < GameWorld::MAX_DETAIL_LEVEL {
+                test_subchunks(world, pos, layer + 1);
+            }
+        }
+    }
+
+    test_subchunks(&mut world, in_world_pos, 1);
 }

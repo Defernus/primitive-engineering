@@ -1,60 +1,87 @@
 use crate::{
     internal::{
-        chunks::{Chunk, ChunkPointer},
-        pos::ChunkPos,
-        world_generator::objects::{get_ground_object_pos, ObjectGeneratorID},
+        chunks::{Chunk, ChunkPointer, InWorldChunk},
+        pos::{ChunkPos, VoxelPos},
     },
     plugins::{
         chunks::{
-            components::{ChunkComponent, ChunkMeshComponent, ComputeChunkGeneration},
-            resources::{
-                ChunkLoadIterator, ChunkLoadingEnabled, CHUNKS_SPAWN_AT_ONCE, DEFAULT_RADIUS,
-            },
+            components::{ChunkComponent, ComputeChunkDetailedTask},
+            helpers::spawn_chunk,
+            resources::ChunkLoadingEnabled,
         },
         game_world::resources::{GameWorld, GameWorldMeta},
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
-        objects::components::{
-            items::{branch::BranchItem, rock::RockItem},
-            tree::TreeObject,
-            GameWorldObjectTrait, ObjectSpawn,
-        },
         player::{components::PlayerComponent, resources::PrevPlayerChunkPos},
-        static_mesh::components::StaticMeshComponent,
     },
 };
 use bevy::prelude::*;
 use crossbeam_channel::unbounded;
 
-fn generate_chunk(
-    chunk_load_iter: &mut ChunkLoadIterator,
+fn detail_chunk(
     commands: &mut Commands,
     world: &mut GameWorld,
+    entity: Entity,
+    prev_chunk: ChunkPointer,
     meta: GameWorldMeta,
 ) -> Option<()> {
-    for _ in 0..CHUNKS_SPAWN_AT_ONCE {
-        let mut pos = chunk_load_iter.0.next()?;
+    let pos = prev_chunk.get_pos();
+    let level = prev_chunk.get_level();
 
-        while !world.spawn_chunk_at(pos) {
-            pos = chunk_load_iter.0.next()?;
+    if level >= GameWorld::MAX_DETAIL_LEVEL {
+        return None;
+    }
+
+    {
+        let chunk_cell = world.get_chunk_mut(pos, level)?;
+
+        match chunk_cell {
+            InWorldChunk::Loaded(_, _) => {}
+            _ => {
+                return None;
+            }
         }
 
-        let (tx, rx) = unbounded();
-
-        let meta = meta.clone();
-        std::thread::spawn(move || {
-            let chunk = Chunk::generate(meta, pos);
-
-            match tx.send((pos, Box::new(chunk))) {
-                Err(err) => {
-                    panic!("failed to send chunk data after generation: {}", err);
-                }
-                _ => {}
-            }
-        });
-
-        commands.spawn((ComputeChunkGeneration(rx), DisableHierarchyDisplay));
+        *chunk_cell = InWorldChunk::SubChunks(vec![InWorldChunk::Loading; 8]);
     }
+
+    {
+        let sub_pos = pos * 2 + ChunkPos::new(1, 0, 0);
+        match world.get_chunk_mut(sub_pos, level + 1) {
+            Some(InWorldChunk::Loading) => {}
+            v => {
+                panic!("chunk is not loading: {:?}-{} {:?}", sub_pos, level + 1, v)
+            }
+        }
+    }
+
+    let (tx, rx) = unbounded();
+
+    std::thread::spawn(move || {
+        let mut chunks = Vec::with_capacity(8);
+
+        for i in 0..8 {
+            let sub_pos = VoxelPos::from_index(i, 2);
+            let sub_pos = ChunkPos::new(sub_pos.x as i64, sub_pos.y as i64, sub_pos.z as i64);
+            let pos = sub_pos + pos * 2;
+            let level = level + 1;
+
+            let chunk = Chunk::generate(meta.clone(), pos, level);
+            let vertices = chunk.generate_vertices(level);
+
+            chunks.push((chunk, vertices));
+        }
+
+        match tx.send((entity, pos, level, Box::new(chunks))) {
+            Err(err) => {
+                panic!("failed to send chunk data after generation: {}", err);
+            }
+            _ => {}
+        }
+    });
+
+    commands.spawn((ComputeChunkDetailedTask(rx), DisableHierarchyDisplay));
+
     Some(())
 }
 
@@ -62,10 +89,10 @@ pub fn chunk_load_system(
     mut world: ResMut<GameWorld>,
     world_meta: Res<GameWorldMeta>,
     mut prev_player_chunk_pos: ResMut<PrevPlayerChunkPos>,
-    mut chunk_load_iter: ResMut<ChunkLoadIterator>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut commands: Commands,
+    chunks_q: Query<(Entity, &ChunkComponent)>,
 ) {
     if !chunk_load_enabled.0 {
         return;
@@ -77,94 +104,23 @@ pub fn chunk_load_system(
 
     if player_chunk_pos != prev_player_chunk_pos.0 {
         prev_player_chunk_pos.0 = player_chunk_pos;
-        chunk_load_iter.0 = player_chunk_pos.iter_around(DEFAULT_RADIUS);
     }
 
-    if chunk_load_iter.0.is_done() {
-        return;
-    }
+    for (entity, chunk) in chunks_q.iter() {
+        let scaled_player_pos =
+            GameWorld::level_pos_to_chunk_pos(player_chunk_pos, chunk.chunk.get_level());
 
-    generate_chunk(
-        &mut chunk_load_iter,
-        &mut commands,
-        &mut world,
-        world_meta.clone(),
-    );
-}
-
-fn spawn_object(
-    pos: ChunkPos,
-    commands: &mut Commands,
-    world_meta: &GameWorldMeta,
-    id: ObjectGeneratorID,
-    chance: f32,
-    amount: usize,
-    mut get_spawn: impl FnMut(Vec3, f32) -> ObjectSpawn,
-) -> usize {
-    let mut spawned: usize = 0;
-    for i in 0..amount {
-        if let Some((pos, y_angle)) =
-            get_ground_object_pos(world_meta.seed, pos, id, chance, i, amount)
-        {
-            spawned += 1;
-            commands.spawn(get_spawn(pos, y_angle));
+        let dist = (chunk.chunk.get_pos() - scaled_player_pos).dist();
+        if dist <= 1 {
+            detail_chunk(
+                &mut commands,
+                &mut world,
+                entity,
+                chunk.chunk.clone(),
+                world_meta.clone(),
+            );
         }
     }
-
-    spawned
-}
-
-fn spawn_chunk_objects(chunk_pos: ChunkPos, commands: &mut Commands, world_meta: &GameWorldMeta) {
-    let mut id: ObjectGeneratorID = 0;
-
-    macro_rules! next_id {
-        () => {{
-            id += 1;
-            id
-        }};
-    }
-
-    spawn_object(
-        chunk_pos,
-        commands,
-        world_meta,
-        next_id!(),
-        0.2,
-        1,
-        |pos, y_angle| {
-            let mut t = Transform::from_translation(pos);
-            t.rotate_y(y_angle);
-            TreeObject.get_spawn(t)
-        },
-    );
-
-    spawn_object(
-        chunk_pos,
-        commands,
-        world_meta,
-        next_id!(),
-        0.6,
-        1,
-        |pos, y_angle| {
-            let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
-            t.rotate_y(y_angle);
-            BranchItem.get_spawn(t)
-        },
-    );
-
-    spawn_object(
-        chunk_pos,
-        commands,
-        world_meta,
-        next_id!(),
-        0.5,
-        1,
-        |pos, y_angle| {
-            let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
-            t.rotate_y(y_angle);
-            RockItem.get_spawn(t)
-        },
-    );
 }
 
 pub fn spawn_chunk_system(
@@ -173,46 +129,28 @@ pub fn spawn_chunk_system(
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
     world_meta: Res<GameWorldMeta>,
-    generation_task: Query<(Entity, &mut ComputeChunkGeneration)>,
+    generation_task: Query<(Entity, &mut ComputeChunkDetailedTask)>,
 ) {
-    for (e, ComputeChunkGeneration(rx)) in generation_task.iter() {
+    for (e, ComputeChunkDetailedTask(rx)) in generation_task.iter() {
         match rx.try_recv() {
-            Ok((pos, mut chunk)) => {
-                let mesh = StaticMeshComponent::spawn(&mut commands, &mut meshes, &assets, vec![]);
-                commands
-                    .entity(mesh)
-                    .insert(ChunkMeshComponent)
-                    .insert(Name::new("chunk:mesh"));
+            Ok((prev_chunk_entity, pos, level, chunks)) => {
+                for (i, (chunk, vertices)) in chunks.into_iter().enumerate() {
+                    let sub_pos = ChunkPos::from_index(i, 2);
+                    let chunk = ChunkPointer::new(chunk, pos * 2 + sub_pos, level + 1);
 
-                let chunk_pos_vec = Chunk::pos_to_vec(pos);
-
-                let mut chunk_entity = commands.spawn((
-                    Name::new(format!("chunk[{:?}]", pos)),
-                    DisableHierarchyDisplay,
-                    GlobalTransform::default(),
-                    Transform::from_translation(chunk_pos_vec),
-                    VisibilityBundle::default(),
-                ));
-
-                chunk.set_entity(chunk_entity.id());
-
-                let chunk = ChunkPointer::new(*chunk, pos);
-
-                let chunk_entity = chunk_entity
-                    .insert(ChunkComponent {
-                        chunk: chunk.clone(),
-                    })
-                    .add_child(mesh)
-                    .id();
-
-                spawn_chunk_objects(pos, &mut commands, &world_meta);
-
-                commands.entity(e).despawn();
-                let prev_chunk_entity = world.update_chunk_at(pos, chunk, chunk_entity);
-
-                if let Some(entity) = prev_chunk_entity {
-                    commands.entity(entity).despawn();
+                    spawn_chunk(
+                        &mut commands,
+                        &mut meshes,
+                        &assets,
+                        &mut world,
+                        world_meta.clone(),
+                        chunk.clone(),
+                        vertices,
+                    );
                 }
+
+                commands.entity(prev_chunk_entity).despawn_recursive();
+                commands.entity(e).despawn_recursive();
             }
             _ => {}
         }

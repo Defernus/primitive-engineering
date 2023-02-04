@@ -1,5 +1,6 @@
 use crate::internal::chunks::{Chunk, ChunkPointer};
 use crate::internal::pos::ChunkPos;
+use crate::plugins::static_mesh::components::Vertex;
 use bevy::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 use crossbeam_channel::Receiver;
@@ -12,11 +13,17 @@ pub struct ChunkComponent {
 }
 
 #[derive(Component)]
-pub struct ComputeChunkGeneration(pub Receiver<(ChunkPos, Box<Chunk>)>);
+pub struct ComputeChunkDetailedTask(
+    pub Receiver<(Entity, ChunkPos, usize, Box<Vec<(Chunk, Vec<Vertex>)>>)>,
+);
 
 #[derive(Debug, Clone, Copy, Component, Default, Reflect, FromReflect)]
 #[reflect(Component)]
 pub struct ChunkMeshComponent;
+
+#[derive(Debug, Clone, Copy, Component, Default, Reflect, FromReflect)]
+#[reflect(Component)]
+pub struct RealChunkComponent;
 
 #[derive(Debug, Clone, Component, Default, Reflect, FromReflect)]
 #[reflect(Component)]

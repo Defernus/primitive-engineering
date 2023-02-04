@@ -3,7 +3,7 @@ use bevy_reflect::{FromReflect, Reflect};
 use std::{
     cmp::Ordering,
     hash::Hash,
-    ops::{Add, Mul, Sub},
+    ops::{Add, Div, Mul, Sub},
 };
 
 use super::direction::Direction;
@@ -45,9 +45,15 @@ impl<T: Reflect + Copy + Clone + num_traits::Num> Pos<T> {
 
     pub fn iter(size: Pos<T>) -> PosIter<T> {
         PosIter {
-            pos: Pos::new(T::zero(), T::zero(), T::zero()),
+            pos: Pos::zero(),
             size,
         }
+    }
+}
+
+impl<T: Reflect + Copy + Clone + num_traits::Signed + Ord> Pos<T> {
+    pub fn dist(self) -> T {
+        std::cmp::max(std::cmp::max(self.x.abs(), self.y.abs()), self.z.abs())
     }
 }
 
@@ -72,19 +78,19 @@ impl<T: From<V> + Reflect + Copy + Clone, V> From<(V, V, V)> for Pos<T> {
     }
 }
 
-impl<T: From<usize> + Reflect + Copy + Clone> Pos<T> {
+impl<T: num_traits::FromPrimitive + Reflect + Copy + Clone> Pos<T> {
     pub fn from_index(index: usize, size: usize) -> Self {
-        let x: T = (index % size).into();
-        let y: T = ((index / size) % size).into();
-        let z: T = (index / (size * size)).into();
-        Self::new(x.into(), y.into(), z.into())
+        let x = T::from_usize(index % size).unwrap();
+        let y = T::from_usize((index / size) % size).unwrap();
+        let z = T::from_usize(index / (size * size)).unwrap();
+        Self::new(x, y, z)
     }
 
     pub fn from_index_rect(index: usize, size: VoxelPos) -> Self {
-        let x: T = (index % size.x).into();
-        let y: T = ((index / size.x) % size.y).into();
-        let z: T = (index / (size.x * size.y)).into();
-        Self::new(x.into(), y.into(), z.into())
+        let x = T::from_usize(index % size.x).unwrap();
+        let y = T::from_usize((index / size.x) % size.y).unwrap();
+        let z = T::from_usize(index / (size.x * size.y)).unwrap();
+        Self::new(x, y, z)
     }
 }
 
@@ -123,6 +129,14 @@ impl<T: num_traits::PrimInt + Reflect + Copy + Clone> Mul<T> for Pos<T> {
 
     fn mul(self, other: T) -> Pos<T> {
         Pos::new(self.x * other, self.y * other, self.z * other)
+    }
+}
+
+impl<T: num_traits::PrimInt + Reflect + Copy + Clone> Div<T> for Pos<T> {
+    type Output = Pos<T>;
+
+    fn div(self, other: T) -> Pos<T> {
+        Pos::new(self.x / other, self.y / other, self.z / other)
     }
 }
 
