@@ -1,9 +1,5 @@
 use crate::{
-    internal::{
-        chunks::ChunkPointer,
-        pos::ChunkPos,
-        world_generator::objects::{get_ground_object_pos, ObjectGeneratorID},
-    },
+    internal::{chunks::ChunkPointer, pos::ChunkPos},
     plugins::{
         game_world::resources::GameWorld,
         inspector::components::DisableHierarchyDisplay,
@@ -14,7 +10,7 @@ use crate::{
             GameWorldObjectTrait, ObjectSpawn,
         },
         static_mesh::components::{StaticMeshComponent, Vertex},
-        world_generator::resources::WorldGenerator,
+        world_generator::resources::{ObjectGeneratorID, WorldGenerator},
     },
 };
 use bevy::prelude::*;
@@ -32,8 +28,7 @@ fn spawn_object(
 ) -> usize {
     let mut spawned: usize = 0;
     for i in 0..amount {
-        if let Some((pos, y_angle)) = get_ground_object_pos(gen.seed(), pos, id, chance, i, amount)
-        {
+        if let Some((pos, y_angle)) = gen.get_ground_object_pos(pos, id, chance, i, amount) {
             spawned += 1;
             commands.spawn(get_spawn(pos, y_angle));
         }

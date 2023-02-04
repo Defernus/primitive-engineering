@@ -78,7 +78,7 @@ impl<T: From<V> + Reflect + Copy + Clone, V> From<(V, V, V)> for Pos<T> {
     }
 }
 
-impl<T: num_traits::FromPrimitive + Reflect + Copy + Clone> Pos<T> {
+impl<T: num_traits::FromPrimitive + num_traits::ToPrimitive + Reflect + Copy + Clone> Pos<T> {
     pub fn from_index(index: usize, size: usize) -> Self {
         let x = T::from_usize(index % size).unwrap();
         let y = T::from_usize((index / size) % size).unwrap();
@@ -97,6 +97,10 @@ impl<T: num_traits::FromPrimitive + Reflect + Copy + Clone> Pos<T> {
 impl<T: num_traits::Unsigned + From<usize> + Into<usize> + Copy + Reflect + Clone> Pos<T> {
     pub fn to_index(&self, size: usize) -> usize {
         (self.x + self.y * size.into() + self.z * size.into() * size.into()).into()
+    }
+
+    pub fn to_index_rect(&self, size: Self) -> usize {
+        (self.x + self.y * size.x + self.z * size.x * size.y).into()
     }
 }
 

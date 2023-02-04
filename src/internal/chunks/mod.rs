@@ -1,7 +1,6 @@
 use super::{
     pos::{ChunkPos, GlobalVoxelPos, VoxelPos},
     voxel::{voxels_to_vertex::append_vertex, Voxel},
-    world_generator::generate_voxels,
 };
 use crate::plugins::{
     game_world::resources::GameWorld, static_mesh::components::Vertex,
@@ -184,8 +183,7 @@ impl Chunk {
 
     pub fn generate(gen: WorldGenerator, pos: ChunkPos, level: usize) -> Self {
         Self {
-            voxels: generate_voxels(
-                gen.seed(),
+            voxels: gen.generate_voxels(
                 pos * Self::SIZE as i64,
                 Self::SIZES_VOXELS,
                 GameWorld::level_to_scale(level),
