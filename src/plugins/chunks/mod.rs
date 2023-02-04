@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use self::{
     components::ChunkComponent,
     resources::ChunkLoadingEnabled,
-    systems::{loading::*, mine::*, redraw::*, unload::*},
+    systems::{details::*, mine::*, redraw::*, unload::*},
 };
 
 pub mod components;
@@ -21,8 +21,8 @@ impl Plugin for ChunksPlugin {
             .insert_resource(ChunkLoadingEnabled(true))
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
-                    .with_system(chunk_load_system)
-                    .with_system(spawn_chunk_system)
+                    .with_system(chunk_details_system)
+                    .with_system(spawn_detailed_chunk_system)
                     .with_system(redraw)
                     .with_system(mine)
                     // .with_system(handle_modifications)

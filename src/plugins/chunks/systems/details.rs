@@ -5,7 +5,7 @@ use crate::{
     },
     plugins::{
         chunks::{
-            components::{ChunkComponent, ComputeChunkDetailedTask},
+            components::{ChunkComponent, ComputeChunkDetailedTask, RealChunkComponent},
             helpers::spawn_chunk,
             resources::ChunkLoadingEnabled,
         },
@@ -29,7 +29,7 @@ fn detail_chunk(
     let level = prev_chunk.get_level();
 
     if level >= GameWorld::MAX_DETAIL_LEVEL {
-        return None;
+        panic!("chunk is already detailed: {:?}-{}", pos, level);
     }
 
     {
@@ -85,14 +85,14 @@ fn detail_chunk(
     Some(())
 }
 
-pub fn chunk_load_system(
+pub fn chunk_details_system(
     mut world: ResMut<GameWorld>,
     world_meta: Res<GameWorldMeta>,
     mut prev_player_chunk_pos: ResMut<PrevPlayerChunkPos>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut commands: Commands,
-    chunks_q: Query<(Entity, &ChunkComponent)>,
+    chunks_q: Query<(Entity, &ChunkComponent), Without<RealChunkComponent>>,
 ) {
     if !chunk_load_enabled.0 {
         return;
@@ -123,7 +123,7 @@ pub fn chunk_load_system(
     }
 }
 
-pub fn spawn_chunk_system(
+pub fn spawn_detailed_chunk_system(
     mut world: ResMut<GameWorld>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
