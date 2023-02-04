@@ -24,8 +24,8 @@ impl Biome for DesertBiome {
     fn get_generate_voxel_inp(&self, _gen: &WorldGenerator, _pos: ChunkPos) -> GenerateVoxelInp {
         GenerateVoxelInp {
             bumps_factor: 0.005,
-            first_layer_color: Color::rgb_u8(150, 150, 10).into(),
-            second_layer_color: Color::rgb_u8(130, 130, 5).into(),
+            first_layer_color: Color::rgb_u8(218, 185, 143).into(),
+            second_layer_color: Color::rgb_u8(200, 158, 114).into(),
             rest_layers_color: Color::rgb_u8(100, 100, 100).into(),
         }
     }
@@ -38,7 +38,7 @@ impl Biome for DesertBiome {
         LandscapeHeightInp { height: 5.0 }
     }
 
-    fn check_pos(&self, gen: &WorldGenerator, pos: ChunkPos, inp: BiomeCheckInput) -> bool {
+    fn check_pos(&self, _gen: &WorldGenerator, _pos: ChunkPos, inp: BiomeCheckInput) -> bool {
         inp.temperature > 30.0
     }
 }

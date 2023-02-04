@@ -38,7 +38,7 @@ impl Biome for PlainsBiome {
         LandscapeHeightInp { height: 3.0 }
     }
 
-    fn check_pos(&self, gen: &WorldGenerator, pos: ChunkPos, inp: BiomeCheckInput) -> bool {
+    fn check_pos(&self, _gen: &WorldGenerator, _pos: ChunkPos, _inp: BiomeCheckInput) -> bool {
         true
     }
 }

@@ -50,7 +50,7 @@ pub struct ChunkBiomes2D {
 
 impl ChunkBiomes {
     pub fn new(gen: &WorldGenerator, pos: ChunkPos) -> Self {
-        let mut biomes = (0..8)
+        let biomes = (0..8)
             .into_iter()
             .map(|i| {
                 let pos = ChunkPos::from_index(i, 2) + pos;
@@ -76,7 +76,7 @@ impl ChunkBiomes {
             .map(|(i, b)| {
                 let pos = self.offset + ChunkPos::from_index(i, 2);
 
-                b.get_generate_voxel_inp(gen, self.offset)
+                b.get_generate_voxel_inp(gen, pos)
             })
             .collect::<Vec<_>>();
 

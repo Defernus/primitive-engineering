@@ -327,17 +327,16 @@ impl WorldGenerator {
             let px = offset.x + (x * scale) as i64;
             for z in 0..Chunk::SIZE_VOXELS {
                 let pz = offset.z + (z * scale) as i64;
+                let pos_2d = GlobalVoxelPos::new(px, 0, pz);
 
-                let biomes2d = ChunkBiomes2D::new(
-                    self,
-                    Chunk::global_voxel_pos_to_chunk_pos(GlobalVoxelPos::new(px, 0, pz)),
-                );
+                let biomes2d =
+                    ChunkBiomes2D::new(self, Chunk::global_voxel_pos_to_chunk_pos(pos_2d));
 
                 let vx = px as f64 * Voxel::SCALE as f64;
                 let vz = pz as f64 * Voxel::SCALE as f64;
 
                 let landscape_height = self.gel_landscape_height(
-                    biomes2d.get_landscape_height_inp(self, VoxelPos::new(x, 0, z)),
+                    biomes2d.get_landscape_height_inp(self, Chunk::normalize_pos(pos_2d)),
                     vx,
                     vz,
                 );
@@ -352,7 +351,8 @@ impl WorldGenerator {
                         Chunk::global_voxel_pos_to_chunk_pos(absolute_voxel_pos),
                     );
 
-                    let inp = biomes.get_generate_voxel_inp(self, VoxelPos::new(x, y, z));
+                    let inp = biomes
+                        .get_generate_voxel_inp(self, Chunk::normalize_pos(absolute_voxel_pos));
 
                     let voxel =
                         self.generate_voxel(inp, landscape_height, absolute_voxel_pos, scale);
