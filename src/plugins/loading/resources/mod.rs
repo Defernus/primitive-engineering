@@ -22,6 +22,7 @@ pub struct GameAssets {
     pub branch_object: PhysicsObject,
     pub rock_object: PhysicsObject,
     pub fire_object: PhysicsObject,
+    pub cactus_object: PhysicsObject,
 
     pub crosshair_image: Handle<Image>,
 }

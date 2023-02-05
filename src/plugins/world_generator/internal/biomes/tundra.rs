@@ -1,7 +1,9 @@
 use super::*;
 use crate::{
     internal::{color::Color, pos::ChunkPos},
-    plugins::world_generator::resources::{GenerateVoxelInp, LandscapeHeightInp, WorldGenerator},
+    plugins::world_generator::resources::{
+        GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator,
+    },
 };
 use std::sync::Arc;
 
@@ -21,9 +23,14 @@ impl Biome for TundraBiome {
         Self::ID
     }
 
-    fn get_generate_voxel_inp(&self, _gen: &WorldGenerator, _pos: ChunkPos) -> GenerateVoxelInp {
-        GenerateVoxelInp {
-            bumps_factor: 0.005,
+    fn get_generate_voxel_inp(&self, _gen: &WorldGenerator, _pos: ChunkPos) -> GenVoxelInp {
+        GenVoxelInp {
+            cave_inp: GenCaveInp {
+                cave_factor: 1.3,
+                cave_offset: 0.3,
+                cave_strength: 100.0,
+            },
+            bumps_factor: 0.1,
             first_layer_color: Color::rgb_u8(255, 255, 255).into(),
             second_layer_color: Color::rgb_u8(65, 40, 22).into(),
             rest_layers_color: Color::rgb_u8(100, 100, 100).into(),

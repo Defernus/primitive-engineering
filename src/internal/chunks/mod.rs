@@ -183,7 +183,7 @@ impl Chunk {
 
     pub fn generate(gen: WorldGenerator, pos: ChunkPos, level: usize) -> Self {
         Self {
-            voxels: gen.generate_voxels(pos, GameWorld::level_to_scale(level)),
+            voxels: gen.generate_voxels(pos, level),
             need_redraw: true,
         }
     }
@@ -333,11 +333,16 @@ impl Chunk {
         }
     }
 
+    /// transform global voxel pos to position of the chunk that contains this voxel
+    ///
+    /// example:
+    /// - (0, 0, 0) => (0, 0, 0)
+    /// - (-1, 0, 1) => (-1, 0, 0)
     pub fn global_voxel_pos_to_chunk_pos(pos: GlobalVoxelPos) -> ChunkPos {
         ChunkPos::new(
-            Self::axis_voxel_pos_to_chunk_pos(pos.x / Self::SIZE_I64),
-            Self::axis_voxel_pos_to_chunk_pos(pos.y / Self::SIZE_I64),
-            Self::axis_voxel_pos_to_chunk_pos(pos.z / Self::SIZE_I64),
+            Self::axis_voxel_pos_to_chunk_pos(pos.x),
+            Self::axis_voxel_pos_to_chunk_pos(pos.y),
+            Self::axis_voxel_pos_to_chunk_pos(pos.z),
         )
     }
 

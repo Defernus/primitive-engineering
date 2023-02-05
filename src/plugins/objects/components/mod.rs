@@ -6,6 +6,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+pub mod cactus;
 pub mod fire;
 pub mod items;
 pub mod tree;

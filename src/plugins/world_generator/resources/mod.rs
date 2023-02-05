@@ -1,8 +1,11 @@
-use crate::internal::{
-    chunks::Chunk,
-    color::Color,
-    pos::{ChunkPos, GlobalVoxelPos, VoxelPos},
-    voxel::Voxel,
+use crate::{
+    internal::{
+        chunks::Chunk,
+        color::Color,
+        pos::{ChunkPos, GlobalVoxelPos, VoxelPos},
+        voxel::Voxel,
+    },
+    plugins::game_world::resources::GameWorld,
 };
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
@@ -12,16 +15,13 @@ use noise::{NoiseFn, OpenSimplex, Perlin};
 use num_traits::Pow;
 use std::{
     collections::LinkedList,
-    f64::{
-        consts::{E, PI},
-        MAX, MIN,
-    },
+    f64::consts::{E, PI},
     sync::Arc,
 };
 
 use super::internal::biomes::{
     desert::DesertBiome, plains::PlainsBiome, tundra::TundraBiome, Biome, BiomeCheckInput,
-    ChunkBiomes, ChunkBiomes2D,
+    ChunkBiomes,
 };
 
 pub type WorldSeed = u32;
@@ -42,10 +42,14 @@ pub struct WorldGenerator {
 impl WorldGenerator {
     const LANDSCAPE_OCTAVES: usize = 4;
     const SCALE: f64 = 0.045;
+    const LANDSCAPE_SCALE: f64 = 0.025;
+    const CAVE_SCALE: f64 = 1.0 / 50.0;
+    const CAVE_Y_SCALE: f64 = 4.0;
 
     const COLOR_RANDOM_SCALE: f64 = 0.1;
-    const TEMP_NOISE_SCALE: f64 = 0.1;
-    const HUMIDITY_NOISE_SCALE: f64 = 0.1;
+    const TEMP_NOISE_SCALE: f64 = 0.01;
+    const HUMIDITY_NOISE_SCALE: f64 = 0.01;
+    const MOUNTAINOUSNESS_NOISE_SCALE: f64 = 0.01;
 
     /// Min temperature in celsius
     const MIN_TEMP: f64 = -70.0;
@@ -81,6 +85,7 @@ impl WorldGenerator {
         let inp = BiomeCheckInput {
             temperature: self.get_temperature(pos),
             humidity: self.get_humidity(pos),
+            mountainousness: self.get_mountainousness(pos),
         };
 
         self.biomes
@@ -155,9 +160,23 @@ impl WorldGenerator {
         h
     }
 
+    pub fn get_mountainousness(&self, pos: ChunkPos) -> f64 {
+        let x = pos.x as f64;
+        let z = pos.z as f64;
+
+        let m = self.simplex.get([
+            x * Self::MOUNTAINOUSNESS_NOISE_SCALE,
+            z * Self::MOUNTAINOUSNESS_NOISE_SCALE,
+            2.0,
+        ]) * 0.5
+            + 0.5;
+
+        m
+    }
+
     pub fn gel_landscape_height(&self, inp: LandscapeHeightInp, x: f64, z: f64) -> f64 {
         let mut result = 0.0;
-        let mut scale = Self::SCALE;
+        let mut scale = Self::LANDSCAPE_SCALE;
         let mut height = inp.height;
 
         for _ in 0..Self::LANDSCAPE_OCTAVES {
@@ -182,10 +201,6 @@ impl WorldGenerator {
             (variant * Chunk::SIZE) as f64,
         ]) * 0.5
             + 0.25
-    }
-
-    fn get_landscape_height_inp(&self, x: f64, y: f64) -> LandscapeHeightInp {
-        LandscapeHeightInp { height: 25.0 }
     }
 
     /// Returns the position of the object in the chunk, if there is one.
@@ -219,7 +234,10 @@ impl WorldGenerator {
                 * Chunk::REAL_SIZE as f64
                 * 2.0;
 
-        let landscape_inp = self.get_landscape_height_inp(tree_x, tree_z);
+        let voxel_pos = Chunk::vec_to_voxel_pos(Vec3::new(tree_x as f32, 0.0, tree_z as f32));
+        let voxel_pos = Chunk::normalize_pos(voxel_pos);
+        let biomes = ChunkBiomes::new(self, chunk_pos, GameWorld::MAX_DETAIL_LEVEL);
+        let landscape_inp = biomes.get_landscape_height_inp(voxel_pos);
 
         let tree_y =
             self.gel_landscape_height(landscape_inp, tree_x, tree_z) as f32 - chunk_offset.y;
@@ -238,33 +256,32 @@ impl WorldGenerator {
         ))
     }
 
-    fn get_caves(&self, pos: GlobalVoxelPos) -> f64 {
+    fn get_caves(&self, inp: GenCaveInp, pos: GlobalVoxelPos) -> f64 {
         let pos_vec = pos.to_vec3();
 
         let x = pos_vec.x as f64 * Voxel::SCALE as f64;
         let y = pos_vec.y as f64 * Voxel::SCALE as f64;
         let z = pos_vec.z as f64 * Voxel::SCALE as f64;
 
-        let cave_scale = 1.0 / 50.0;
-
-        let cave = self
-            .simplex
-            .get([x * cave_scale, y * cave_scale * 4.0, z * cave_scale])
-            * 1.3
-            - 0.3;
+        let cave = self.simplex.get([
+            x * Self::CAVE_SCALE,
+            y * Self::CAVE_SCALE * Self::CAVE_Y_SCALE,
+            z * Self::CAVE_SCALE,
+        ]) * inp.cave_factor
+            - inp.cave_offset;
 
         if cave < 0.0 {
             return 0.0;
         }
 
-        let cave = cave * cave * 100.0;
+        let cave = cave * cave * inp.cave_strength;
 
         cave
     }
 
     fn generate_voxel_value(
         &self,
-        inp: GenerateVoxelInp,
+        inp: GenVoxelInp,
         landscape_height: f64,
         pos: GlobalVoxelPos,
     ) -> f64 {
@@ -285,14 +302,14 @@ impl WorldGenerator {
 
         let value = Self::normalize_value(value);
 
-        let value = value - self.get_caves(pos);
+        let value = value - self.get_caves(inp.cave_inp, pos);
 
         value
     }
 
     fn generate_voxel(
         &self,
-        inp: GenerateVoxelInp,
+        inp: GenVoxelInp,
         landscape_height: f64,
         pos: GlobalVoxelPos,
         scale: usize,
@@ -318,25 +335,25 @@ impl WorldGenerator {
     }
 
     /// Generates the voxels for a chunk.
-    pub fn generate_voxels(&self, chunk_pos: ChunkPos, scale: usize) -> Vec<Voxel> {
+    pub fn generate_voxels(&self, chunk_pos: ChunkPos, level: usize) -> Vec<Voxel> {
+        let scale = GameWorld::level_to_scale(level);
         let mut voxels = vec![Voxel::EMPTY; Chunk::VOLUME_VOXELS];
 
         let offset = chunk_pos * (Chunk::SIZE * scale) as i64;
+
+        let biomes = ChunkBiomes::new(self, chunk_pos, level);
 
         for x in 0..Chunk::SIZE_VOXELS {
             let px = offset.x + (x * scale) as i64;
             for z in 0..Chunk::SIZE_VOXELS {
                 let pz = offset.z + (z * scale) as i64;
-                let pos_2d = GlobalVoxelPos::new(px, 0, pz);
-
-                let biomes2d =
-                    ChunkBiomes2D::new(self, Chunk::global_voxel_pos_to_chunk_pos(pos_2d));
 
                 let vx = px as f64 * Voxel::SCALE as f64;
                 let vz = pz as f64 * Voxel::SCALE as f64;
 
+                let voxel_pos_2d = VoxelPos::new(x * scale, 0, z * scale);
                 let landscape_height = self.gel_landscape_height(
-                    biomes2d.get_landscape_height_inp(self, Chunk::normalize_pos(pos_2d)),
+                    biomes.get_landscape_height_inp(voxel_pos_2d),
                     vx,
                     vz,
                 );
@@ -345,14 +362,9 @@ impl WorldGenerator {
                     let py = offset.y + (y * scale) as i64;
 
                     let absolute_voxel_pos = GlobalVoxelPos::new(px, py, pz);
+                    let rel_voxel_pos = VoxelPos::new(x, y, z) * scale;
 
-                    let biomes = ChunkBiomes::new(
-                        self,
-                        Chunk::global_voxel_pos_to_chunk_pos(absolute_voxel_pos),
-                    );
-
-                    let inp = biomes
-                        .get_generate_voxel_inp(self, Chunk::normalize_pos(absolute_voxel_pos));
+                    let inp = biomes.get_generate_voxel_inp(rel_voxel_pos);
 
                     let voxel =
                         self.generate_voxel(inp, landscape_height, absolute_voxel_pos, scale);
@@ -401,7 +413,15 @@ pub struct LandscapeHeightInp {
 }
 
 #[derive(Debug, Clone, Copy, Lerp)]
-pub struct GenerateVoxelInp {
+pub struct GenCaveInp {
+    pub cave_factor: f64,
+    pub cave_offset: f64,
+    pub cave_strength: f64,
+}
+
+#[derive(Debug, Clone, Copy, Lerp)]
+pub struct GenVoxelInp {
+    pub cave_inp: GenCaveInp,
     pub first_layer_color: VoxelColor,
     pub second_layer_color: VoxelColor,
     pub rest_layers_color: VoxelColor,
@@ -411,8 +431,8 @@ pub struct GenerateVoxelInp {
 #[test]
 fn test_avg_temp() {
     let mut sum = 0.0;
-    let mut min = MAX;
-    let mut max = MIN;
+    let mut min = WorldGenerator::MAX_TEMP;
+    let mut max = WorldGenerator::MIN_TEMP;
 
     let size = 32;
     let volume = size * size * size;

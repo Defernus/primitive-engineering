@@ -11,6 +11,27 @@ pub type VoxelPos = Pos<usize>;
 pub type GlobalVoxelPos = Pos<i64>;
 pub type ChunkPos = Pos<i64>;
 
+// Pos<usize> into Pos<i64>
+impl From<VoxelPos> for GlobalVoxelPos {
+    fn from(pos: VoxelPos) -> Self {
+        Self {
+            x: pos.x as i64,
+            y: pos.y as i64,
+            z: pos.z as i64,
+        }
+    }
+}
+
+impl From<GlobalVoxelPos> for VoxelPos {
+    fn from(pos: GlobalVoxelPos) -> Self {
+        Self {
+            x: pos.x as usize,
+            y: pos.y as usize,
+            z: pos.z as usize,
+        }
+    }
+}
+
 #[derive(Debug, Default, Copy, Clone, PartialEq, Reflect, Eq, Hash, FromReflect)]
 pub struct Pos<T: Reflect + Copy + Clone> {
     pub x: T,
@@ -114,6 +135,10 @@ impl<T: num_traits::Unsigned + From<usize> + Into<usize> + Copy + Reflect + Clon
 
     pub fn to_index_rect(&self, size: Self) -> usize {
         (self.x + self.y * size.x + self.z * size.x * size.y).into()
+    }
+
+    pub fn to_index_2d(&self, size: usize) -> usize {
+        (self.x + self.z * size.into()).into()
     }
 }
 
