@@ -19,7 +19,6 @@ pub struct GameWorldObject(pub Arc<Mutex<dyn GameWorldObjectTrait>>);
 
 #[derive(Component, Debug, Clone)]
 pub struct ObjectSpawn {
-    pub chunk_child: bool,
     pub id: &'static str,
     pub object: Option<Arc<Mutex<dyn GameWorldObjectTrait>>>,
     pub transform: Transform,

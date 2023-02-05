@@ -32,9 +32,7 @@ fn spawn(
         .ok_or(ObjectSpawnError::ChunkNotLoaded(chunk_pos))?;
 
     let mut transform = object_spawn.transform;
-    if object_spawn.chunk_child {
-        transform.translation -= Chunk::pos_to_translation(chunk_pos);
-    };
+    transform.translation -= Chunk::pos_to_translation(chunk_pos);
 
     Ok((
         object_spawn
@@ -54,9 +52,7 @@ pub fn spawn_object_system(
         match spawn(&mut commands, &mut object_spawn, &world, &assets) {
             Ok((object_entity, chunk_entity)) => {
                 commands.entity(spawn_entity).despawn_recursive();
-                if object_spawn.chunk_child {
-                    commands.entity(chunk_entity).add_child(object_entity);
-                }
+                commands.entity(chunk_entity).add_child(object_entity);
             }
             Err(err) => match err {
                 ObjectSpawnError::ObjectAlreadySpawned => {
