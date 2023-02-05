@@ -76,6 +76,7 @@ impl Biome for DesertBiome {
             next_id!(),
             0.2,
             1,
+            false,
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos);
                 t.rotate_y(y_angle);
@@ -91,6 +92,7 @@ impl Biome for DesertBiome {
             next_id!(),
             0.5,
             1,
+            false,
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
                 t.rotate_y(y_angle);

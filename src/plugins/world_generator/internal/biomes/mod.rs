@@ -59,11 +59,13 @@ pub(self) fn spawn_object(
     id: ObjectGeneratorID,
     chance: f32,
     amount: usize,
+    allow_air: bool,
     mut get_spawn: impl FnMut(Vec3, f32) -> ObjectSpawn,
 ) -> usize {
     let mut spawned: usize = 0;
     for i in 0..amount {
-        if let Some((pos, y_angle)) = gen.get_ground_object_pos(biomes, pos, id, chance, i, amount)
+        if let Some((pos, y_angle)) =
+            gen.get_ground_object_pos(biomes, pos, id, chance, i, amount, allow_air)
         {
             spawned += 1;
             commands.spawn(get_spawn(pos, y_angle));

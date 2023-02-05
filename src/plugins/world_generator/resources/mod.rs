@@ -207,7 +207,8 @@ impl WorldGenerator {
     ///
     /// The position is relative to the chunk.
     ///
-    /// The chance is a value between 0 and 1. The higher the value, the more likely the object will be generated.
+    /// - `chance`: value between 0 and 1. The higher the value, the more likely the object will be generated.
+    /// - `allow_air`: if true, objects can spawn in the air, otherwise the placement will be skipped for air voxels
     ///
     /// The number is used to generate multiple objects in the same chunk.
     pub fn get_ground_object_pos(
@@ -218,6 +219,7 @@ impl WorldGenerator {
         chance: f32,
         number: usize,
         max_count: usize,
+        allow_air: bool,
     ) -> Option<(Vec3, f32)> {
         let chunk_offset = Chunk::pos_to_translation(chunk_pos);
 
@@ -239,8 +241,8 @@ impl WorldGenerator {
         let voxel_pos = Chunk::vec_to_voxel_pos(Vec3::new(tree_x as f32, 0.0, tree_z as f32));
         let landscape_inp = biomes.get_landscape_height_inp(voxel_pos);
 
-        let tree_y =
-            self.gel_landscape_height(landscape_inp, tree_x, tree_z) as f32 - chunk_offset.y;
+        let landscape_height = self.gel_landscape_height(landscape_inp, tree_x, tree_z);
+        let tree_y = landscape_height as f32 - chunk_offset.y;
 
         if tree_y < 0.0 || tree_y >= Chunk::REAL_SIZE {
             return None;
@@ -248,12 +250,23 @@ impl WorldGenerator {
 
         let tree_y = tree_y + chunk_offset.y;
 
-        let y_angle = self.get_chunk_random(chunk_offset, id, 2 + number * max_count) * PI * 4.0;
+        let pos = Vec3::new(tree_x as f32, tree_y as f32, tree_z as f32);
 
-        Some((
-            Vec3::new(tree_x as f32, tree_y as f32, tree_z as f32),
-            y_angle as f32,
-        ))
+        if !allow_air {
+            let voxel_pos = Chunk::vec_to_voxel_pos(pos);
+            let inp = biomes.get_generate_voxel_inp(voxel_pos);
+            let voxel_value = self.generate_voxel_value(
+                inp,
+                landscape_height,
+                voxel_pos - GlobalVoxelPos::new(0, 1, 0),
+            );
+            if voxel_value < 0.0 {
+                return None;
+            }
+        }
+
+        let y_angle = self.get_chunk_random(chunk_offset, id, 2 + number * max_count) * PI * 4.0;
+        Some((pos, y_angle as f32))
     }
 
     fn get_caves(&self, inp: GenCaveInp, pos: GlobalVoxelPos) -> f64 {
