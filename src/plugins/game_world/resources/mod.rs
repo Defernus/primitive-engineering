@@ -30,7 +30,7 @@ impl GameWorldMeta {
 #[derive(Resource, Debug, Default, Reflect, FromReflect)]
 #[reflect(Resource)]
 pub struct GameWorld {
-    pub chunks: HashMap<ChunkPos, (InWorldChunk, ChunkBiomes)>,
+    pub regions: HashMap<ChunkPos, (InWorldChunk, ChunkBiomes)>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -48,7 +48,7 @@ impl GameWorld {
 
     pub fn new() -> Self {
         Self {
-            chunks: HashMap::default(),
+            regions: HashMap::default(),
         }
     }
 
@@ -77,7 +77,7 @@ impl GameWorld {
 
         let in_chunk_pos = pos - c_pos * Self::level_to_scale(0) as i64;
 
-        let (chunk, _) = self.chunks.get(&c_pos)?;
+        let (chunk, _) = self.regions.get(&c_pos)?;
 
         let in_chunk_pos = VoxelPos::new(
             in_chunk_pos.x as usize,
@@ -92,14 +92,14 @@ impl GameWorld {
 
     pub fn get_chunk_mut(&mut self, pos: ChunkPos, level: usize) -> Option<&mut InWorldChunk> {
         if level == 0 {
-            return self.chunks.get_mut(&pos).map(|(chunk, _)| chunk);
+            return self.regions.get_mut(&pos).map(|(chunk, _)| chunk);
         }
 
         let c_pos = Self::scale_down_pos(pos, Pow::pow(2_usize, level));
 
         let in_chunk_pos = pos - c_pos * Pow::pow(2_usize, level) as i64;
 
-        let (chunk, _) = self.chunks.get_mut(&c_pos)?;
+        let (chunk, _) = self.regions.get_mut(&c_pos)?;
 
         let in_chunk_pos = VoxelPos::new(
             in_chunk_pos.x as usize,
@@ -119,7 +119,7 @@ impl GameWorld {
         gen: &WorldGenerator,
     ) -> Option<&mut (InWorldChunk, ChunkBiomes)> {
         let mut new = false;
-        let v = self.chunks.entry(pos).or_insert_with(|| {
+        let v = self.regions.entry(pos).or_insert_with(|| {
             new = true;
             (InWorldChunk::Loading, ChunkBiomes::new(gen, pos))
         });
@@ -132,11 +132,11 @@ impl GameWorld {
     }
 
     pub fn remove_chunk(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {
-        self.chunks.remove(&pos)
+        self.regions.remove(&pos)
     }
 
     pub fn get_chunk(&self, pos: ChunkPos) -> Option<&(InWorldChunk, ChunkBiomes)> {
-        self.chunks.get(&pos)
+        self.regions.get(&pos)
     }
 
     pub fn scale_down_axis(axis: i64, scale: usize) -> i64 {
