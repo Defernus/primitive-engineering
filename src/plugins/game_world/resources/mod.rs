@@ -95,9 +95,9 @@ impl GameWorld {
             return self.regions.get_mut(&pos).map(|(chunk, _)| chunk);
         }
 
-        let c_pos = Self::scale_down_pos(pos, Pow::pow(2_usize, level));
+        let c_pos = Self::scale_down_pos(pos, 1 << level);
 
-        let in_chunk_pos = pos - c_pos * Pow::pow(2_usize, level) as i64;
+        let in_chunk_pos = pos - c_pos * (1 << level) as i64;
 
         let (chunk, _) = self.regions.get_mut(&c_pos)?;
 
@@ -175,7 +175,7 @@ impl GameWorld {
     }
 
     pub const fn level_to_scale(level: usize) -> usize {
-        usize::pow(2, (Self::MAX_DETAIL_LEVEL - level) as u32)
+        1 << (Self::MAX_DETAIL_LEVEL - level)
     }
 }
 

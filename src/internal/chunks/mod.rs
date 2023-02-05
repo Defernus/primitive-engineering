@@ -80,7 +80,7 @@ impl InWorldChunk {
     pub fn get_sub_chunk(&self, pos: VoxelPos, level: usize) -> Option<&Self> {
         match self {
             InWorldChunk::SubChunks(sub_chunks) => {
-                let scale = Pow::pow(2, level) as usize;
+                let scale = 1 << level;
                 let sub_pos = pos / scale;
 
                 let in_chunk_pos = pos - sub_pos * scale;
@@ -101,7 +101,7 @@ impl InWorldChunk {
     pub fn get_sub_chunk_mut(&mut self, pos: VoxelPos, level: usize) -> Option<&mut Self> {
         match self {
             InWorldChunk::SubChunks(sub_chunks) => {
-                let scale = Pow::pow(2, level) as usize;
+                let scale = 1 << level;
                 let sub_pos = pos / scale;
 
                 let in_chunk_pos = pos - sub_pos * scale;
