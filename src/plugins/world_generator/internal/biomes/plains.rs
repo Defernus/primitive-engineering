@@ -1,10 +1,21 @@
 use super::{Biome, BiomeCheckInput, BiomeID};
 use crate::{
     internal::{color::Color, pos::ChunkPos},
-    plugins::world_generator::resources::{
-        GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator,
+    plugins::{
+        objects::components::{
+            items::{branch::BranchItem, rock::RockItem},
+            tree::TreeObject,
+            GameWorldObjectTrait,
+        },
+        world_generator::{
+            internal::biomes::spawn_object,
+            resources::{
+                GenCaveInp, GenVoxelInp, LandscapeHeightInp, ObjectGeneratorID, WorldGenerator,
+            },
+        },
     },
 };
+use bevy::prelude::*;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -48,5 +59,66 @@ impl Biome for PlainsBiome {
     fn check_pos(&self, _gen: &WorldGenerator, _pos: ChunkPos, _inp: BiomeCheckInput) -> bool {
         // always return true as this is the default biome
         true
+    }
+
+    fn spawn_objects(
+        &self,
+        chunk_pos: ChunkPos,
+        commands: &mut Commands,
+        gen: &WorldGenerator,
+    ) -> usize {
+        let mut id: ObjectGeneratorID = 0;
+        let mut count = 0;
+
+        macro_rules! next_id {
+            () => {{
+                id += 1;
+                id
+            }};
+        }
+
+        count += spawn_object(
+            chunk_pos,
+            commands,
+            gen,
+            next_id!(),
+            0.2,
+            1,
+            |pos, y_angle| {
+                let mut t = Transform::from_translation(pos);
+                t.rotate_y(y_angle);
+                TreeObject.get_spawn(t)
+            },
+        );
+
+        count += spawn_object(
+            chunk_pos,
+            commands,
+            gen,
+            next_id!(),
+            0.6,
+            1,
+            |pos, y_angle| {
+                let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
+                t.rotate_y(y_angle);
+                BranchItem.get_spawn(t)
+            },
+        );
+
+        count += spawn_object(
+            chunk_pos,
+            commands,
+            gen,
+            next_id!(),
+            0.5,
+            1,
+            |pos, y_angle| {
+                let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
+                t.rotate_y(y_angle);
+                RockItem.get_spawn(t)
+            },
+        );
+
+        count
     }
 }

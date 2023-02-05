@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use bevy::prelude::{Commands, Vec3};
 use lerp::Lerp;
 
 use crate::{
@@ -9,7 +10,10 @@ use crate::{
     },
     plugins::{
         game_world::resources::GameWorld,
-        world_generator::resources::{GenVoxelInp, LandscapeHeightInp, WorldGenerator},
+        objects::components::ObjectSpawn,
+        world_generator::resources::{
+            GenVoxelInp, LandscapeHeightInp, ObjectGeneratorID, WorldGenerator,
+        },
     },
 };
 
@@ -36,6 +40,33 @@ pub trait Biome: Send + Sync + Debug {
 
     /// check if the biome should be used at the given position
     fn check_pos(&self, gen: &WorldGenerator, pos: ChunkPos, inp: BiomeCheckInput) -> bool;
+
+    fn spawn_objects(
+        &self,
+        chunk_pos: ChunkPos,
+        commands: &mut Commands,
+        gen: &WorldGenerator,
+    ) -> usize;
+}
+
+pub(self) fn spawn_object(
+    pos: ChunkPos,
+    commands: &mut Commands,
+    gen: &WorldGenerator,
+    id: ObjectGeneratorID,
+    chance: f32,
+    amount: usize,
+    mut get_spawn: impl FnMut(Vec3, f32) -> ObjectSpawn,
+) -> usize {
+    let mut spawned: usize = 0;
+    for i in 0..amount {
+        if let Some((pos, y_angle)) = gen.get_ground_object_pos(pos, id, chance, i, amount) {
+            spawned += 1;
+            commands.spawn(get_spawn(pos, y_angle));
+        }
+    }
+
+    spawned
 }
 
 /// Represents the biomes for each vertex of a chunk

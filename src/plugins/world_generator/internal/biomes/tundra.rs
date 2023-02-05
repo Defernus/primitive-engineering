@@ -48,4 +48,13 @@ impl Biome for TundraBiome {
     fn check_pos(&self, _gen: &WorldGenerator, _pos: ChunkPos, inp: BiomeCheckInput) -> bool {
         inp.temperature < 0.0
     }
+
+    fn spawn_objects(
+        &self,
+        _chunk_pos: ChunkPos,
+        _commands: &mut Commands,
+        _gen: &WorldGenerator,
+    ) -> usize {
+        0
+    }
 }
