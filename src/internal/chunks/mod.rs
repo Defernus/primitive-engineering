@@ -3,8 +3,9 @@ use super::{
     voxel::{voxels_to_vertex::append_vertex, Voxel},
 };
 use crate::plugins::{
-    game_world::resources::GameWorld, static_mesh::components::Vertex,
-    world_generator::resources::WorldGenerator,
+    game_world::resources::GameWorld,
+    static_mesh::components::Vertex,
+    world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},
 };
 use bevy::prelude::{Entity, Transform, Vec3};
 use bevy_reflect::{FromReflect, Reflect};
@@ -181,9 +182,16 @@ impl Chunk {
     pub const SIZES: VoxelPos = VoxelPos::from_scalar(Self::SIZE);
     pub const SIZES_VOXELS: VoxelPos = VoxelPos::from_scalar(Self::SIZE_VOXELS);
 
-    pub fn generate(gen: WorldGenerator, pos: ChunkPos, level: usize) -> Self {
+    pub fn empty() -> Self {
         Self {
-            voxels: gen.generate_voxels(pos, level),
+            voxels: vec![Voxel::default(); Self::VOLUME_VOXELS],
+            need_redraw: false,
+        }
+    }
+
+    pub fn generate(gen: WorldGenerator, biomes: ChunkBiomes, pos: ChunkPos, level: usize) -> Self {
+        Self {
+            voxels: gen.generate_voxels(&biomes, pos, level),
             need_redraw: true,
         }
     }

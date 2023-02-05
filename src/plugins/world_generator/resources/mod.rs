@@ -212,6 +212,7 @@ impl WorldGenerator {
     /// The number is used to generate multiple objects in the same chunk.
     pub fn get_ground_object_pos(
         &self,
+        biomes: &ChunkBiomes,
         chunk_pos: ChunkPos,
         id: ObjectGeneratorID,
         chance: f32,
@@ -225,18 +226,17 @@ impl WorldGenerator {
             return None;
         }
 
-        let tree_x = chunk_offset.x as f64
-            + self.get_chunk_random(chunk_offset, id, 0 + number * max_count)
-                * Chunk::REAL_SIZE as f64
-                * 2.0;
-        let tree_z = chunk_offset.z as f64
-            + self.get_chunk_random(chunk_offset, id, 1 + number * max_count)
-                * Chunk::REAL_SIZE as f64
-                * 2.0;
+        let tree_x = self.get_chunk_random(chunk_offset, id, 0 + number * max_count)
+            * Chunk::REAL_SIZE as f64
+            * 2.0;
+        let tree_z = self.get_chunk_random(chunk_offset, id, 1 + number * max_count)
+            * Chunk::REAL_SIZE as f64
+            * 2.0;
+
+        let tree_x = tree_x.clamp(0.0, Chunk::REAL_SIZE as f64) + chunk_offset.x as f64;
+        let tree_z = tree_z.clamp(0.0, Chunk::REAL_SIZE as f64) + chunk_offset.z as f64;
 
         let voxel_pos = Chunk::vec_to_voxel_pos(Vec3::new(tree_x as f32, 0.0, tree_z as f32));
-        let voxel_pos = Chunk::normalize_pos(voxel_pos);
-        let biomes = ChunkBiomes::new(self, chunk_pos, GameWorld::MAX_DETAIL_LEVEL);
         let landscape_inp = biomes.get_landscape_height_inp(voxel_pos);
 
         let tree_y =
@@ -335,13 +335,16 @@ impl WorldGenerator {
     }
 
     /// Generates the voxels for a chunk.
-    pub fn generate_voxels(&self, chunk_pos: ChunkPos, level: usize) -> Vec<Voxel> {
+    pub fn generate_voxels(
+        &self,
+        biomes: &ChunkBiomes,
+        chunk_pos: ChunkPos,
+        level: usize,
+    ) -> Vec<Voxel> {
         let scale = GameWorld::level_to_scale(level);
         let mut voxels = vec![Voxel::EMPTY; Chunk::VOLUME_VOXELS];
 
         let offset = chunk_pos * (Chunk::SIZE * scale) as i64;
-
-        let biomes = ChunkBiomes::new(self, chunk_pos, level);
 
         for x in 0..Chunk::SIZE_VOXELS {
             let px = offset.x + (x * scale) as i64;
@@ -351,9 +354,8 @@ impl WorldGenerator {
                 let vx = px as f64 * Voxel::SCALE as f64;
                 let vz = pz as f64 * Voxel::SCALE as f64;
 
-                let voxel_pos_2d = VoxelPos::new(x * scale, 0, z * scale);
                 let landscape_height = self.gel_landscape_height(
-                    biomes.get_landscape_height_inp(voxel_pos_2d),
+                    biomes.get_landscape_height_inp(GlobalVoxelPos::new(px, 0, pz)),
                     vx,
                     vz,
                 );
@@ -362,9 +364,8 @@ impl WorldGenerator {
                     let py = offset.y + (y * scale) as i64;
 
                     let absolute_voxel_pos = GlobalVoxelPos::new(px, py, pz);
-                    let rel_voxel_pos = VoxelPos::new(x, y, z) * scale;
 
-                    let inp = biomes.get_generate_voxel_inp(rel_voxel_pos);
+                    let inp = biomes.get_generate_voxel_inp(absolute_voxel_pos);
 
                     let voxel =
                         self.generate_voxel(inp, landscape_height, absolute_voxel_pos, scale);
@@ -384,7 +385,7 @@ impl Default for WorldGenerator {
     }
 }
 
-#[derive(Debug, Clone, Copy, Lerp)]
+#[derive(Debug, Clone, Copy, Lerp, Reflect, FromReflect)]
 pub struct VoxelColor {
     pub r: f32,
     pub g: f32,
@@ -407,19 +408,19 @@ impl From<Color> for VoxelColor {
     }
 }
 
-#[derive(Debug, Clone, Copy, Lerp)]
+#[derive(Debug, Clone, Copy, Lerp, Reflect, FromReflect)]
 pub struct LandscapeHeightInp {
     pub height: f64,
 }
 
-#[derive(Debug, Clone, Copy, Lerp)]
+#[derive(Debug, Clone, Copy, Lerp, Reflect, FromReflect)]
 pub struct GenCaveInp {
     pub cave_factor: f64,
     pub cave_offset: f64,
     pub cave_strength: f64,
 }
 
-#[derive(Debug, Clone, Copy, Lerp)]
+#[derive(Debug, Clone, Copy, Lerp, Reflect, FromReflect)]
 pub struct GenVoxelInp {
     pub cave_inp: GenCaveInp,
     pub first_layer_color: VoxelColor,

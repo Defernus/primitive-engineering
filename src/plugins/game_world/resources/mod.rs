@@ -1,6 +1,9 @@
-use crate::internal::{
-    chunks::{ChunkPointer, InWorldChunk},
-    pos::{ChunkPos, VoxelPos},
+use crate::{
+    internal::{
+        chunks::{ChunkPointer, InWorldChunk},
+        pos::{ChunkPos, VoxelPos},
+    },
+    plugins::world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},
 };
 use bevy::{
     prelude::*,
@@ -27,7 +30,7 @@ impl GameWorldMeta {
 #[derive(Resource, Debug, Default, Reflect, FromReflect)]
 #[reflect(Resource)]
 pub struct GameWorld {
-    pub chunks: HashMap<ChunkPos, InWorldChunk>,
+    pub chunks: HashMap<ChunkPos, (InWorldChunk, ChunkBiomes)>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -38,6 +41,8 @@ pub enum ChunkUpdateError {
 
 impl GameWorld {
     pub const MAX_DETAIL_LEVEL: usize = 5;
+    pub const MAX_REGION_SCALE: usize = Self::level_to_scale(0);
+
     pub const MIN_DETAILS_DIST: usize = 1;
     pub const MAX_DETAILS_DIST: usize = 5;
 
@@ -52,7 +57,10 @@ impl GameWorld {
         chunk: ChunkPointer,
         entity: Entity,
     ) -> Result<(), ChunkUpdateError> {
-        match self.get_chunk_mut(chunk.get_pos(), chunk.get_level()) {
+        let pos = chunk.get_pos();
+        let level = chunk.get_level();
+
+        match self.get_chunk_mut(pos, level) {
             Some(c) => match c {
                 InWorldChunk::Loading => {
                     *c = InWorldChunk::Loaded(chunk, entity);
@@ -69,7 +77,7 @@ impl GameWorld {
 
         let in_chunk_pos = pos - c_pos * Self::level_to_scale(0) as i64;
 
-        let chunk = self.chunks.get(&c_pos)?;
+        let (chunk, _) = self.chunks.get(&c_pos)?;
 
         let in_chunk_pos = VoxelPos::new(
             in_chunk_pos.x as usize,
@@ -84,14 +92,14 @@ impl GameWorld {
 
     pub fn get_chunk_mut(&mut self, pos: ChunkPos, level: usize) -> Option<&mut InWorldChunk> {
         if level == 0 {
-            return self.chunks.get_mut(&pos);
+            return self.chunks.get_mut(&pos).map(|(chunk, _)| chunk);
         }
 
         let c_pos = Self::scale_down_pos(pos, Pow::pow(2_usize, level));
 
         let in_chunk_pos = pos - c_pos * Pow::pow(2_usize, level) as i64;
 
-        let chunk = self.chunks.get_mut(&c_pos)?;
+        let (chunk, _) = self.chunks.get_mut(&c_pos)?;
 
         let in_chunk_pos = VoxelPos::new(
             in_chunk_pos.x as usize,
@@ -105,20 +113,29 @@ impl GameWorld {
     /// Try to create a chunk at the given position.
     ///
     /// Returns true if the chunk was created, false if it already existed.
-    pub fn create_chunk(&mut self, pos: ChunkPos) -> bool {
+    pub fn create_chunk(
+        &mut self,
+        pos: ChunkPos,
+        gen: &WorldGenerator,
+    ) -> Option<&mut (InWorldChunk, ChunkBiomes)> {
         let mut new = false;
-        self.chunks.entry(pos).or_insert_with(|| {
+        let v = self.chunks.entry(pos).or_insert_with(|| {
             new = true;
-            InWorldChunk::Loading
+            (InWorldChunk::Loading, ChunkBiomes::new(gen, pos))
         });
-        new
+
+        if new {
+            Some(v)
+        } else {
+            None
+        }
     }
 
-    pub fn remove_chunk(&mut self, pos: ChunkPos) -> Option<InWorldChunk> {
+    pub fn remove_chunk(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {
         self.chunks.remove(&pos)
     }
 
-    pub fn get_chunk(&self, pos: ChunkPos) -> Option<&InWorldChunk> {
+    pub fn get_chunk(&self, pos: ChunkPos) -> Option<&(InWorldChunk, ChunkBiomes)> {
         self.chunks.get(&pos)
     }
 
@@ -143,58 +160,67 @@ impl GameWorld {
         Self::scale_down_pos(pos, scale)
     }
 
+    pub fn chunk_pos_to_region_pos(pos: ChunkPos) -> ChunkPos {
+        Self::scale_down_pos(pos, Self::MAX_REGION_SCALE)
+    }
+
+    pub fn normalize_chunk_pos_in_region(pos: ChunkPos) -> VoxelPos {
+        (pos - Self::chunk_pos_to_region_pos(pos) * Self::MAX_REGION_SCALE as i64).into()
+    }
+
     pub fn level_pos_to_level_pos(pos: ChunkPos, from_level: usize, to_level: usize) -> ChunkPos {
-        let pos = Self::chunk_pos_to_level_pos(pos, from_level);
+        let pos = pos * Self::level_to_scale(from_level) as i64;
 
-        pos * Self::level_to_scale(to_level) as i64
+        Self::chunk_pos_to_level_pos(pos, to_level)
     }
 
-    pub fn level_to_scale(level: usize) -> usize {
-        Pow::pow(2 as usize, Self::MAX_DETAIL_LEVEL - level)
+    pub const fn level_to_scale(level: usize) -> usize {
+        usize::pow(2, (Self::MAX_DETAIL_LEVEL - level) as u32)
+    }
+}
+
+#[test]
+fn update_chunk() {
+    use crate::internal::chunks::Chunk;
+
+    let gen = WorldGenerator::new(123);
+    let mut world = GameWorld::new();
+
+    let pos = ChunkPos::new(-2, -2, -2);
+    let level = 1;
+
+    let in_world_pos = GameWorld::level_pos_to_level_pos(pos, level, 0);
+    println!("in_world_pos: {:?}", in_world_pos);
+
+    {
+        let chunk_data = world.create_chunk(in_world_pos, &gen);
+        assert!(chunk_data.is_some());
+        let (chunk, _) = chunk_data.unwrap();
+
+        *chunk = InWorldChunk::SubChunks(vec![InWorldChunk::Loading; 8]);
     }
 
-    pub fn iter_chunks(&self) -> impl Iterator<Item = (ChunkPos, &InWorldChunk)> + '_ {
-        self.chunks.iter().map(|(pos, chunk)| (*pos, chunk))
-    }
+    let chunk = ChunkPointer::new(Chunk::empty(), pos, level);
+    let result = world.update_chunk(chunk, Entity::from_raw(0));
 
-    // /// Set the chunk at the given position to the given chunk
-    // ///
-    // /// If the chunk already exists, it will be prepared for despawn and the entity will be returned.
-    // pub fn update_chunk_at(
-    //     &mut self,
-    //     pos: ChunkPos,
-    //     chunk: ChunkPointer,
-    //     entity: Entity,
-    // ) -> Option<Entity> {
-    //     let mut prev_entity = None;
+    assert!(
+        result.is_ok(),
+        "Failed to update chunk: {:?}",
+        result.unwrap_err()
+    );
 
-    //     if let Some(prev) = self.chunks.insert(pos, InWorldChunk::Loaded(chunk, entity)) {
-    //         match prev {
-    //             InWorldChunk::Loading(_) => {
-    //                 prev_entity = Some(entity);
-    //             }
-    //             InWorldChunk::Loaded(chunk, e) => {
-    //                 prev_entity = Some(e);
-    //                 chunk.lock().prepare_despawn();
-    //             }
-    //         };
-    //     };
-
-    //     prev_entity
-    // }
-
-    // pub fn despawn_chunk(&mut self, pos: ChunkPos) {
-    //     if let Some(prev) = self.chunks.remove(&pos) {};
-    // }
+    let chunk_data = world.get_chunk(in_world_pos);
+    assert!(chunk_data.is_some(), "Failed to get chunk data");
 }
 
 #[test]
 fn test_chunk_set_and_get() {
+    let gen = WorldGenerator::new(123);
     let mut world = GameWorld::new();
 
     let in_world_pos = ChunkPos::new(-1, -1, -1);
 
-    assert_eq!(world.create_chunk(in_world_pos), true);
+    assert!(world.create_chunk(in_world_pos, &gen).is_some());
 
     {
         let chunk = world.get_chunk_mut(in_world_pos, 0).unwrap();
@@ -231,4 +257,26 @@ fn test_chunk_set_and_get() {
     }
 
     test_subchunks(&mut world, in_world_pos, 1);
+}
+
+#[test]
+fn test_level_transforms() {
+    let base_pos = ChunkPos::new(-3, 113, 1024);
+    assert_eq!(
+        GameWorld::level_pos_to_level_pos(base_pos, 0, 0),
+        base_pos,
+        "Should be same"
+    );
+
+    let base_pos = ChunkPos::new(-1, 1, 1);
+    assert_eq!(
+        GameWorld::level_pos_to_level_pos(base_pos, 0, 1),
+        base_pos * 2,
+        "Should be 2x"
+    );
+    assert_eq!(
+        GameWorld::level_pos_to_level_pos(base_pos, 1, 0),
+        ChunkPos::new(-1, 0, 0),
+        "Should be 1/2x"
+    );
 }

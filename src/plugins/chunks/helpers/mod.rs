@@ -46,19 +46,21 @@ pub fn spawn_chunk(
 
     chunk_entity.add_child(mesh);
 
-    world.update_chunk(chunk.clone(), chunk_entity.id()).expect(
-        format!(
-            "Failed to update chunk {:?}-{}",
-            chunk.get_pos(),
-            chunk.get_level(),
-        )
-        .as_str(),
-    );
+    let pos = chunk.get_pos();
+    let level = chunk.get_level();
+
+    world
+        .update_chunk(chunk.clone(), chunk_entity.id())
+        .expect(format!("Failed to update chunk {:?}-{}", pos, level).as_str());
+
+    let (_, biomes) = world
+        .get_chunk(GameWorld::level_pos_to_level_pos(pos, level, 0))
+        .expect(format!("failed to get updated chunk at {:?}-{}", pos, level).as_str());
 
     if chunk.is_real() {
         chunk_entity.insert(RealChunkComponent);
         let pos = chunk.get_pos();
         let biome = gen.get_biome(pos);
-        biome.spawn_objects(pos, commands, gen);
+        biome.spawn_objects(biomes, pos, commands, gen);
     }
 }

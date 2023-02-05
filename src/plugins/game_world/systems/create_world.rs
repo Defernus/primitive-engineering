@@ -24,11 +24,11 @@ pub fn start_world_creating(
         let pos = ChunkPos::new(pos.x as i64 - 1, pos.y as i64 - 1, pos.z as i64 - 1);
         let level = 0;
 
-        if !world.create_chunk(pos) {
-            panic!("Chunk already exists at {:?}:{}", pos, level);
-        }
+        let (_, biomes) = world
+            .create_chunk(pos, &gen)
+            .expect(format!("Chunk already exists at {:?}:{}", pos, level).as_str());
 
-        let mut chunk = Chunk::generate(gen.clone(), pos, level);
+        let mut chunk = Chunk::generate(gen.clone(), biomes.clone(), pos, level);
         let vertices = chunk.generate_vertices(level);
         chunk.set_need_redraw(false);
 

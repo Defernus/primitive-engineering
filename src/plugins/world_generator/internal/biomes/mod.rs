@@ -1,12 +1,13 @@
 use std::fmt::Debug;
 
 use bevy::prelude::{Commands, Vec3};
+use bevy_reflect::{FromReflect, Reflect};
 use lerp::Lerp;
 
 use crate::{
     internal::{
         chunks::Chunk,
-        pos::{ChunkPos, VoxelPos},
+        pos::{ChunkPos, GlobalVoxelPos, VoxelPos},
     },
     plugins::{
         game_world::resources::GameWorld,
@@ -43,6 +44,7 @@ pub trait Biome: Send + Sync + Debug {
 
     fn spawn_objects(
         &self,
+        biomes: &ChunkBiomes,
         chunk_pos: ChunkPos,
         commands: &mut Commands,
         gen: &WorldGenerator,
@@ -50,6 +52,7 @@ pub trait Biome: Send + Sync + Debug {
 }
 
 pub(self) fn spawn_object(
+    biomes: &ChunkBiomes,
     pos: ChunkPos,
     commands: &mut Commands,
     gen: &WorldGenerator,
@@ -60,7 +63,8 @@ pub(self) fn spawn_object(
 ) -> usize {
     let mut spawned: usize = 0;
     for i in 0..amount {
-        if let Some((pos, y_angle)) = gen.get_ground_object_pos(pos, id, chance, i, amount) {
+        if let Some((pos, y_angle)) = gen.get_ground_object_pos(biomes, pos, id, chance, i, amount)
+        {
             spawned += 1;
             commands.spawn(get_spawn(pos, y_angle));
         }
@@ -73,18 +77,20 @@ pub(self) fn spawn_object(
 ///
 /// This can be used to get average generation-input values for specific voxel
 /// positions in a chunk.
+#[derive(Debug, Clone, Reflect, FromReflect)]
 pub struct ChunkBiomes {
-    size_chunks: usize,
     voxel_inputs: Vec<GenVoxelInp>,
     landscape_inputs: Vec<LandscapeHeightInp>,
+    region_pos: ChunkPos,
 }
 
 impl ChunkBiomes {
-    pub fn new(gen: &WorldGenerator, pos: ChunkPos, level: usize) -> Self {
-        let scale = GameWorld::level_to_scale(level);
+    /// `region_pos`: global in world chunk position (level=0)
+    pub fn new(gen: &WorldGenerator, region_pos: ChunkPos) -> Self {
+        let scale = GameWorld::level_to_scale(0);
         // add 1 for the chunk cube itself, and 1 for the surrounding chunks for positive axis
         let size_chunks = scale + 2;
-        let chunk_offset = pos * scale as i64;
+        let chunk_offset = region_pos * scale as i64;
 
         let area = size_chunks * size_chunks;
         let landscape_inputs = (0..area)
@@ -107,35 +113,36 @@ impl ChunkBiomes {
             .collect();
 
         Self {
-            size_chunks,
+            region_pos,
             voxel_inputs,
             landscape_inputs,
         }
     }
 
+    const fn get_size() -> usize {
+        GameWorld::MAX_REGION_SCALE + 2
+    }
+
     /// Get the average generation input for a voxel in the area
     ///
     /// `voxel_pos`: the position of the voxel relative to the area covered by this ChunkBiomes
-    pub fn get_generate_voxel_inp(&self, voxel_pos: VoxelPos) -> GenVoxelInp {
-        let chunk_pos: VoxelPos = Chunk::global_voxel_pos_to_chunk_pos(voxel_pos.into()).into();
+    pub fn get_generate_voxel_inp(&self, voxel_pos: GlobalVoxelPos) -> GenVoxelInp {
+        let voxel_pos =
+            voxel_pos - self.region_pos * (GameWorld::MAX_REGION_SCALE * Chunk::SIZE) as i64;
 
-        let xyz_000 = self.voxel_inputs[chunk_pos.to_index(self.size_chunks)];
-        let xyz_100 =
-            self.voxel_inputs[(chunk_pos + VoxelPos::new(1, 0, 0)).to_index(self.size_chunks)];
-        let xyz_010 =
-            self.voxel_inputs[(chunk_pos + VoxelPos::new(0, 1, 0)).to_index(self.size_chunks)];
-        let xyz_110 =
-            self.voxel_inputs[(chunk_pos + VoxelPos::new(1, 1, 0)).to_index(self.size_chunks)];
-        let xyz_001 =
-            self.voxel_inputs[(chunk_pos + VoxelPos::new(0, 0, 1)).to_index(self.size_chunks)];
-        let xyz_101 =
-            self.voxel_inputs[(chunk_pos + VoxelPos::new(1, 0, 1)).to_index(self.size_chunks)];
-        let xyz_011 =
-            self.voxel_inputs[(chunk_pos + VoxelPos::new(0, 1, 1)).to_index(self.size_chunks)];
-        let xyz_111 =
-            self.voxel_inputs[(chunk_pos + VoxelPos::new(1, 1, 1)).to_index(self.size_chunks)];
+        let chunk_pos: VoxelPos = Chunk::global_voxel_pos_to_chunk_pos(voxel_pos).into();
 
-        let in_chunk_pos = Chunk::normalize_pos(voxel_pos.into());
+        let size = Self::get_size();
+        let xyz_000 = self.voxel_inputs[chunk_pos.to_index(size)];
+        let xyz_100 = self.voxel_inputs[(chunk_pos + VoxelPos::new(1, 0, 0)).to_index(size)];
+        let xyz_010 = self.voxel_inputs[(chunk_pos + VoxelPos::new(0, 1, 0)).to_index(size)];
+        let xyz_110 = self.voxel_inputs[(chunk_pos + VoxelPos::new(1, 1, 0)).to_index(size)];
+        let xyz_001 = self.voxel_inputs[(chunk_pos + VoxelPos::new(0, 0, 1)).to_index(size)];
+        let xyz_101 = self.voxel_inputs[(chunk_pos + VoxelPos::new(1, 0, 1)).to_index(size)];
+        let xyz_011 = self.voxel_inputs[(chunk_pos + VoxelPos::new(0, 1, 1)).to_index(size)];
+        let xyz_111 = self.voxel_inputs[(chunk_pos + VoxelPos::new(1, 1, 1)).to_index(size)];
+
+        let in_chunk_pos = Chunk::normalize_pos(voxel_pos);
         let transition = in_chunk_pos.to_vec3() / Chunk::SIZE as f32;
 
         let yz00 = xyz_000.lerp(xyz_100, transition.x);
@@ -149,19 +156,27 @@ impl ChunkBiomes {
         z0.lerp(z1, transition.z)
     }
 
-    pub fn get_landscape_height_inp(&self, voxel_pos: VoxelPos) -> LandscapeHeightInp {
-        let chunk_pos: VoxelPos = Chunk::global_voxel_pos_to_chunk_pos(voxel_pos.into()).into();
+    pub fn get_landscape_height_inp(&self, voxel_pos: GlobalVoxelPos) -> LandscapeHeightInp {
+        let rel_pos =
+            voxel_pos - self.region_pos * (GameWorld::MAX_REGION_SCALE * Chunk::SIZE) as i64;
 
-        let in_chunk_pos = Chunk::normalize_pos(voxel_pos.into());
+        let chunk_pos = Chunk::global_voxel_pos_to_chunk_pos(rel_pos);
+
+        if chunk_pos.x < 0 || chunk_pos.z < 0 {
+            panic!("ChunkBiomes::get_landscape_height_inp: voxel_pos is out of bounds\n\tvoxel_pos: {:?};\n\tchunk_pos: {:?}\n\trel_pos: {:?};\n\tregion_pos: {:?}",
+                voxel_pos, chunk_pos, rel_pos, self.region_pos,
+            );
+        }
+        let chunk_pos: VoxelPos = chunk_pos.into();
+
+        let size = Self::get_size();
+        let xz_00 = self.landscape_inputs[chunk_pos.to_index_2d(size)];
+        let xz_10 = self.landscape_inputs[(chunk_pos + VoxelPos::new(1, 0, 0)).to_index_2d(size)];
+        let xz_01 = self.landscape_inputs[(chunk_pos + VoxelPos::new(0, 0, 1)).to_index_2d(size)];
+        let xz_11 = self.landscape_inputs[(chunk_pos + VoxelPos::new(1, 0, 1)).to_index_2d(size)];
+
+        let in_chunk_pos = Chunk::normalize_pos(rel_pos);
         let transition = in_chunk_pos.to_vec3() / Chunk::SIZE as f32;
-
-        let xz_00 = self.landscape_inputs[chunk_pos.to_index_2d(self.size_chunks)];
-        let xz_10 = self.landscape_inputs
-            [(chunk_pos + VoxelPos::new(1, 0, 0)).to_index_2d(self.size_chunks)];
-        let xz_01 = self.landscape_inputs
-            [(chunk_pos + VoxelPos::new(0, 0, 1)).to_index_2d(self.size_chunks)];
-        let xz_11 = self.landscape_inputs
-            [(chunk_pos + VoxelPos::new(1, 0, 1)).to_index_2d(self.size_chunks)];
 
         let z0 = xz_00.lerp(xz_10, transition.x);
         let z1 = xz_01.lerp(xz_11, transition.x);

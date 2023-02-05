@@ -56,10 +56,16 @@ fn unload_chunk(
         commands.entity(*entity).insert(UnloadingChunkComponent);
     }
 
+    let biomes = world
+        .get_chunk(GameWorld::level_pos_to_level_pos(pos, level, 0))
+        .unwrap()
+        .1
+        .clone();
+
     let (tx, rx) = unbounded();
 
     std::thread::spawn(move || {
-        let mut chunk = Chunk::generate(gen.clone(), parent_pos, parent_level);
+        let mut chunk = Chunk::generate(gen, biomes, parent_pos, parent_level);
         let vertices = chunk.generate_vertices(parent_level);
         chunk.set_need_redraw(false);
 

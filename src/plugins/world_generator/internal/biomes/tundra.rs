@@ -55,6 +55,7 @@ impl Biome for TundraBiome {
 
     fn spawn_objects(
         &self,
+        biomes: &ChunkBiomes,
         chunk_pos: ChunkPos,
         commands: &mut Commands,
         gen: &WorldGenerator,
@@ -70,6 +71,7 @@ impl Biome for TundraBiome {
         }
 
         count += spawn_object(
+            biomes,
             chunk_pos,
             commands,
             gen,
@@ -84,6 +86,7 @@ impl Biome for TundraBiome {
         );
 
         count += spawn_object(
+            biomes,
             chunk_pos,
             commands,
             gen,

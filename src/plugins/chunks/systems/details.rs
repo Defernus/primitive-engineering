@@ -61,6 +61,12 @@ fn detail_chunk(
         }
     }
 
+    let biomes = world
+        .get_chunk(GameWorld::level_pos_to_level_pos(pos, level, 0))
+        .unwrap()
+        .1
+        .clone();
+
     let (tx, rx) = unbounded();
 
     std::thread::spawn(move || {
@@ -72,7 +78,7 @@ fn detail_chunk(
             let pos = sub_pos + pos * 2;
             let level = level + 1;
 
-            let mut chunk = Chunk::generate(gen.clone(), pos, level);
+            let mut chunk = Chunk::generate(gen.clone(), biomes.clone(), pos, level);
             let vertices = chunk.generate_vertices(level);
             chunk.set_need_redraw(false);
 

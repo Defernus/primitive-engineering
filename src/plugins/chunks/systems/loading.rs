@@ -52,9 +52,9 @@ pub fn loading_system(
 
     for pos in pos.iter_neighbors(true) {
         let level = 0;
-        if world.create_chunk(pos) {
+        if let Some((_, biomes)) = world.create_chunk(pos, &gen) {
             // TODO add multithreading
-            let mut chunk = Chunk::generate(gen.clone(), pos, level);
+            let mut chunk = Chunk::generate(gen.clone(), biomes.clone(), pos, level);
             let vertices = chunk.generate_vertices(level);
             chunk.set_need_redraw(false);
 
