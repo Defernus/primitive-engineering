@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::Collider;
 
-#[derive(Default, Debug, Reflect, FromReflect)]
+#[derive(Default, Debug, Clone, Reflect, FromReflect)]
 pub struct PhysicsObject {
     pub scene: Handle<Scene>,
     pub processed: bool,
@@ -23,6 +23,8 @@ pub struct GameAssets {
     pub rock_object: PhysicsObject,
     pub fire_object: PhysicsObject,
     pub cactus_object: PhysicsObject,
+    pub spruce_object: PhysicsObject,
+    pub spruce_snow_object: PhysicsObject,
 
     pub crosshair_image: Handle<Image>,
 }

@@ -50,6 +50,8 @@ pub fn load_assets(
         rock_object: load_scene_with_physics("models/rock.glb#Scene0", &asset_server),
         fire_object: load_scene_with_physics("models/fire.glb#Scene0", &asset_server),
         cactus_object: load_scene_with_physics("models/cactus.glb#Scene0", &asset_server),
+        spruce_object: load_scene_with_physics("models/spruce.glb#Scene0", &asset_server),
+        spruce_snow_object: load_scene_with_physics("models/spruce-snow.glb#Scene0", &asset_server),
 
         crosshair_image: asset_server.load("textures/crosshair.png"),
     };

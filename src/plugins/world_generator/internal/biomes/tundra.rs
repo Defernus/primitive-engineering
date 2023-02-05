@@ -1,10 +1,14 @@
 use super::*;
 use crate::{
     internal::{color::Color, pos::ChunkPos},
-    plugins::world_generator::resources::{
-        GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator,
+    plugins::{
+        objects::components::{
+            items::branch::BranchItem, spruce::SpruceObject, GameWorldObjectTrait,
+        },
+        world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},
     },
 };
+use bevy::prelude::*;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -51,10 +55,48 @@ impl Biome for TundraBiome {
 
     fn spawn_objects(
         &self,
-        _chunk_pos: ChunkPos,
-        _commands: &mut Commands,
-        _gen: &WorldGenerator,
+        chunk_pos: ChunkPos,
+        commands: &mut Commands,
+        gen: &WorldGenerator,
     ) -> usize {
-        0
+        let mut id: ObjectGeneratorID = 0;
+        let mut count = 0;
+
+        macro_rules! next_id {
+            () => {{
+                id += 1;
+                id
+            }};
+        }
+
+        count += spawn_object(
+            chunk_pos,
+            commands,
+            gen,
+            next_id!(),
+            0.2,
+            1,
+            |pos, y_angle| {
+                let mut t = Transform::from_translation(pos);
+                t.rotate_y(y_angle);
+                SpruceObject::WITH_SNOW.get_spawn(t)
+            },
+        );
+
+        count += spawn_object(
+            chunk_pos,
+            commands,
+            gen,
+            next_id!(),
+            0.3,
+            1,
+            |pos, y_angle| {
+                let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
+                t.rotate_y(y_angle);
+                BranchItem.get_spawn(t)
+            },
+        );
+
+        count
     }
 }

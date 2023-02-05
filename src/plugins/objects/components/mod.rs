@@ -9,6 +9,7 @@ use std::{
 pub mod cactus;
 pub mod fire;
 pub mod items;
+pub mod spruce;
 pub mod tree;
 
 #[derive(Component, Debug, Clone)]
