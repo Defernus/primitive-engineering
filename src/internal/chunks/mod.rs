@@ -9,7 +9,6 @@ use crate::plugins::{
 };
 use bevy::prelude::{Entity, Transform, Vec3};
 use bevy_reflect::{FromReflect, Reflect};
-use num_traits::Pow;
 use std::{
     collections::LinkedList,
     fmt::{Debug, Formatter},
