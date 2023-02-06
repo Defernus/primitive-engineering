@@ -35,24 +35,46 @@ impl InWorldChunk {
     /// get chunk pointer by relative pos if chunk is loaded
     pub fn get_chunk(&self) -> Option<(ChunkPointer, Entity)> {
         match self {
-            InWorldChunk::Loaded(chunk, entity) => Some((chunk.clone(), entity.clone())),
+            Self::Loaded(chunk, entity) => Some((chunk.clone(), entity.clone())),
             _ => None,
+        }
+    }
+
+    /// get sub chunk on max detail level possible for given relative pos
+    pub fn get_detailest_chunk(
+        &self,
+        pos: VoxelPos,
+        current_level: usize,
+    ) -> Option<(&ChunkPointer, Entity)> {
+        match self {
+            Self::Loading => None,
+            Self::Loaded(c, e) => Some((c, e.clone())),
+            Self::SubChunks(sub_chunks) => {
+                let scale = 1 << current_level;
+                let sub_pos = pos >> current_level;
+
+                let in_chunk_pos = pos - sub_pos * scale;
+
+                // FIXME index out of bounds (13)
+                let sub_chunk = &sub_chunks[sub_pos.to_index(2)];
+                sub_chunk.get_detailest_chunk(in_chunk_pos, current_level + 1)
+            }
         }
     }
 
     pub fn scale_down(&mut self) -> Option<LinkedList<Entity>> {
         let sub_chunks = match self {
-            InWorldChunk::SubChunks(sub_chunks) => sub_chunks,
+            Self::SubChunks(sub_chunks) => sub_chunks,
             _ => return None,
         };
 
         let mut result = LinkedList::new();
         for sub_chunk in sub_chunks {
             match sub_chunk {
-                InWorldChunk::Loaded(_, entity) => {
+                Self::Loaded(_, entity) => {
                     result.push_back(*entity);
                 }
-                InWorldChunk::SubChunks(_) => match sub_chunk.scale_down() {
+                Self::SubChunks(_) => match sub_chunk.scale_down() {
                     Some(mut list) => {
                         result.append(&mut list);
                     }
@@ -60,7 +82,7 @@ impl InWorldChunk {
                         return None;
                     }
                 },
-                InWorldChunk::Loading => {
+                Self::Loading => {
                     return None;
                 }
             }
@@ -71,14 +93,14 @@ impl InWorldChunk {
 
     pub fn get_chunk_mut(&mut self) -> Option<&mut ChunkPointer> {
         match self {
-            InWorldChunk::Loaded(chunk, _) => Some(chunk),
+            Self::Loaded(chunk, _) => Some(chunk),
             _ => None,
         }
     }
 
     pub fn get_sub_chunk(&self, pos: VoxelPos, level: usize) -> Option<&Self> {
         match self {
-            InWorldChunk::SubChunks(sub_chunks) => {
+            Self::SubChunks(sub_chunks) => {
                 let scale = 1 << level;
                 let sub_pos = pos / scale;
 
@@ -99,7 +121,7 @@ impl InWorldChunk {
 
     pub fn get_sub_chunk_mut(&mut self, pos: VoxelPos, level: usize) -> Option<&mut Self> {
         match self {
-            InWorldChunk::SubChunks(sub_chunks) => {
+            Self::SubChunks(sub_chunks) => {
                 let scale = 1 << level;
                 let sub_pos = pos / scale;
 
@@ -125,7 +147,7 @@ impl InWorldChunk {
 
         let mut result = LinkedList::new();
 
-        let mut sub_chunks = vec![InWorldChunk::default(); 8];
+        let mut sub_chunks = vec![Self::default(); 8];
 
         let next_pos = pos / GameWorld::level_to_scale(level);
         for i in 0..8 {

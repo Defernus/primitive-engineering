@@ -11,7 +11,6 @@ use crate::{
 #[derive(Debug)]
 enum ObjectSpawnError {
     ChunkNotExist(ChunkPos),
-    ChunkNotLoaded(ChunkPos),
     ObjectAlreadySpawned,
 }
 
@@ -23,22 +22,21 @@ fn spawn(
 ) -> Result<(Entity, Entity), ObjectSpawnError> {
     let chunk_pos = Chunk::vec_to_chunk_pos(object_spawn.transform.translation);
 
-    let chunk = world
-        .get_real_chunk(chunk_pos)
+    let (chunk, entity) = world
+        .get_detailest_chunk(chunk_pos)
         .ok_or(ObjectSpawnError::ChunkNotExist(chunk_pos))?;
 
-    let (_, chunk_entity) = chunk
-        .get_chunk()
-        .ok_or(ObjectSpawnError::ChunkNotLoaded(chunk_pos))?;
+    let level = chunk.get_level();
 
     let mut transform = object_spawn.transform;
-    transform.translation -= Chunk::pos_to_translation(chunk_pos);
+    // transform.translation -=
+    //     Chunk::pos_to_translation(chunk_pos * GameWorld::level_to_scale(level) as i64);
 
     Ok((
         object_spawn
             .spawn(commands, assets, transform)
             .ok_or(ObjectSpawnError::ObjectAlreadySpawned)?,
-        chunk_entity,
+        entity,
     ))
 }
 
@@ -52,7 +50,7 @@ pub fn spawn_object_system(
         match spawn(&mut commands, &mut object_spawn, &world, &assets) {
             Ok((object_entity, chunk_entity)) => {
                 commands.entity(spawn_entity).despawn_recursive();
-                commands.entity(chunk_entity).add_child(object_entity);
+                // commands.entity(chunk_entity).add_child(object_entity);
             }
             Err(err) => match err {
                 ObjectSpawnError::ObjectAlreadySpawned => {

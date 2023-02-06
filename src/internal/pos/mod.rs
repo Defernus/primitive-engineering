@@ -86,6 +86,54 @@ impl<T: Reflect + Copy + Clone + num_traits::Signed + num_traits::FromPrimitive>
     }
 }
 
+impl std::ops::Shr<i64> for Pos<i64> {
+    type Output = Self;
+
+    fn shr(self, rhs: i64) -> Self::Output {
+        Self {
+            x: self.x >> rhs,
+            y: self.y >> rhs,
+            z: self.z >> rhs,
+        }
+    }
+}
+
+impl std::ops::Shr<usize> for Pos<usize> {
+    type Output = Self;
+
+    fn shr(self, rhs: usize) -> Self::Output {
+        Self {
+            x: self.x >> rhs,
+            y: self.y >> rhs,
+            z: self.z >> rhs,
+        }
+    }
+}
+
+impl std::ops::Shl<i64> for Pos<i64> {
+    type Output = Self;
+
+    fn shl(self, rhs: i64) -> Self::Output {
+        Self {
+            x: self.x << rhs,
+            y: self.y << rhs,
+            z: self.z << rhs,
+        }
+    }
+}
+
+impl std::ops::Shl<usize> for Pos<usize> {
+    type Output = Self;
+
+    fn shl(self, rhs: usize) -> Self::Output {
+        Self {
+            x: self.x << rhs,
+            y: self.y << rhs,
+            z: self.z << rhs,
+        }
+    }
+}
+
 impl<T: Reflect + Copy + Clone + num_traits::AsPrimitive<f32>> Pos<T> {
     pub fn to_vec3(self) -> Vec3 {
         Vec3::new(self.x.as_(), self.y.as_(), self.z.as_())
