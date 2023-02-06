@@ -21,7 +21,8 @@ impl Default for PrevPlayerChunkPos {
     }
 }
 
-pub fn loading_system(
+/// loads region around player
+pub fn region_loading_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
@@ -60,12 +61,20 @@ pub fn loading_system(
 
             let chunk = ChunkPointer::new(chunk, pos, level);
 
+            let region_pos = chunk.get_pos();
+            let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
+
+            for i in 0..GameWorld::REGION_VOLUME {
+                let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
+                gen.get_biome(chunk_pos)
+                    .spawn_objects(biomes, chunk_pos, &mut commands, &gen);
+            }
+
             spawn_chunk(
                 &mut commands,
                 &mut meshes,
                 &assets,
                 &mut world,
-                &gen,
                 chunk,
                 vertices,
             );

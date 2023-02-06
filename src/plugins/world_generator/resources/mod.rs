@@ -1,3 +1,7 @@
+use super::internal::biomes::{
+    desert::DesertBiome, plains::PlainsBiome, tundra::TundraBiome, Biome, BiomeCheckInput,
+    ChunkBiomes,
+};
 use crate::{
     internal::{
         chunks::Chunk,
@@ -11,17 +15,16 @@ use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
 use bevy_reflect::Reflect;
 use lerp::Lerp;
-use noise::{NoiseFn, OpenSimplex, Perlin};
+use noise::{
+    permutationtable::{NoiseHasher, PermutationTable},
+    NoiseFn, OpenSimplex, Perlin,
+};
 use num_traits::Pow;
 use std::{
     collections::LinkedList,
     f64::consts::{E, PI},
+    slice::from_raw_parts,
     sync::Arc,
-};
-
-use super::internal::biomes::{
-    desert::DesertBiome, plains::PlainsBiome, tundra::TundraBiome, Biome, BiomeCheckInput,
-    ChunkBiomes,
 };
 
 pub type WorldSeed = u32;
@@ -37,6 +40,8 @@ pub struct WorldGenerator {
     perlin: Perlin,
     #[reflect(ignore)]
     biomes: LinkedList<Arc<dyn Biome>>,
+    #[reflect(ignore)]
+    hasher: PermutationTable,
 }
 
 impl WorldGenerator {
@@ -62,6 +67,7 @@ impl WorldGenerator {
             simplex: OpenSimplex::new(seed),
             perlin: Perlin::new(seed),
             biomes: LinkedList::new(),
+            hasher: PermutationTable::new(seed),
         };
 
         // Register plains biome first, so it will be checked last and used as default
@@ -72,10 +78,12 @@ impl WorldGenerator {
         g
     }
 
-    /// Adds biome to the world generator  
-    /// Biomes are checked in the reverse order they were added  
-    /// So the last added biome will be checked first and if it doesn't match the chunk,
-    /// the second last will be checked and so on  
+    /// Adds biome to the world generator (All biomes should be registered before InGame stage)
+    ///
+    /// Biomes are checked in the reverse order they were added,
+    /// so the last added biome will be checked first and if it doesn't match the chunk,
+    /// the second last will be checked and so on
+    ///
     /// If no biome matches the chunk, the default biome will be used ([`PlainsBiome`])
     pub fn register_biome(&mut self, biome: Arc<dyn Biome>) {
         self.biomes.push_front(biome);
@@ -104,6 +112,7 @@ impl WorldGenerator {
         self.seed = seed;
         self.simplex = OpenSimplex::new(seed);
         self.perlin = Perlin::new(seed);
+        self.hasher = PermutationTable::new(seed);
     }
 
     /// Simple sigmoid like function. Bound value to (-1, 1)
@@ -188,19 +197,49 @@ impl WorldGenerator {
         result
     }
 
-    fn get_chunk_random(
+    fn get_random_u8<T>(&self, inp: *const T) -> u8 {
+        let size = std::mem::size_of::<T>();
+
+        let arr =
+            unsafe { from_raw_parts(inp as *const isize, size / std::mem::size_of::<isize>()) };
+
+        self.hasher.hash(arr) as u8
+    }
+
+    pub fn get_random<T, R>(&self, inp: *const T) -> R
+    where
+        R: Copy,
+        T: Copy,
+    {
+        let res_size = std::mem::size_of::<R>();
+
+        let inp = unsafe { inp.read() };
+
+        let rands = (0..res_size)
+            .map(|i| self.get_random_u8(&(inp, i)))
+            .collect::<Vec<_>>();
+
+        let rands = unsafe { from_raw_parts(rands.as_ptr() as *const R, res_size) };
+
+        rands[0]
+    }
+
+    /// Returns a random value between 0 and 1.
+    pub fn get_random_f64<T>(&self, inp: *const T) -> f64
+    where
+        T: Copy,
+    {
+        self.get_random::<_, u64>(inp) as f64 / (u64::MAX as f64)
+    }
+
+    /// Returns a random value between 0 and 1.
+    pub fn get_chunk_random(
         &self,
-        chunk_translation: Vec3,
+        chunk_pos: ChunkPos,
         id: ObjectGeneratorID,
         variant: usize,
     ) -> f64 {
-        self.simplex.get([
-            chunk_translation.x as f64,
-            chunk_translation.z as f64,
-            (id * Chunk::SIZE) as f64,
-            (variant * Chunk::SIZE) as f64,
-        ]) * 0.5
-            + 0.25
+        self.get_random_f64(&(chunk_pos, id, variant))
     }
 
     /// Returns the position of the object in the chunk, if there is one.
@@ -223,20 +262,18 @@ impl WorldGenerator {
     ) -> Option<(Vec3, f32)> {
         let chunk_offset = Chunk::pos_to_translation(chunk_pos);
 
-        let factor = self.get_chunk_random(chunk_offset, id, 3 + number * max_count) as f32;
+        let factor = self.get_chunk_random(chunk_pos, id, 3 + number * max_count) as f32;
         if factor > chance {
             return None;
         }
 
-        let tree_x = self.get_chunk_random(chunk_offset, id, 0 + number * max_count)
-            * Chunk::REAL_SIZE as f64
-            * 2.0;
-        let tree_z = self.get_chunk_random(chunk_offset, id, 1 + number * max_count)
-            * Chunk::REAL_SIZE as f64
-            * 2.0;
+        let tree_x =
+            self.get_chunk_random(chunk_pos, id, 0 + number * max_count) * Chunk::REAL_SIZE as f64;
+        let tree_z =
+            self.get_chunk_random(chunk_pos, id, 1 + number * max_count) * Chunk::REAL_SIZE as f64;
 
-        let tree_x = tree_x.clamp(0.0, Chunk::REAL_SIZE as f64) + chunk_offset.x as f64;
-        let tree_z = tree_z.clamp(0.0, Chunk::REAL_SIZE as f64) + chunk_offset.z as f64;
+        let tree_x = tree_x + chunk_offset.x as f64;
+        let tree_z = tree_z + chunk_offset.z as f64;
 
         let voxel_pos = Chunk::vec_to_voxel_pos(Vec3::new(tree_x as f32, 0.0, tree_z as f32));
         let landscape_inp = biomes.get_landscape_height_inp(voxel_pos);
@@ -265,7 +302,7 @@ impl WorldGenerator {
             }
         }
 
-        let y_angle = self.get_chunk_random(chunk_offset, id, 2 + number * max_count) * PI * 4.0;
+        let y_angle = self.get_chunk_random(chunk_pos, id, 2 + number * max_count) * PI * 2.0;
         Some((pos, y_angle as f32))
     }
 

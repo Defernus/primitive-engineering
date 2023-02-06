@@ -1,6 +1,6 @@
 use crate::{
     internal::{
-        chunks::{ChunkPointer, InWorldChunk},
+        chunks::{Chunk, ChunkPointer, InWorldChunk},
         pos::{ChunkPos, VoxelPos},
     },
     plugins::world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},
@@ -40,7 +40,8 @@ pub enum ChunkUpdateError {
 
 impl GameWorld {
     pub const MAX_DETAIL_LEVEL: usize = 5;
-    pub const MAX_REGION_SCALE: usize = Self::level_to_scale(0);
+    pub const REGION_SIZE: usize = Self::level_to_scale(0);
+    pub const REGION_VOLUME: usize = Self::REGION_SIZE * Self::REGION_SIZE * Self::REGION_SIZE;
 
     pub const MIN_DETAILS_DIST: usize = 1;
     pub const MAX_DETAILS_DIST: usize = 5;
@@ -87,6 +88,10 @@ impl GameWorld {
         chunk
             .get_sub_chunk(in_chunk_pos, Self::MAX_DETAIL_LEVEL - 1)
             .cloned()
+    }
+
+    pub fn region_pos_to_translation(region_pos: ChunkPos) -> Vec3 {
+        Chunk::pos_to_translation(region_pos * GameWorld::REGION_SIZE as i64)
     }
 
     pub fn get_chunk_mut(&mut self, pos: ChunkPos, level: usize) -> Option<&mut InWorldChunk> {
@@ -160,11 +165,11 @@ impl GameWorld {
     }
 
     pub fn chunk_pos_to_region_pos(pos: ChunkPos) -> ChunkPos {
-        Self::scale_down_pos(pos, Self::MAX_REGION_SCALE)
+        Self::scale_down_pos(pos, Self::REGION_SIZE)
     }
 
     pub fn normalize_chunk_pos_in_region(pos: ChunkPos) -> VoxelPos {
-        (pos - Self::chunk_pos_to_region_pos(pos) * Self::MAX_REGION_SCALE as i64).into()
+        (pos - Self::chunk_pos_to_region_pos(pos) * Self::REGION_SIZE as i64).into()
     }
 
     pub fn level_pos_to_level_pos(pos: ChunkPos, from_level: usize, to_level: usize) -> ChunkPos {

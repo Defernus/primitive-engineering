@@ -53,7 +53,7 @@ pub trait Biome: Send + Sync + Debug {
 
 pub(self) fn spawn_object(
     biomes: &ChunkBiomes,
-    pos: ChunkPos,
+    chunk_pos: ChunkPos,
     commands: &mut Commands,
     gen: &WorldGenerator,
     id: ObjectGeneratorID,
@@ -65,7 +65,7 @@ pub(self) fn spawn_object(
     let mut spawned: usize = 0;
     for i in 0..amount {
         if let Some((pos, y_angle)) =
-            gen.get_ground_object_pos(biomes, pos, id, chance, i, amount, allow_air)
+            gen.get_ground_object_pos(biomes, chunk_pos, id, chance, i, amount, allow_air)
         {
             spawned += 1;
             commands.spawn(get_spawn(pos, y_angle));
@@ -122,15 +122,14 @@ impl ChunkBiomes {
     }
 
     const fn get_size() -> usize {
-        GameWorld::MAX_REGION_SCALE + 2
+        GameWorld::REGION_SIZE + 2
     }
 
     /// Get the average generation input for a voxel in the area
     ///
     /// `voxel_pos`: the position of the voxel relative to the area covered by this ChunkBiomes
     pub fn get_generate_voxel_inp(&self, voxel_pos: GlobalVoxelPos) -> GenVoxelInp {
-        let voxel_pos =
-            voxel_pos - self.region_pos * (GameWorld::MAX_REGION_SCALE * Chunk::SIZE) as i64;
+        let voxel_pos = voxel_pos - self.region_pos * (GameWorld::REGION_SIZE * Chunk::SIZE) as i64;
 
         let chunk_pos: VoxelPos = Chunk::global_voxel_pos_to_chunk_pos(voxel_pos).into();
 
@@ -159,8 +158,7 @@ impl ChunkBiomes {
     }
 
     pub fn get_landscape_height_inp(&self, voxel_pos: GlobalVoxelPos) -> LandscapeHeightInp {
-        let rel_pos =
-            voxel_pos - self.region_pos * (GameWorld::MAX_REGION_SCALE * Chunk::SIZE) as i64;
+        let rel_pos = voxel_pos - self.region_pos * (GameWorld::REGION_SIZE * Chunk::SIZE) as i64;
 
         let chunk_pos = Chunk::global_voxel_pos_to_chunk_pos(rel_pos);
 

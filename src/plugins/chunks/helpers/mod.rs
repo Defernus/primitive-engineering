@@ -5,7 +5,6 @@ use crate::{
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
         static_mesh::components::{StaticMeshComponent, Vertex},
-        world_generator::resources::WorldGenerator,
     },
 };
 use bevy::prelude::*;
@@ -17,7 +16,6 @@ pub fn spawn_chunk(
     meshes: &mut Assets<Mesh>,
     assets: &GameAssets,
     world: &mut GameWorld,
-    gen: &WorldGenerator,
     chunk: ChunkPointer,
     vertices: Vec<Vertex>,
 ) {
@@ -53,14 +51,11 @@ pub fn spawn_chunk(
         .update_chunk(chunk.clone(), chunk_entity.id())
         .expect(format!("Failed to update chunk {:?}-{}", pos, level).as_str());
 
-    let (_, biomes) = world
-        .get_chunk(GameWorld::level_pos_to_level_pos(pos, level, 0))
-        .expect(format!("failed to get updated chunk at {:?}-{}", pos, level).as_str());
+    // let (_, biomes) = world
+    //     .get_chunk(GameWorld::level_pos_to_level_pos(pos, level, 0))
+    //     .expect(format!("failed to get updated chunk at {:?}-{}", pos, level).as_str());
 
     if chunk.is_real() {
         chunk_entity.insert(RealChunkComponent);
-        let pos = chunk.get_pos();
-        let biome = gen.get_biome(pos);
-        biome.spawn_objects(biomes, pos, commands, gen);
     }
 }

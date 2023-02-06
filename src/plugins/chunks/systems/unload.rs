@@ -92,7 +92,6 @@ pub fn handle_unload_task_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
-    gen: Res<WorldGenerator>,
     tasks_q: Query<(Entity, &mut ComputeChunkUnloadTask)>,
 ) {
     for (e, ComputeChunkUnloadTask(rx)) in tasks_q.iter() {
@@ -106,7 +105,6 @@ pub fn handle_unload_task_system(
                     &mut meshes,
                     &assets,
                     &mut world,
-                    &gen,
                     chunk_pointer,
                     chunk_data.1,
                 );

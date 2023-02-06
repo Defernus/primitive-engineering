@@ -143,7 +143,6 @@ pub fn spawn_detailed_chunk_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
-    gen: Res<WorldGenerator>,
     tasks_q: Query<(Entity, &mut ComputeChunkDetailedTask)>,
 ) {
     for (e, ComputeChunkDetailedTask(rx)) in tasks_q.iter() {
@@ -158,7 +157,6 @@ pub fn spawn_detailed_chunk_system(
                         &mut meshes,
                         &assets,
                         &mut world,
-                        &gen,
                         chunk.clone(),
                         vertices,
                     );
