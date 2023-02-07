@@ -46,7 +46,7 @@ impl Biome for TundraBiome {
         _gen: &WorldGenerator,
         _pos: ChunkPos,
     ) -> LandscapeHeightInp {
-        LandscapeHeightInp { height: 3.0 }
+        LandscapeHeightInp { height: 10.0 }
     }
 
     fn check_pos(&self, _gen: &WorldGenerator, _pos: ChunkPos, inp: BiomeCheckInput) -> bool {

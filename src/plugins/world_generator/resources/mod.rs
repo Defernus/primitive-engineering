@@ -47,7 +47,7 @@ pub struct WorldGenerator {
 impl WorldGenerator {
     const LANDSCAPE_OCTAVES: usize = 4;
     const SCALE: f64 = 0.045;
-    const LANDSCAPE_SCALE: f64 = 0.025;
+    const LANDSCAPE_SCALE: f64 = 0.01;
     const CAVE_SCALE: f64 = 1.0 / 50.0;
     const CAVE_Y_SCALE: f64 = 4.0;
 
@@ -93,7 +93,7 @@ impl WorldGenerator {
         let inp = BiomeCheckInput {
             temperature: self.get_temperature(pos),
             humidity: self.get_humidity(pos),
-            mountainousness: self.get_mountainousness(pos),
+            mountainousness: self.get_mountainousness(pos.x as f64, pos.z as f64),
         };
 
         self.biomes
@@ -169,16 +169,15 @@ impl WorldGenerator {
         h
     }
 
-    pub fn get_mountainousness(&self, pos: ChunkPos) -> f64 {
-        let x = pos.x as f64;
-        let z = pos.z as f64;
+    pub fn get_mountainousness(&self, x: f64, z: f64) -> f64 {
+        // let x = pos.x as f64;
+        // let z = pos.z as f64;
 
         let m = self.simplex.get([
             x * Self::MOUNTAINOUSNESS_NOISE_SCALE,
             z * Self::MOUNTAINOUSNESS_NOISE_SCALE,
             2.0,
-        ]) * 0.5
-            + 0.5;
+        ]) + 1.0;
 
         m
     }
@@ -189,12 +188,12 @@ impl WorldGenerator {
         let mut height = inp.height;
 
         for _ in 0..Self::LANDSCAPE_OCTAVES {
-            result += self.simplex.get([x * scale, z * scale, 0.0]) * height;
+            result += (self.simplex.get([x * scale, z * scale, 0.0]) * 0.5 + 0.5) * height;
             scale *= 2.0;
             height *= 0.5;
         }
 
-        result
+        result.pow(self.get_mountainousness(x, z))
     }
 
     fn get_random_u8<T>(&self, inp: *const T) -> u8 {

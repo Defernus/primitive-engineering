@@ -77,10 +77,9 @@ impl GameWorld {
     /// if there is no region at `chunk_pos` or InWorldChunk is in state Loading return `None`
     pub fn get_detailest_chunk(&self, chunk_pos: ChunkPos) -> Option<(&ChunkPointer, Entity)> {
         let region_pos = Self::chunk_pos_to_region_pos(chunk_pos);
-
         let (region, _) = self.regions.get(&region_pos)?;
 
-        let in_chunk_pos = (chunk_pos - region_pos * Self::REGION_SIZE as i64).into();
+        let in_chunk_pos = Self::normalize_chunk_pos_in_region(chunk_pos);
         region.get_detailest_chunk(in_chunk_pos, 0)
     }
 

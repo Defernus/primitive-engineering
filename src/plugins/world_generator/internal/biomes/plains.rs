@@ -53,7 +53,7 @@ impl Biome for PlainsBiome {
         _gen: &WorldGenerator,
         _pos: ChunkPos,
     ) -> LandscapeHeightInp {
-        LandscapeHeightInp { height: 3.0 }
+        LandscapeHeightInp { height: 10.0 }
     }
 
     fn check_pos(&self, _gen: &WorldGenerator, _pos: ChunkPos, _inp: BiomeCheckInput) -> bool {
