@@ -6,12 +6,13 @@ use crate::{
                 ChunkComponent, ComputeChunkUnloadTask, DetailingChunkComponent,
                 UnloadingChunkComponent,
             },
-            helpers::spawn_chunk::spawn_chunk,
+            helpers::{spawn_chunk::spawn_chunk, update_objects_parent::update_objects_parent},
             resources::ChunkLoadingEnabled,
         },
         game_world::resources::GameWorld,
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
+        objects::components::GameWorldObject,
         player::components::PlayerComponent,
         world_generator::resources::WorldGenerator,
     },
@@ -93,6 +94,8 @@ pub fn handle_unload_task_system(
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
     tasks_q: Query<(Entity, &mut ComputeChunkUnloadTask)>,
+    mut objects_q: Query<(Entity, &mut Transform, &GlobalTransform), With<GameWorldObject>>,
+    chunk_children_q: Query<&Children, With<ChunkComponent>>,
 ) {
     for (e, ComputeChunkUnloadTask(rx)) in tasks_q.iter() {
         match rx.try_recv() {
@@ -100,16 +103,24 @@ pub fn handle_unload_task_system(
                 commands.entity(e).despawn_recursive();
 
                 let chunk_pointer = ChunkPointer::new(chunk_data.0, pos, level);
-                spawn_chunk(
+                let chunk_entity = spawn_chunk(
                     &mut commands,
                     &mut meshes,
                     &assets,
                     &mut world,
-                    chunk_pointer,
+                    chunk_pointer.clone(),
                     chunk_data.1,
                 );
 
                 for entity in unloaded_chunks {
+                    if let Ok(children) = chunk_children_q.get(entity) {
+                        update_objects_parent(
+                            children,
+                            &mut commands,
+                            vec![(chunk_pointer.clone(), chunk_entity)],
+                            &mut objects_q,
+                        );
+                    }
                     commands.entity(entity).despawn_recursive();
                 }
             }
