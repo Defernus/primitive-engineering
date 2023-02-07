@@ -35,7 +35,7 @@ impl Default for PlayerStats {
             on_ground_speed: 40.0,
             friction_factor: 15.0,
             mode: PlayerMovementMode::Fly,
-            mining_radius: 4.0,
+            mining_radius: 1.0,
             mining_range: 16.0,
             mining_strength: 1.0,
         }

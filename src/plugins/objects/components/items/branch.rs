@@ -30,6 +30,7 @@ impl GameWorldObjectTrait for BranchItem {
                 GameWorldObject(Arc::new(Mutex::new(std::mem::take(self)))),
                 ItemComponent,
                 Name::new(format!("item:{}", Self::ID)),
+                RigidBodyDisabled,
                 RigidBody::Dynamic,
                 Restitution::coefficient(0.7),
                 SceneBundle {

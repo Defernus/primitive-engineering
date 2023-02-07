@@ -20,7 +20,7 @@ pub struct ChunkPointer {
     #[reflect(ignore)]
     chunk: Arc<Mutex<Chunk>>,
     pos: ChunkPos,
-    detail_level: usize,
+    level: usize,
 }
 
 #[derive(Debug, Default, Clone, Reflect, FromReflect)]
@@ -385,12 +385,12 @@ impl ChunkPointer {
         Self {
             chunk: Arc::new(Mutex::new(chunk)),
             pos,
-            detail_level,
+            level: detail_level,
         }
     }
 
     pub fn is_real(&self) -> bool {
-        self.detail_level == GameWorld::MAX_DETAIL_LEVEL
+        self.level == GameWorld::MAX_DETAIL_LEVEL
     }
 
     pub fn lock(&self) -> MutexGuard<Chunk> {
@@ -398,7 +398,7 @@ impl ChunkPointer {
     }
 
     pub fn get_level(&self) -> usize {
-        self.detail_level
+        self.level
     }
 
     pub fn get_pos(&self) -> ChunkPos {
@@ -406,8 +406,11 @@ impl ChunkPointer {
     }
 
     pub fn get_vec(&self) -> Vec3 {
-        (self.pos * GameWorld::level_to_scale(self.detail_level) as i64).to_vec3()
-            * Chunk::REAL_SIZE
+        (self.pos * GameWorld::level_to_scale(self.level) as i64).to_vec3() * Chunk::REAL_SIZE
+    }
+
+    pub fn get_size(&self) -> f32 {
+        GameWorld::level_to_scale(self.level) as f32 * Chunk::REAL_SIZE
     }
 }
 

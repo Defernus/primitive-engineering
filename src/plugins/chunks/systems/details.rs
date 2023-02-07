@@ -9,12 +9,13 @@ use crate::{
                 ChunkComponent, ComputeChunkDetailedTask, DetailingChunkComponent,
                 RealChunkComponent, UnloadingChunkComponent,
             },
-            helpers::spawn_chunk,
+            helpers::{spawn_chunk::spawn_chunk, update_objects_parent::update_objects_parent},
             resources::ChunkLoadingEnabled,
         },
         game_world::resources::GameWorld,
         inspector::components::DisableHierarchyDisplay,
         loading::resources::GameAssets,
+        objects::components::GameWorldObject,
         player::components::PlayerComponent,
         world_generator::resources::WorldGenerator,
     },
@@ -144,24 +145,36 @@ pub fn spawn_detailed_chunk_system(
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
     tasks_q: Query<(Entity, &mut ComputeChunkDetailedTask)>,
+    mut objects_q: Query<(Entity, &mut Transform, &GlobalTransform), With<GameWorldObject>>,
+    chunk_children_q: Query<&Children, With<ChunkComponent>>,
 ) {
     for (e, ComputeChunkDetailedTask(rx)) in tasks_q.iter() {
         match rx.try_recv() {
             Ok((prev_chunk_entity, pos, level, chunks)) => {
-                for (i, (chunk, vertices)) in chunks.into_iter().enumerate() {
-                    let sub_pos = ChunkPos::from_index(i, 2);
-                    let chunk = ChunkPointer::new(chunk, pos * 2 + sub_pos, level + 1);
+                let spawned_chunks = chunks
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, (chunk, vertices))| {
+                        let sub_pos = ChunkPos::from_index(i, 2);
+                        let chunk = ChunkPointer::new(chunk, pos * 2 + sub_pos, level + 1);
 
-                    spawn_chunk(
-                        &mut commands,
-                        &mut meshes,
-                        &assets,
-                        &mut world,
-                        chunk.clone(),
-                        vertices,
-                    );
+                        (
+                            chunk.clone(),
+                            spawn_chunk(
+                                &mut commands,
+                                &mut meshes,
+                                &assets,
+                                &mut world,
+                                chunk.clone(),
+                                vertices,
+                            ),
+                        )
+                    })
+                    .collect::<Vec<_>>();
+
+                if let Ok(children) = chunk_children_q.get(prev_chunk_entity) {
+                    update_objects_parent(children, &mut commands, spawned_chunks, &mut objects_q);
                 }
-
                 commands.entity(prev_chunk_entity).despawn_recursive();
                 commands.entity(e).despawn_recursive();
             }

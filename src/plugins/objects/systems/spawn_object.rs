@@ -26,11 +26,8 @@ fn spawn(
         .get_detailest_chunk(chunk_pos)
         .ok_or(ObjectSpawnError::ChunkNotExist(chunk_pos))?;
 
-    let level = chunk.get_level();
-
     let mut transform = object_spawn.transform;
-    // transform.translation -=
-    //     Chunk::pos_to_translation(chunk_pos * GameWorld::level_to_scale(level) as i64);
+    transform.translation -= chunk.get_vec();
 
     Ok((
         object_spawn
@@ -50,7 +47,7 @@ pub fn spawn_object_system(
         match spawn(&mut commands, &mut object_spawn, &world, &assets) {
             Ok((object_entity, chunk_entity)) => {
                 commands.entity(spawn_entity).despawn_recursive();
-                // commands.entity(chunk_entity).add_child(object_entity);
+                commands.entity(chunk_entity).add_child(object_entity);
             }
             Err(err) => match err {
                 ObjectSpawnError::ObjectAlreadySpawned => {

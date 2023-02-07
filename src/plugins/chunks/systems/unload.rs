@@ -6,7 +6,7 @@ use crate::{
                 ChunkComponent, ComputeChunkUnloadTask, DetailingChunkComponent,
                 UnloadingChunkComponent,
             },
-            helpers::spawn_chunk,
+            helpers::spawn_chunk::spawn_chunk,
             resources::ChunkLoadingEnabled,
         },
         game_world::resources::GameWorld,

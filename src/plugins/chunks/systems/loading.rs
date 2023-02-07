@@ -6,7 +6,7 @@ use crate::{
         pos::ChunkPos,
     },
     plugins::{
-        chunks::{helpers::spawn_chunk, resources::ChunkLoadingEnabled},
+        chunks::{helpers::spawn_chunk::spawn_chunk, resources::ChunkLoadingEnabled},
         game_world::resources::GameWorld,
         loading::resources::GameAssets,
         player::components::PlayerComponent,
