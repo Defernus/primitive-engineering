@@ -50,12 +50,36 @@ impl InWorldChunk {
             Self::Loading => None,
             Self::Loaded(c, e) => Some((c, e.clone())),
             Self::SubChunks(sub_chunks) => {
-                let scale = 1 << current_level;
-                let sub_pos = pos >> current_level;
+                let scale = GameWorld::level_to_scale(current_level);
+
+                debug_assert!(
+                    pos.x < scale,
+                    "pos is out of bounds: pos.x: {}, scale: {}, level: {}",
+                    pos.x,
+                    scale,
+                    current_level
+                );
+
+                debug_assert!(
+                    pos.y < scale,
+                    "pos is out of bounds: pos.y: {}, scale: {}, level: {}",
+                    pos.y,
+                    scale,
+                    current_level
+                );
+
+                debug_assert!(
+                    pos.z < scale,
+                    "pos is out of bounds: pos.z: {}, scale: {}, level: {}",
+                    pos.z,
+                    scale,
+                    current_level
+                );
+
+                let sub_pos = pos / scale;
 
                 let in_chunk_pos = pos - sub_pos * scale;
 
-                // FIXME index out of bounds (13)
                 let sub_chunk = &sub_chunks[sub_pos.to_index(2)];
                 sub_chunk.get_detailest_chunk(in_chunk_pos, current_level + 1)
             }
