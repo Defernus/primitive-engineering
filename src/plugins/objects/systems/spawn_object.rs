@@ -1,5 +1,3 @@
-use bevy::prelude::*;
-
 use crate::{
     internal::{chunks::Chunk, pos::ChunkPos},
     plugins::{
@@ -7,6 +5,7 @@ use crate::{
         objects::components::ObjectSpawn,
     },
 };
+use bevy::prelude::*;
 
 #[derive(Debug)]
 enum ObjectSpawnError {

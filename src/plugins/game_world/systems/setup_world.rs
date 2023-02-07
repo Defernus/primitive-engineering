@@ -1,6 +1,5 @@
-use bevy::prelude::*;
-
 use crate::plugins::game_world::components::WorldSun;
+use bevy::prelude::*;
 
 pub fn setup_world(mut commands: Commands) {
     commands.insert_resource(AmbientLight {

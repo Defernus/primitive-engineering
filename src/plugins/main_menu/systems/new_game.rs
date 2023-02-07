@@ -1,5 +1,3 @@
-use std::hash::{Hash, Hasher};
-
 use crate::{
     plugins::{
         game_world::resources::GameWorldMeta,
@@ -10,6 +8,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext};
 use bevy_inspector_egui::egui::Pos2;
+use std::hash::{Hash, Hasher};
 
 pub fn init_new_game(mut game_world_meta: ResMut<GameWorldMeta>) {
     game_world_meta.reset();

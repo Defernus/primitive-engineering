@@ -1,6 +1,5 @@
-use bevy::prelude::*;
-
 use self::components::StaticMeshComponent;
+use bevy::prelude::*;
 
 pub mod components;
 

@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use crate::{
     internal::chunks::Chunk,
     plugins::{
@@ -17,6 +15,7 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
+use std::time::Duration;
 
 fn handle_single_modification(
     commands: &mut Commands,

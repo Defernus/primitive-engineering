@@ -1,11 +1,9 @@
-use bevy::prelude::*;
-
-use crate::states::game_state::GameState;
-
 use self::{
     components::tree::TreeObject,
     systems::{grab::grab, spawn_object::spawn_object_system, unload_all::unload_all_objects},
 };
+use crate::states::game_state::GameState;
+use bevy::prelude::*;
 
 pub mod components;
 mod systems;

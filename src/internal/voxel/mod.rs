@@ -1,6 +1,5 @@
-use std::ops::{Add, AddAssign, Sub, SubAssign};
-
 use super::color::Color;
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 pub(self) mod triangulation_table;
 pub mod voxels_to_vertex;

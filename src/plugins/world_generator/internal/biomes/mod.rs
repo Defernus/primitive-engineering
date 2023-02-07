@@ -1,9 +1,3 @@
-use std::fmt::Debug;
-
-use bevy::prelude::{Commands, Vec3};
-use bevy_reflect::{FromReflect, Reflect};
-use lerp::Lerp;
-
 use crate::{
     internal::{
         chunks::Chunk,
@@ -17,6 +11,10 @@ use crate::{
         },
     },
 };
+use bevy::prelude::{Commands, Vec3};
+use bevy_reflect::{FromReflect, Reflect};
+use lerp::Lerp;
+use std::fmt::Debug;
 
 pub mod desert;
 pub mod plains;

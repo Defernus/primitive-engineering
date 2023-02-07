@@ -1,12 +1,9 @@
-use bevy::{math::Vec3, prelude::Color};
-
+use super::triangulation_table::{get_index_by_voxels, TABLE};
+use super::Voxel;
 use crate::internal::chunks::Chunk;
 use crate::internal::pos::{GlobalVoxelPos, VoxelPos};
 use crate::plugins::static_mesh::components::Vertex;
-
-use super::triangulation_table::{get_index_by_voxels, TABLE};
-
-use super::Voxel;
+use bevy::{math::Vec3, prelude::Color};
 
 #[derive(Clone, Copy)]
 struct VertexNode {

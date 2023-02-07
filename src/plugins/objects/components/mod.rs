@@ -1,3 +1,4 @@
+use self::items::ItemComponent;
 use crate::{
     internal::chunks::ChunkPointer,
     plugins::loading::resources::{GameAssets, PhysicsObject},
@@ -9,8 +10,6 @@ use std::{
     fmt::Debug,
     sync::{Arc, Mutex},
 };
-
-use self::items::ItemComponent;
 
 pub mod cactus;
 pub mod fire;

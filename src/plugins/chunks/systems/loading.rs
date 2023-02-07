@@ -1,5 +1,3 @@
-use bevy::prelude::*;
-
 use crate::{
     internal::{
         chunks::{Chunk, ChunkPointer},
@@ -13,6 +11,7 @@ use crate::{
         world_generator::resources::WorldGenerator,
     },
 };
+use bevy::prelude::*;
 
 pub struct PrevPlayerChunkPos(pub ChunkPos);
 impl Default for PrevPlayerChunkPos {

@@ -1,9 +1,8 @@
-use crate::states::game_state::GameState;
-
 use self::{
     resources::GameAssets,
     systems::{load_assets::load_assets, process_assets::process_assets},
 };
+use crate::states::game_state::GameState;
 use bevy::prelude::*;
 
 pub mod resources;
