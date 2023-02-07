@@ -1,12 +1,8 @@
 use crate::plugins::{
-    loading::resources::GameAssets,
-    objects::components::{GameWorldObject, GameWorldObjectTrait, ObjectSpawn},
+    loading::resources::{GameAssets, PhysicsObject},
+    objects::components::GameWorldObjectTrait,
 };
-use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
 use std::sync::{Arc, Mutex};
-
-use super::ItemComponent;
 
 #[derive(Debug, Default, Clone)]
 pub struct RockItem;
@@ -20,46 +16,15 @@ impl GameWorldObjectTrait for RockItem {
         Self::ID
     }
 
-    fn spawn(
-        &mut self,
-        commands: &mut Commands,
-        assets: &GameAssets,
-        transform: Transform,
-    ) -> Entity {
-        commands
-            .spawn((
-                GameWorldObject(Arc::new(Mutex::new(std::mem::take(self)))),
-                ItemComponent,
-                Name::new(format!("item:{}", Self::ID)),
-                RigidBodyDisabled,
-                RigidBody::Dynamic,
-                Restitution::coefficient(0.7),
-                SceneBundle {
-                    scene: assets.rock_object.scene.clone(),
-                    transform,
-                    ..Default::default()
-                },
-            ))
-            .with_children(|parent| {
-                for (collider, transform) in assets.rock_object.colliders.iter() {
-                    parent.spawn((
-                        collider.clone(),
-                        TransformBundle::from_transform(transform.clone()),
-                    ));
-                }
-            })
-            .id()
+    fn take(&mut self) -> Arc<Mutex<dyn GameWorldObjectTrait>> {
+        Arc::new(Mutex::new(std::mem::take(self)))
     }
 
-    fn get_spawn(self, transform: Transform) -> ObjectSpawn {
-        ObjectSpawn {
-            id: Self::ID,
-            object: Some(Arc::new(Mutex::new(self))),
-            transform,
-        }
+    fn get_model<'a>(&self, assets: &'a GameAssets) -> &'a PhysicsObject {
+        &assets.rock_object
     }
 
-    fn to_any(&self) -> &dyn std::any::Any {
-        self
+    fn is_item(&self) -> bool {
+        true
     }
 }

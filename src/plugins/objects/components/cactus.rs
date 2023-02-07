@@ -1,6 +1,5 @@
-use super::{GameWorldObjectTrait, ObjectSpawn};
-use crate::plugins::{loading::resources::GameAssets, objects::components::GameWorldObject};
-use bevy::prelude::*;
+use super::GameWorldObjectTrait;
+use crate::plugins::loading::resources::{GameAssets, PhysicsObject};
 use bevy_reflect::{FromReflect, Reflect};
 use std::sync::{Arc, Mutex};
 
@@ -16,42 +15,11 @@ impl GameWorldObjectTrait for CactusObject {
         Self::ID
     }
 
-    fn spawn(
-        &mut self,
-        commands: &mut Commands,
-        assets: &GameAssets,
-        transform: Transform,
-    ) -> Entity {
-        commands
-            .spawn((
-                GameWorldObject(Arc::new(Mutex::new(std::mem::take(self)))),
-                Name::new(format!("object:{}", CactusObject::ID)),
-                SceneBundle {
-                    scene: assets.cactus_object.scene.clone(),
-                    transform,
-                    ..Default::default()
-                },
-            ))
-            .with_children(|parent| {
-                for (collider, transform) in assets.cactus_object.colliders.iter() {
-                    parent.spawn((
-                        collider.clone(),
-                        TransformBundle::from_transform(transform.clone()),
-                    ));
-                }
-            })
-            .id()
+    fn take(&mut self) -> Arc<Mutex<dyn GameWorldObjectTrait>> {
+        Arc::new(Mutex::new(std::mem::take(self)))
     }
 
-    fn get_spawn(self, transform: Transform) -> ObjectSpawn {
-        ObjectSpawn {
-            id: Self::ID,
-            object: Some(Arc::new(Mutex::new(self))),
-            transform,
-        }
-    }
-
-    fn to_any(&self) -> &dyn std::any::Any {
-        self
+    fn get_model<'a>(&self, assets: &'a GameAssets) -> &'a PhysicsObject {
+        &assets.cactus_object
     }
 }

@@ -1,9 +1,5 @@
-use super::{GameWorldObjectTrait, ObjectSpawn};
-use crate::plugins::{
-    loading::resources::{GameAssets, PhysicsObject},
-    objects::components::GameWorldObject,
-};
-use bevy::prelude::*;
+use super::GameWorldObjectTrait;
+use crate::plugins::loading::resources::{GameAssets, PhysicsObject};
 use bevy_reflect::{FromReflect, Reflect};
 use std::sync::{Arc, Mutex};
 
@@ -23,47 +19,15 @@ impl GameWorldObjectTrait for SpruceObject {
         Self::ID
     }
 
-    fn spawn(
-        &mut self,
-        commands: &mut Commands,
-        assets: &GameAssets,
-        transform: Transform,
-    ) -> Entity {
-        let PhysicsObject {
-            colliders, scene, ..
-        } = if self.snow {
-            assets.spruce_snow_object.clone()
+    fn take(&mut self) -> Arc<Mutex<dyn GameWorldObjectTrait>> {
+        Arc::new(Mutex::new(std::mem::take(self)))
+    }
+
+    fn get_model<'a>(&self, assets: &'a GameAssets) -> &'a PhysicsObject {
+        if self.snow {
+            &assets.spruce_snow_object
         } else {
-            assets.spruce_object.clone()
-        };
-
-        commands
-            .spawn((
-                GameWorldObject(Arc::new(Mutex::new(std::mem::take(self)))),
-                Name::new(format!("object:{}", SpruceObject::ID)),
-                SceneBundle {
-                    scene: scene,
-                    transform,
-                    ..Default::default()
-                },
-            ))
-            .with_children(|parent| {
-                for (collider, transform) in colliders.into_iter() {
-                    parent.spawn((collider, TransformBundle::from_transform(transform)));
-                }
-            })
-            .id()
-    }
-
-    fn get_spawn(self, transform: Transform) -> ObjectSpawn {
-        ObjectSpawn {
-            id: Self::ID,
-            object: Some(Arc::new(Mutex::new(self))),
-            transform,
+            &assets.spruce_object
         }
-    }
-
-    fn to_any(&self) -> &dyn std::any::Any {
-        self
     }
 }

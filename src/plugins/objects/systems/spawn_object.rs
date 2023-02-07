@@ -19,22 +19,18 @@ fn spawn(
     object_spawn: &mut ObjectSpawn,
     world: &GameWorld,
     assets: &GameAssets,
-) -> Result<(Entity, Entity), ObjectSpawnError> {
+) -> Result<(), ObjectSpawnError> {
     let chunk_pos = Chunk::vec_to_chunk_pos(object_spawn.transform.translation);
 
-    let (chunk, entity) = world
+    let (chunk, chunk_entity) = world
         .get_detailest_chunk(chunk_pos)
         .ok_or(ObjectSpawnError::ChunkNotExist(chunk_pos))?;
 
-    let mut transform = object_spawn.transform;
-    transform.translation -= chunk.get_vec();
+    object_spawn
+        .spawn(commands, assets, chunk, chunk_entity)
+        .ok_or(ObjectSpawnError::ObjectAlreadySpawned)?;
 
-    Ok((
-        object_spawn
-            .spawn(commands, assets, transform)
-            .ok_or(ObjectSpawnError::ObjectAlreadySpawned)?,
-        entity,
-    ))
+    Ok(())
 }
 
 pub fn spawn_object_system(
@@ -45,9 +41,8 @@ pub fn spawn_object_system(
 ) {
     for (spawn_entity, mut object_spawn) in object_spawn_q.iter_mut() {
         match spawn(&mut commands, &mut object_spawn, &world, &assets) {
-            Ok((object_entity, chunk_entity)) => {
+            Ok(_) => {
                 commands.entity(spawn_entity).despawn_recursive();
-                commands.entity(chunk_entity).add_child(object_entity);
             }
             Err(err) => match err {
                 ObjectSpawnError::ObjectAlreadySpawned => {

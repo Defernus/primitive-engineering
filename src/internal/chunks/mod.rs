@@ -405,7 +405,7 @@ impl ChunkPointer {
         self.pos
     }
 
-    pub fn get_vec(&self) -> Vec3 {
+    pub fn get_translation(&self) -> Vec3 {
         (self.pos * GameWorld::level_to_scale(self.level) as i64).to_vec3() * Chunk::REAL_SIZE
     }
 

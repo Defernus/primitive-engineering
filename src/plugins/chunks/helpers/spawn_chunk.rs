@@ -24,7 +24,7 @@ pub fn spawn_chunk(
         .insert(ChunkMeshComponent)
         .insert(Name::new("chunk:mesh"));
 
-    let chunk_pos_vec = chunk.get_vec();
+    let chunk_pos_vec = chunk.get_translation();
 
     let mut chunk_entity = commands.spawn((
         Name::new(format!(

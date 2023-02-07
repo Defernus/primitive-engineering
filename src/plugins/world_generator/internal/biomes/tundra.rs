@@ -82,7 +82,7 @@ impl Biome for TundraBiome {
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos);
                 t.rotate_y(y_angle);
-                SpruceObject::WITH_SNOW.get_spawn(t)
+                SpruceObject::WITH_SNOW.clone().get_spawn(t)
             },
         );
 
