@@ -40,6 +40,7 @@ impl ObjectSpawn {
     ) -> Option<Entity> {
         if let Some(object) = std::mem::replace(&mut self.object, None) {
             let mut object = object.lock().unwrap();
+            let id = object.id();
 
             let chunk_offset = chunk.get_translation();
 
@@ -50,7 +51,10 @@ impl ObjectSpawn {
             object.set_parent(chunk_entity);
 
             if !chunk.is_real() {
+                println!("not real {} {}", chunk.get_level(), id);
                 object.insert(RigidBodyDisabled);
+            } else {
+                println!("real {} {}", chunk.get_level(), id);
             }
 
             Some(object.id())
@@ -109,7 +113,6 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
         if self.is_item() {
             e.insert(ItemComponent)
                 .insert(Name::new(format!("item:{}", self.id())))
-                .insert(RigidBodyDisabled)
                 .insert(RigidBody::Dynamic);
         } else {
             e.insert(Name::new(format!("object:{}", self.id())));
