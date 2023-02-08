@@ -42,7 +42,7 @@ impl Biome for PlainsBiome {
                 cave_strength: 100.0,
             },
             bumps_factor: 0.05,
-            first_layer_color: Color::rgb_u8(80, 213, 17).into(),
+            first_layer_color: Color::rgb_u8(40, 133, 7).into(),
             second_layer_color: Color::rgb_u8(65, 40, 22).into(),
             rest_layers_color: Color::rgb_u8(100, 100, 100).into(),
         }
