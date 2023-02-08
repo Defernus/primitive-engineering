@@ -40,7 +40,6 @@ impl ObjectSpawn {
     ) -> Option<Entity> {
         if let Some(object) = std::mem::replace(&mut self.object, None) {
             let mut object = object.lock().unwrap();
-            let id = object.id();
 
             let chunk_offset = chunk.get_translation();
 
