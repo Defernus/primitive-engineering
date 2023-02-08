@@ -1,3 +1,4 @@
+use crate::{internal::chunks::Chunk, plugins::game_world::resources::GameWorld};
 use bevy::{ecs::system::EntityCommands, prelude::*};
 use bevy_rapier3d::prelude::*;
 
@@ -31,12 +32,21 @@ pub fn grab_item(mut item: EntityCommands, hand: Entity) {
     set_item_physics_enabled(&mut item, false);
 }
 
-pub fn drop_item(mut item: EntityCommands, transform: Transform) {
+pub fn drop_item(mut item: EntityCommands, mut transform: Transform, world: &mut GameWorld) {
     item.remove::<ItemGrabbed>();
     item.remove_parent();
 
+    set_item_physics_enabled(&mut item, true);
+
+    let chunk_pos = Chunk::vec_to_chunk_pos(transform.translation);
+    if let Some((chunk, entity)) = world.get_detailest_chunk(chunk_pos) {
+        let chunk_offset = chunk.get_translation();
+        transform.translation -= chunk_offset;
+        item.set_parent(entity);
+    } else {
+        warn!("Failed to find chunk for item {:?}", transform.translation);
+    }
+
     item.remove::<Transform>();
     item.insert(transform);
-
-    set_item_physics_enabled(&mut item, true);
 }

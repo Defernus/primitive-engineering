@@ -1,4 +1,5 @@
 use crate::plugins::{
+    game_world::resources::GameWorld,
     objects::components::items::{drop_item, grab_item, ItemComponent, ItemGrabbed},
     player::{
         components::{PlayerCameraComponent, PlayerComponent, PlayerHand},
@@ -19,11 +20,16 @@ pub fn grab(
     mut item_grabbed_q: Query<Entity, With<ItemGrabbed>>,
     item_q: Query<Entity, (With<ItemComponent>, Without<ItemGrabbed>)>,
     colliders_q: Query<&Parent, With<Collider>>,
+    mut world: ResMut<GameWorld>,
 ) {
     for _ in use_place_grab_e.iter() {
         for item in item_grabbed_q.iter_mut() {
             let (_, transform) = player_hand_q.single();
-            drop_item(commands.entity(item), transform.compute_transform());
+            drop_item(
+                commands.entity(item),
+                transform.compute_transform(),
+                &mut world,
+            );
         }
 
         let transform = transform_q.single().compute_transform();

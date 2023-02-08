@@ -173,7 +173,8 @@ pub fn spawn_detailed_chunk_system(
                     .collect::<Vec<_>>();
 
                 if let Ok(children) = chunk_children_q.get(prev_chunk_entity) {
-                    update_objects_parent(children, &mut commands, spawned_chunks, &mut objects_q);
+                    update_objects_parent(children, &mut commands, spawned_chunks, &mut objects_q)
+                        .unwrap();
                 }
                 commands.entity(prev_chunk_entity).despawn_recursive();
                 commands.entity(e).despawn_recursive();

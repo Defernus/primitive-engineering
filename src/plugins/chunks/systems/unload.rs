@@ -119,7 +119,8 @@ pub fn handle_unload_task_system(
                             &mut commands,
                             vec![(chunk_pointer.clone(), chunk_entity)],
                             &mut objects_q,
-                        );
+                        )
+                        .unwrap();
                     }
                     commands.entity(entity).despawn_recursive();
                 }
