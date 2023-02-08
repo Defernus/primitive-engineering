@@ -53,7 +53,7 @@ pub fn player_fly_movement(
 
     velocity = velocity.normalize_or_zero();
 
-    transform.translation += velocity * time.delta_seconds() * settings.fly_speed;
+    transform.translation += velocity * time.delta_seconds().clamp(0.0, 0.1) * settings.fly_speed;
 }
 
 pub fn player_walk_movement(
@@ -69,11 +69,11 @@ pub fn player_walk_movement(
     settings: Res<PlayerStats>,
     world_physics_config: Res<RapierConfiguration>,
     time: Res<Time>,
-    mut go_forward_ew: EventReader<GoForwardEvent>,
-    mut go_backward_ew: EventReader<GoBackwardEvent>,
-    mut go_left_ew: EventReader<GoLeftEvent>,
-    mut go_right_ew: EventReader<GoRightEvent>,
-    mut jump_ew: EventReader<JumpEvent>,
+    mut go_forward_e: EventReader<GoForwardEvent>,
+    mut go_backward_e: EventReader<GoBackwardEvent>,
+    mut go_left_e: EventReader<GoLeftEvent>,
+    mut go_right_e: EventReader<GoRightEvent>,
+    mut jump_e: EventReader<JumpEvent>,
 ) {
     if settings.mode != PlayerMovementMode::Walk {
         return;
@@ -86,47 +86,48 @@ pub fn player_walk_movement(
             return;
         };
 
-    player.speed += world_physics_config.gravity * time.delta_seconds();
+    let dt = time.delta_seconds().clamp(0.0, 0.1);
+    player.speed += world_physics_config.gravity * dt;
 
     if controller_output.grounded {
-        player.speed /= 1. + settings.friction_factor * time.delta_seconds();
+        player.speed /= 1. + settings.friction_factor * dt;
     }
 
     let speed = if controller_output.grounded {
         settings.on_ground_speed
     } else {
         settings.in_air_speed
-    } * time.delta_seconds();
+    } * dt;
 
     let right = transform.right();
     let forward = Vec3::Y.cross(right);
 
     let mut speed_dir = Vec3::ZERO;
-    for _ in go_forward_ew.iter() {
+    for _ in go_forward_e.iter() {
         speed_dir += forward;
     }
 
-    for _ in go_backward_ew.iter() {
+    for _ in go_backward_e.iter() {
         speed_dir -= forward;
     }
 
-    for _ in go_left_ew.iter() {
+    for _ in go_left_e.iter() {
         speed_dir -= right;
     }
 
-    for _ in go_right_ew.iter() {
+    for _ in go_right_e.iter() {
         speed_dir += right;
     }
 
     player.speed += speed_dir.normalize_or_zero() * speed;
 
-    for _ in jump_ew.iter() {
+    for _ in jump_e.iter() {
         if controller_output.grounded {
             player.speed.y += settings.jump_speed;
         }
     }
 
-    controller.translation = Some(player.speed * time.delta_seconds());
+    controller.translation = Some(player.speed * dt);
 }
 
 pub fn toggle_movement_mode(
