@@ -51,10 +51,7 @@ impl ObjectSpawn {
             object.set_parent(chunk_entity);
 
             if !chunk.is_real() {
-                println!("not real {} {}", chunk.get_level(), id);
                 object.insert(RigidBodyDisabled);
-            } else {
-                println!("real {} {}", chunk.get_level(), id);
             }
 
             Some(object.id())
