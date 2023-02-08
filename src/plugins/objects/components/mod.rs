@@ -4,7 +4,7 @@ use crate::{
     plugins::loading::resources::{GameAssets, PhysicsObject},
 };
 use bevy::{ecs::system::EntityCommands, prelude::*};
-use bevy_rapier3d::prelude::{RigidBody, RigidBodyDisabled};
+use bevy_rapier3d::prelude::*;
 use std::{
     any::Any,
     fmt::Debug,
@@ -109,7 +109,8 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
         if self.is_item() {
             e.insert(ItemComponent)
                 .insert(Name::new(format!("item:{}", self.id())))
-                .insert(RigidBody::Dynamic);
+                .insert(RigidBody::Dynamic)
+                .insert(Restitution::coefficient(0.7));
         } else {
             e.insert(Name::new(format!("object:{}", self.id())));
         }
