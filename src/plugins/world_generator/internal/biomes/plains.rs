@@ -1,4 +1,4 @@
-use super::{Biome, BiomeCheckInput, BiomeID, ChunkBiomes};
+use super::{spawn_objects, Biome, BiomeCheckInput, BiomeID, ChunkBiomes, SpawnObjectInp};
 use crate::{
     internal::{color::Color, pos::ChunkPos},
     plugins::{
@@ -7,12 +7,7 @@ use crate::{
             tree::TreeObject,
             GameWorldObjectTrait,
         },
-        world_generator::{
-            internal::biomes::spawn_object,
-            resources::{
-                GenCaveInp, GenVoxelInp, LandscapeHeightInp, ObjectGeneratorID, WorldGenerator,
-            },
-        },
+        world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},
     },
 };
 use bevy::prelude::*;
@@ -68,64 +63,31 @@ impl Biome for PlainsBiome {
         commands: &mut Commands,
         gen: &WorldGenerator,
     ) -> usize {
-        let mut id: ObjectGeneratorID = 0;
-        let mut count = 0;
-
-        macro_rules! next_id {
-            () => {{
-                id += 1;
-                id
-            }};
-        }
-
-        count += spawn_object(
+        spawn_objects(
             biomes,
             chunk_pos,
             commands,
             gen,
-            next_id!(),
-            0.2,
-            1,
-            false,
-            |pos, y_angle| {
-                let mut t = Transform::from_translation(pos);
-                t.rotate_y(y_angle);
-                TreeObject.get_spawner(t)
-            },
-        );
-
-        count += spawn_object(
-            biomes,
-            chunk_pos,
-            commands,
-            gen,
-            next_id!(),
-            0.6,
-            1,
-            false,
-            |pos, y_angle| {
-                let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
-                t.rotate_y(y_angle);
-                BranchItem.get_spawner(t)
-            },
-        );
-
-        count += spawn_object(
-            biomes,
-            chunk_pos,
-            commands,
-            gen,
-            next_id!(),
-            0.5,
-            1,
-            false,
-            |pos, y_angle| {
-                let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
-                t.rotate_y(y_angle);
-                RockItem.get_spawner(t)
-            },
-        );
-
-        count
+            vec![
+                SpawnObjectInp {
+                    allow_air: false,
+                    amount: 1,
+                    chance: 0.2,
+                    get_spawner: Box::new(|t| TreeObject.get_spawner(t)),
+                },
+                SpawnObjectInp {
+                    allow_air: false,
+                    amount: 1,
+                    chance: 0.6,
+                    get_spawner: Box::new(|t| BranchItem.get_spawner(t)),
+                },
+                SpawnObjectInp {
+                    allow_air: false,
+                    amount: 1,
+                    chance: 0.5,
+                    get_spawner: Box::new(|t| RockItem.get_spawner(t)),
+                },
+            ],
+        )
     }
 }

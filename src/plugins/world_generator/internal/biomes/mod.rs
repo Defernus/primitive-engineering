@@ -50,25 +50,48 @@ pub trait Biome: Send + Sync + Debug {
     ) -> usize;
 }
 
+pub(self) struct SpawnObjectInp {
+    chance: f32,
+    amount: usize,
+    allow_air: bool,
+    get_spawner: Box<dyn FnMut(Transform) -> ObjectSpawner>,
+}
+
+impl Default for SpawnObjectInp {
+    fn default() -> Self {
+        Self {
+            chance: 0.1,
+            amount: 1,
+            allow_air: false,
+            get_spawner: Box::new(|_| panic!("no spawner set")),
+        }
+    }
+}
+
 pub(self) fn spawn_object(
     biomes: &ChunkBiomes,
     chunk_pos: ChunkPos,
     commands: &mut Commands,
     gen: &WorldGenerator,
     id: ObjectGeneratorID,
-    chance: f32,
-    amount: usize,
-    allow_air: bool,
-    mut get_spawner: impl FnMut(Vec3, f32) -> ObjectSpawner,
+    mut inp: SpawnObjectInp,
 ) -> usize {
     let mut spawned: usize = 0;
-    for i in 0..amount {
-        if let Some((pos, y_angle)) =
-            gen.get_ground_object_pos(biomes, chunk_pos, id, chance, i, amount, allow_air)
-        {
+    for i in 0..inp.amount {
+        if let Some((pos, y_angle)) = gen.get_ground_object_pos(
+            biomes,
+            chunk_pos,
+            id,
+            inp.chance,
+            i,
+            inp.amount,
+            inp.allow_air,
+        ) {
             spawned += 1;
 
-            let spawner = get_spawner(pos, y_angle);
+            let mut transform = Transform::from_translation(pos + Vec3::Y * 0.1);
+            transform.rotate_y(y_angle);
+            let spawner = inp.get_spawner.as_mut()(transform);
             let name = Name::new(format!("object_spawner:{}", spawner.id()));
 
             commands.spawn((spawner, InspectorDisabled, name));
@@ -76,6 +99,24 @@ pub(self) fn spawn_object(
     }
 
     spawned
+}
+
+pub(self) fn spawn_objects(
+    biomes: &ChunkBiomes,
+    chunk_pos: ChunkPos,
+    commands: &mut Commands,
+    gen: &WorldGenerator,
+    objects: Vec<SpawnObjectInp>,
+) -> usize {
+    let mut id = 0;
+    let mut count = 0;
+
+    for inp in objects.into_iter() {
+        count += spawn_object(biomes, chunk_pos, commands, gen, id, inp);
+        id += 1;
+    }
+
+    count
 }
 
 /// Represents the biomes for each vertex of a chunk
