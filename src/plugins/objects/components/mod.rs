@@ -38,6 +38,14 @@ impl ObjectSpawner {
         self.id
     }
 
+    /// Check if object is already spawned
+    pub fn is_spawned(&self) -> bool {
+        self.object.is_none()
+    }
+
+    /// Try to spawn object in the world
+    ///
+    /// If object is already spawned, return None
     pub fn spawn(
         &mut self,
         commands: &mut Commands,
