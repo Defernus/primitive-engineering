@@ -1,6 +1,8 @@
 use crate::plugins::{
-    craft::resources::CRAFT_ZONE_RADIUS, inspector::components::InspectorGroupChunks,
-    objects::components::items::ItemComponent, player::resources::look_at::PlayerLookAt,
+    craft::resources::CRAFT_ZONE_RADIUS,
+    inspector::components::{InspectorDisabled, InspectorGroupChunks},
+    objects::components::items::ItemComponent,
+    player::resources::look_at::PlayerLookAt,
 };
 use bevy::{ecs::query::ReadOnlyWorldQuery, prelude::*};
 use bevy_egui::egui;
@@ -49,15 +51,17 @@ pub fn entities_inspector(world: &mut World, ui: &mut egui::Ui) {
                 }
 
                 EntitiesInspectorTab::Chunks => {
-                    display_entities_group::<(Without<Parent>, With<InspectorGroupChunks>)>(
-                        ui, world,
-                    );
+                    display_entities_group::<(
+                        Without<Parent>,
+                        (With<InspectorGroupChunks>, Without<InspectorDisabled>),
+                    )>(ui, world);
                 }
 
                 EntitiesInspectorTab::Other => {
-                    display_entities_group::<(Without<Parent>, Without<InspectorGroupChunks>)>(
-                        ui, world,
-                    );
+                    display_entities_group::<(
+                        Without<Parent>,
+                        (Without<InspectorGroupChunks>, Without<InspectorDisabled>),
+                    )>(ui, world);
                 }
             };
         });
