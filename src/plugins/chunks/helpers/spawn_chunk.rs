@@ -29,7 +29,7 @@ pub fn spawn_chunk(
     let mut chunk_entity = commands.spawn((
         InspectorGroupChunks,
         Name::new(format!(
-            "chunk[{:?}:{}]",
+            "chunk[{:?}-{}]",
             chunk.get_pos(),
             chunk.get_level()
         )),
