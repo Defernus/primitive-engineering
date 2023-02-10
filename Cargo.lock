@@ -1416,7 +1416,6 @@ dependencies = [
  "bevy_rapier3d",
  "bevy_reflect",
  "crossbeam-channel",
- "egui_dock",
  "lerp",
  "noise",
  "num-traits",
@@ -1481,15 +1480,6 @@ dependencies = [
  "ahash 0.8.3",
  "epaint",
  "nohash-hasher",
-]
-
-[[package]]
-name = "egui_dock"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77bb3bc3ce46356c466e04fea06d8110bf2d78b0ca7f98c4c404b2c7b502f392"
-dependencies = [
- "egui",
 ]
 
 [[package]]

@@ -5,13 +5,14 @@ use crate::{
     },
     plugins::{
         game_world::resources::GameWorld,
-        objects::components::ObjectSpawn,
+        inspector::components::InspectorDisabled,
+        objects::components::ObjectSpawner,
         world_generator::resources::{
             GenVoxelInp, LandscapeHeightInp, ObjectGeneratorID, WorldGenerator,
         },
     },
 };
-use bevy::prelude::{Commands, Vec3};
+use bevy::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 use lerp::Lerp;
 use std::fmt::Debug;
@@ -58,7 +59,7 @@ pub(self) fn spawn_object(
     chance: f32,
     amount: usize,
     allow_air: bool,
-    mut get_spawn: impl FnMut(Vec3, f32) -> ObjectSpawn,
+    mut get_spawner: impl FnMut(Vec3, f32) -> ObjectSpawner,
 ) -> usize {
     let mut spawned: usize = 0;
     for i in 0..amount {
@@ -66,7 +67,11 @@ pub(self) fn spawn_object(
             gen.get_ground_object_pos(biomes, chunk_pos, id, chance, i, amount, allow_air)
         {
             spawned += 1;
-            commands.spawn(get_spawn(pos, y_angle));
+
+            let spawner = get_spawner(pos, y_angle);
+            let name = Name::new(format!("object_spawner:{}", spawner.id()));
+
+            commands.spawn((spawner, InspectorDisabled, name));
         }
     }
 

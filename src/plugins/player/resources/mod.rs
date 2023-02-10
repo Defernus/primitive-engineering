@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 pub mod input_settings;
+pub mod look_at;
 
 pub const PLAYER_ACCESS_RADIUS: f32 = 6.0;
 

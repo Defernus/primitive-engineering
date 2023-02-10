@@ -6,7 +6,6 @@ use crate::{
         world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},
     },
 };
-use bevy::prelude::*;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -80,7 +79,7 @@ impl Biome for DesertBiome {
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos);
                 t.rotate_y(y_angle);
-                CactusObject.get_spawn(t)
+                CactusObject.get_spawner(t)
             },
         );
 
@@ -96,7 +95,7 @@ impl Biome for DesertBiome {
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
                 t.rotate_y(y_angle);
-                RockItem.get_spawn(t)
+                RockItem.get_spawner(t)
             },
         );
 

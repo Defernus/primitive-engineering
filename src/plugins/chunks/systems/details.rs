@@ -13,7 +13,7 @@ use crate::{
             resources::ChunkLoadingEnabled,
         },
         game_world::resources::GameWorld,
-        inspector::components::DisableHierarchyDisplay,
+        inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
         objects::components::GameWorldObject,
         player::components::PlayerComponent,
@@ -94,7 +94,7 @@ fn detail_chunk(
         }
     });
 
-    commands.spawn((ComputeChunkDetailedTask(rx), DisableHierarchyDisplay));
+    commands.spawn((ComputeChunkDetailedTask(rx), InspectorDisabled));
 
     Some(())
 }

@@ -5,6 +5,7 @@ use bevy_rapier3d::prelude::*;
 pub mod cursor;
 pub mod input;
 pub mod look;
+pub mod look_at;
 pub mod movements;
 pub mod spawn_item;
 

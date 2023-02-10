@@ -3,7 +3,7 @@ use crate::{
     plugins::{
         chunks::components::{ChunkComponent, ChunkMeshComponent, RealChunkComponent},
         game_world::resources::GameWorld,
-        inspector::components::DisableHierarchyDisplay,
+        inspector::components::InspectorGroupChunks,
         loading::resources::GameAssets,
         static_mesh::components::{StaticMeshComponent, Vertex},
     },
@@ -27,6 +27,7 @@ pub fn spawn_chunk(
     let chunk_pos_vec = chunk.get_translation();
 
     let mut chunk_entity = commands.spawn((
+        InspectorGroupChunks,
         Name::new(format!(
             "chunk[{:?}:{}]",
             chunk.get_pos(),
@@ -35,7 +36,6 @@ pub fn spawn_chunk(
         ChunkComponent {
             chunk: chunk.clone(),
         },
-        DisableHierarchyDisplay,
         GlobalTransform::default(),
         Transform::from_translation(chunk_pos_vec),
         VisibilityBundle::default(),

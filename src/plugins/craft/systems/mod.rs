@@ -4,13 +4,10 @@ use crate::plugins::{
     loading::resources::GameAssets,
     objects::components::{items::ItemComponent, GameWorldObject},
     player::{
-        components::{PlayerCameraComponent, PlayerComponent},
-        events::CraftEvent,
-        resources::PLAYER_ACCESS_RADIUS,
+        components::PlayerCameraComponent, events::CraftEvent, resources::look_at::PlayerLookAt,
     },
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
 
 pub mod crafting;
 
@@ -37,31 +34,17 @@ pub fn setup_craft_zone(
 
 pub fn craft_zone(
     mut commands: Commands,
-    rapier_context: Res<RapierContext>,
-    transform_q: Query<&GlobalTransform, With<PlayerCameraComponent>>,
-    player_rigid_body_q: Query<Entity, With<PlayerComponent>>,
     mut zone_q: Query<(&mut Visibility, &mut Transform), With<CraftZoneComponent>>,
     mut craft_e: EventReader<CraftEvent>,
     items_q: Query<(&GlobalTransform, &GameWorldObject, Entity), With<ItemComponent>>,
+    look_at: Res<PlayerLookAt>,
 ) {
-    let transform = transform_q.single().compute_transform();
-    let ray_origin = transform.translation;
-    let dir = transform.forward();
-
-    let player = player_rigid_body_q.single();
-
-    if let Some((_, far)) = rapier_context.cast_ray(
-        ray_origin,
-        dir,
-        PLAYER_ACCESS_RADIUS,
-        false,
-        QueryFilter::default().exclude_collider(player),
-    ) {
+    if look_at.target.is_some() {
         let (mut visibility, mut transform) = zone_q.single_mut();
-        *transform = Transform::from_xyz(0.0, 0.0, -far);
+        *transform = Transform::from_xyz(0.0, 0.0, -look_at.distance);
         visibility.is_visible = true;
 
-        let craft_center = ray_origin + dir * far;
+        let craft_center = look_at.position;
 
         for _ in craft_e.iter() {
             let items = items_q

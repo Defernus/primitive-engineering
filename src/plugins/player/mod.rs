@@ -1,6 +1,8 @@
 use self::components::{PlayerComponent, PlayerHand};
 use self::events::*;
+use self::resources::look_at::PlayerLookAt;
 use self::resources::{input_settings::PlayerInputSettings, PlayerStats};
+use self::systems::look_at::look_at_system;
 use self::systems::{cursor::*, input::*, look::*, movements::*, spawn_item::*, *};
 use crate::states::game_state::GameState;
 use bevy::prelude::*;
@@ -33,6 +35,7 @@ impl Plugin for PlayerPlugin {
             .register_type::<PlayerHand>()
             .register_type::<PlayerComponent>()
             .insert_resource(PlayerStats::default())
+            .insert_resource(PlayerLookAt::default())
             .insert_resource(PlayerInputSettings::default())
             .add_startup_system(setup_player)
             .add_system_set(
@@ -41,6 +44,7 @@ impl Plugin for PlayerPlugin {
                     .with_system(player_walk_movement)
                     .with_system(toggle_movement_mode)
                     .with_system(player_look)
+                    .with_system(look_at_system)
                     .with_system(process_input_1)
                     .with_system(process_input_2)
                     .with_system(spawn_item)

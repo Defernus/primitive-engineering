@@ -1,4 +1,5 @@
 use crate::plugins::{
+    inspector::components::InspectorDisabled,
     objects::components::{items::branch::BranchItem, GameWorldObjectTrait},
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
@@ -16,6 +17,10 @@ pub fn spawn_item(
 
         let pos = camera_transform.translation + camera_transform.forward() * far;
 
-        commands.spawn(BranchItem.get_spawn(Transform::from_translation(pos)));
+        commands.spawn((
+            BranchItem.get_spawner(Transform::from_translation(pos)),
+            Name::new("player_spawned_item"),
+            InspectorDisabled,
+        ));
     }
 }

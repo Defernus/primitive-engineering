@@ -19,12 +19,11 @@ bevy_egui = "0.19.0"
 bevy-inspector-egui = "0.17.0"
 rand = "0.8.5"
 num-traits = "0.2.15"
-egui_dock = "0.3.1"
 bevy_reflect = "0.9.1"
 strum_macros = "0.24"
 strum = { version = "0.24", features = ["derive"] }
 crossbeam-channel = "0.5.6"
 bevy_rapier3d = "0.20.0"
 noise = "0.8.2"
-bevy_gltf_collider = { path = "./bevy_gltf_collider" }
 lerp = { version = "0.4", features = ["derive"] }
+bevy_gltf_collider = { path = "./bevy_gltf_collider" }

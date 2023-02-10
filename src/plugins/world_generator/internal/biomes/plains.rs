@@ -90,7 +90,7 @@ impl Biome for PlainsBiome {
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos);
                 t.rotate_y(y_angle);
-                TreeObject.get_spawn(t)
+                TreeObject.get_spawner(t)
             },
         );
 
@@ -106,7 +106,7 @@ impl Biome for PlainsBiome {
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
                 t.rotate_y(y_angle);
-                BranchItem.get_spawn(t)
+                BranchItem.get_spawner(t)
             },
         );
 
@@ -122,7 +122,7 @@ impl Biome for PlainsBiome {
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
                 t.rotate_y(y_angle);
-                RockItem.get_spawn(t)
+                RockItem.get_spawner(t)
             },
         );
 

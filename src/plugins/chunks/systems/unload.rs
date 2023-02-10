@@ -10,7 +10,7 @@ use crate::{
             resources::ChunkLoadingEnabled,
         },
         game_world::resources::GameWorld,
-        inspector::components::DisableHierarchyDisplay,
+        inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
         objects::components::GameWorldObject,
         player::components::PlayerComponent,
@@ -83,7 +83,7 @@ fn unload_chunk(
         }
     });
 
-    commands.spawn((ComputeChunkUnloadTask(rx), DisableHierarchyDisplay));
+    commands.spawn((ComputeChunkUnloadTask(rx), InspectorDisabled));
 
     true
 }

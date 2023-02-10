@@ -6,15 +6,13 @@ use crate::{
         },
         game_world::resources::GameWorld,
         player::{
-            components::{PlayerCameraComponent, PlayerComponent},
             events::MineEvent,
-            resources::{PlayerStats, PLAYER_ACCESS_RADIUS},
+            resources::{look_at::PlayerLookAt, PlayerStats},
         },
         static_mesh::components::StaticMeshComponent,
     },
 };
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
 use std::time::Duration;
 
 fn handle_single_modification(
@@ -99,26 +97,12 @@ pub fn mine(
     mut commands: Commands,
     time: Res<Time>,
     mut mine_e: EventReader<MineEvent>,
-    rapier_context: Res<RapierContext>,
-    transform_q: Query<&GlobalTransform, With<PlayerCameraComponent>>,
-    player_rigid_body_q: Query<Entity, With<PlayerComponent>>,
     chunk_q: Query<&ChunkMeshComponent>,
     player_stats: Res<PlayerStats>,
+    look_at: Res<PlayerLookAt>,
 ) {
     for _ in mine_e.iter() {
-        let transform = transform_q.single().compute_transform();
-        let ray_origin = transform.translation;
-        let dir = transform.forward();
-
-        let player = player_rigid_body_q.single();
-
-        if let Some((entity, far)) = rapier_context.cast_ray(
-            ray_origin,
-            dir,
-            PLAYER_ACCESS_RADIUS,
-            false,
-            QueryFilter::default().exclude_collider(player),
-        ) {
+        if let Some(entity) = look_at.target {
             if chunk_q.get(entity).is_err() {
                 continue;
             }
@@ -130,9 +114,7 @@ pub fn mine(
                     -player_stats.mining_strength,
                     player_stats.mining_radius,
                 ),
-                TransformBundle::from_transform(Transform::from_translation(
-                    ray_origin + dir * far,
-                )),
+                TransformBundle::from_transform(Transform::from_translation(look_at.position)),
             ));
         }
     }

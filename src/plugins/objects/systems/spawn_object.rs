@@ -2,7 +2,7 @@ use crate::{
     internal::{chunks::Chunk, pos::ChunkPos},
     plugins::{
         game_world::resources::GameWorld, loading::resources::GameAssets,
-        objects::components::ObjectSpawn,
+        objects::components::ObjectSpawner,
     },
 };
 use bevy::prelude::*;
@@ -15,7 +15,7 @@ enum ObjectSpawnError {
 
 fn spawn(
     commands: &mut Commands,
-    object_spawn: &mut ObjectSpawn,
+    object_spawn: &mut ObjectSpawner,
     world: &GameWorld,
     assets: &GameAssets,
 ) -> Result<(), ObjectSpawnError> {
@@ -35,7 +35,7 @@ fn spawn(
 pub fn spawn_object_system(
     mut commands: Commands,
     assets: Res<GameAssets>,
-    mut object_spawn_q: Query<(Entity, &mut ObjectSpawn)>,
+    mut object_spawn_q: Query<(Entity, &mut ObjectSpawner)>,
     world: Res<GameWorld>,
 ) {
     for (spawn_entity, mut object_spawn) in object_spawn_q.iter_mut() {

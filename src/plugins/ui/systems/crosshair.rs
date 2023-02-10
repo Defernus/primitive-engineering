@@ -1,4 +1,7 @@
-use crate::plugins::{loading::resources::GameAssets, ui::components::CrossHair};
+use crate::plugins::{
+    inspector::components::InspectorDisabled, loading::resources::GameAssets,
+    ui::components::CrossHair,
+};
 use bevy::prelude::*;
 
 const CROSSHAIR_SIZE: f32 = 20.0;
@@ -10,6 +13,8 @@ pub fn spawn_crosshair(mut commands: Commands, assets: Res<GameAssets>, window: 
     let top = window.height() / 2.0 - CROSSHAIR_SIZE / 2.0;
 
     commands.spawn((
+        Name::new("ui:crosshair"),
+        InspectorDisabled,
         ImageBundle {
             style: Style {
                 position_type: PositionType::Absolute,

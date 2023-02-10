@@ -23,14 +23,21 @@ pub struct GameWorldObjectSpawn(pub Arc<Mutex<dyn GameWorldObjectTrait>>);
 #[derive(Component, Debug, Clone)]
 pub struct GameWorldObject(pub Arc<Mutex<dyn GameWorldObjectTrait>>);
 
+/// The component that is used to spawn objects in the world.
+///
+/// Spawn system will try to find the chunk that the object is in and spawn it there.
 #[derive(Component, Debug, Clone)]
-pub struct ObjectSpawn {
+pub struct ObjectSpawner {
     pub id: &'static str,
     pub object: Option<Arc<Mutex<dyn GameWorldObjectTrait>>>,
     pub transform: Transform,
 }
 
-impl ObjectSpawn {
+impl ObjectSpawner {
+    pub fn id(&self) -> &'static str {
+        self.id
+    }
+
     pub fn spawn(
         &mut self,
         commands: &mut Commands,
@@ -72,8 +79,8 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
     fn insert(&self, _e: &mut EntityCommands) {}
 
     /// Create object spawn and take self
-    fn get_spawn(&mut self, transform: Transform) -> ObjectSpawn {
-        ObjectSpawn {
+    fn get_spawner(&mut self, transform: Transform) -> ObjectSpawner {
+        ObjectSpawner {
             id: self.id(),
             object: Some(self.take()),
             transform,

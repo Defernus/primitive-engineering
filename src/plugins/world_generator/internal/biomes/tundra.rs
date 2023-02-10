@@ -8,7 +8,6 @@ use crate::{
         world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},
     },
 };
-use bevy::prelude::*;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -82,7 +81,7 @@ impl Biome for TundraBiome {
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos);
                 t.rotate_y(y_angle);
-                SpruceObject::WITH_SNOW.clone().get_spawn(t)
+                SpruceObject::WITH_SNOW.clone().get_spawner(t)
             },
         );
 
@@ -98,7 +97,7 @@ impl Biome for TundraBiome {
             |pos, y_angle| {
                 let mut t = Transform::from_translation(pos + Vec3::Y * 0.1);
                 t.rotate_y(y_angle);
-                BranchItem.get_spawn(t)
+                BranchItem.get_spawner(t)
             },
         );
 

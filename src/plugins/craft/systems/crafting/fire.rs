@@ -1,5 +1,8 @@
-use crate::plugins::objects::components::{
-    fire::FireObject, items::branch::BranchItem, GameWorldObject, GameWorldObjectTrait,
+use crate::plugins::{
+    inspector::components::InspectorDisabled,
+    objects::components::{
+        fire::FireObject, items::branch::BranchItem, GameWorldObject, GameWorldObjectTrait,
+    },
 };
 use bevy::prelude::*;
 
@@ -23,7 +26,11 @@ pub fn craft(
         commands.entity(branches[i].1).despawn_recursive();
     }
 
-    commands.spawn(FireObject.get_spawn(Transform::from_translation(craft_center)));
+    commands.spawn((
+        FireObject.get_spawner(Transform::from_translation(craft_center)),
+        InspectorDisabled,
+        Name::new("crafted_fire"),
+    ));
 
     true
 }
