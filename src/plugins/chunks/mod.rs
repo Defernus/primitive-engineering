@@ -25,8 +25,8 @@ impl Plugin for ChunksPlugin {
                     .with_system(handle_unload_task_system)
                     .with_system(region_loading_system)
                     .with_system(redraw)
-                    .with_system(mine)
-                    .with_system(handle_modifications)
+                    .with_system(mine_system)
+                    .with_system(handle_modifications_system)
                     .with_system(unload_system),
             );
     }

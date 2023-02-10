@@ -12,7 +12,7 @@ use crate::{
         static_mesh::components::StaticMeshComponent,
     },
 };
-use bevy::prelude::*;
+use bevy::{prelude::*, window::CursorGrabMode};
 use std::time::Duration;
 
 fn handle_single_modification(
@@ -46,7 +46,7 @@ fn handle_single_modification(
     Some(())
 }
 
-pub fn handle_modifications(
+pub fn handle_modifications_system(
     mut commands: Commands,
     world: Res<GameWorld>,
     time: Res<Time>,
@@ -93,14 +93,21 @@ pub fn handle_modifications(
     }
 }
 
-pub fn mine(
+pub fn mine_system(
     mut commands: Commands,
     time: Res<Time>,
     mut mine_e: EventReader<MineEvent>,
     chunk_q: Query<&ChunkMeshComponent>,
     player_stats: Res<PlayerStats>,
     look_at: Res<PlayerLookAt>,
+    windows: Res<Windows>,
 ) {
+    let window = windows.get_primary().unwrap();
+
+    if window.cursor_grab_mode() != CursorGrabMode::Confined {
+        return;
+    }
+
     for _ in mine_e.iter() {
         if let Some(entity) = look_at.target {
             if chunk_q.get(entity).is_err() {
