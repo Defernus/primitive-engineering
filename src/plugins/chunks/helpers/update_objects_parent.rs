@@ -14,6 +14,17 @@ pub fn update_objects_parent(
             for (chunk, chunk_entity) in chunks.iter() {
                 let chunk_translation = chunk.get_translation();
                 let relative_pos = global.translation() - chunk_translation;
+                let chunk_size = chunk.get_size();
+
+                if relative_pos.x < 0.0
+                    || relative_pos.y < 0.0
+                    || relative_pos.z < 0.0
+                    || relative_pos.x > chunk_size
+                    || relative_pos.y > chunk_size
+                    || relative_pos.z > chunk_size
+                {
+                    continue;
+                }
 
                 transform.translation = relative_pos;
 
