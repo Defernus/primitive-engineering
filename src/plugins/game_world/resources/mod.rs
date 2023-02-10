@@ -294,4 +294,14 @@ fn test_level_transforms() {
         ChunkPos::new(-1, 0, 0),
         "Should be 1/2x"
     );
+
+    assert_eq!(
+        GameWorld::chunk_pos_to_region_pos(base_pos),
+        ChunkPos::new(-1, 0, 0),
+    );
+
+    assert_eq!(
+        GameWorld::normalize_chunk_pos_in_region(base_pos),
+        VoxelPos::new(GameWorld::REGION_SIZE - 1, 1, 1),
+    );
 }

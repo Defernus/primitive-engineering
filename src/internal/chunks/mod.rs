@@ -418,3 +418,12 @@ impl Debug for ChunkPointer {
         f.debug_struct("ChunkPointer").finish()
     }
 }
+
+#[test]
+fn test_vec_to_chunk_pos() {
+    let vec = Vec3::new(-1.0, 2.0, 3.0);
+
+    let chunk_pos = Chunk::vec_to_chunk_pos(vec);
+
+    assert_eq!(chunk_pos, ChunkPos::new(-1, 0, 0));
+}
