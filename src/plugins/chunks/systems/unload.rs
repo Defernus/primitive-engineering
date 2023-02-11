@@ -114,13 +114,20 @@ pub fn handle_unload_task_system(
 
                 for entity in unloaded_chunks {
                     if let Ok(children) = chunk_children_q.get(entity) {
-                        update_objects_parent(
+                        if let Err(err) = update_objects_parent(
                             children,
                             &mut commands,
                             vec![(chunk_pointer.clone(), chunk_entity)],
                             &mut objects_q,
-                        )
-                        .unwrap();
+                        ) {
+                            // FIXME: this should not happen
+                            warn!(
+                                "Failed to update objects parent: {:?}-{} {:?}",
+                                chunk_pointer.get_pos(),
+                                chunk_pointer.get_level(),
+                                err
+                            );
+                        }
                     }
                     commands.entity(entity).despawn_recursive();
                 }
