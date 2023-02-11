@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use digg::{
+use primitive_engineering::{
     plugins::{
         chunks::ChunksPlugin, craft::CraftPlugin, game_world::GameWorldPlugin,
         inspector::InspectorPlugin, loading::LoadingPlugin, main_menu::MainMenuPlugin,
