@@ -7,7 +7,6 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext};
-use bevy_inspector_egui::egui::Pos2;
 use std::hash::{Hash, Hasher};
 
 pub fn init_new_game(mut game_world_meta: ResMut<GameWorldMeta>) {
@@ -32,17 +31,9 @@ pub fn new_game(
     mut game_world_meta: ResMut<GameWorldMeta>,
     mut egui_context: ResMut<EguiContext>,
     mut local_state: Local<NewGameLocalState>,
-    window: Res<Windows>,
 ) {
-    let window = window.get_primary().expect("Failed to get primary window");
-    let w = window.width();
-    let h = window.height();
-
-    let pos = Pos2::new(w * 0.5 - 200.0, h * 0.5 - 100.0);
-
-    egui::Window::new("Not implemented")
+    egui::Window::new("New world")
         .collapsible(false)
-        .default_pos(pos)
         .show(egui_context.ctx_mut(), |ui| {
             ui.horizontal(|ui| {
                 ui.label("Name: ");
