@@ -3,10 +3,13 @@ use bevy_egui::{egui, EguiContext};
 
 use crate::plugins::inspector::resources::InspectorOpen;
 
-use self::{assets::assets_inspector, entities::entities_inspector};
+use self::{
+    assets::assets_inspector, entities::entities_inspector, resources::resources_inspector,
+};
 
 mod assets;
 mod entities;
+mod resources;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum InspectorTabOpen {
@@ -34,7 +37,7 @@ pub fn inspector_ui_system(world: &mut World) {
 
     let egui_context = world.resource_mut::<EguiContext>().ctx_mut().clone();
 
-    egui::Window::new("Inspector")
+    egui::Window::new("Inspector (press tab to close)")
         .resizable(true)
         .show(&egui_context, |ui| {
             ui.horizontal(|ui| {
@@ -46,12 +49,11 @@ pub fn inspector_ui_system(world: &mut World) {
                     "resources",
                 );
             });
-            if let InspectorTabOpen::Entities = state.tab_open {
-                entities_inspector(world, ui);
-            }
 
-            if let InspectorTabOpen::Assets = state.tab_open {
-                assets_inspector(world, ui);
+            match state.tab_open {
+                InspectorTabOpen::Entities => entities_inspector(world, ui),
+                InspectorTabOpen::Assets => assets_inspector(world, ui),
+                InspectorTabOpen::Resources => resources_inspector(world, ui),
             }
         });
 

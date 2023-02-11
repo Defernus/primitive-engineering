@@ -30,14 +30,9 @@ pub fn assets_inspector(world: &mut World, ui: &mut egui::Ui) {
 
     egui::ScrollArea::vertical()
         .auto_shrink([false, false])
-        .show(ui, |ui| {
-            if let AssetsInspectorTab::Materials = state.tab_open {
-                ui_for_assets::<StandardMaterial>(world, ui);
-            }
-
-            if let AssetsInspectorTab::Images = state.tab_open {
-                ui_for_assets::<Image>(world, ui);
-            }
+        .show(ui, |ui| match state.tab_open {
+            AssetsInspectorTab::Materials => ui_for_assets::<StandardMaterial>(world, ui),
+            AssetsInspectorTab::Images => ui_for_assets::<Image>(world, ui),
         });
 
     world.insert_resource(state);
