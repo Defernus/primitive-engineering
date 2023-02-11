@@ -1,5 +1,6 @@
+use super::add_edge::append_edge;
 use super::triangulation_table::{get_index_by_voxels, TABLE};
-use super::Voxel;
+use super::{append_triangle::append_triangle, Voxel};
 use crate::internal::chunks::Chunk;
 use crate::internal::pos::{GlobalVoxelPos, VoxelPos};
 use crate::plugins::static_mesh::components::Vertex;
@@ -11,98 +12,110 @@ struct VertexNode {
     pos: Vec3,
 }
 
-fn get_node_dn() -> VertexNode {
-    VertexNode {
-        index: 0,
-        pos: Vec3::new(0.5, 0.0, 1.0),
-    }
-}
-fn get_node_de() -> VertexNode {
-    VertexNode {
-        index: 1,
-        pos: Vec3::new(1.0, 0.0, 0.5),
-    }
-}
-fn get_node_ds() -> VertexNode {
-    VertexNode {
-        index: 2,
-        pos: Vec3::new(0.5, 0.0, 0.0),
-    }
-}
-fn get_node_dw() -> VertexNode {
-    VertexNode {
-        index: 3,
-        pos: Vec3::new(0.0, 0.0, 0.5),
-    }
-}
+const NODE_DN: VertexNode = VertexNode {
+    index: 0,
+    pos: Vec3 {
+        x: 0.5,
+        y: 0.0,
+        z: 1.0,
+    },
+};
+const NODE_DE: VertexNode = VertexNode {
+    index: 1,
+    pos: Vec3 {
+        x: 1.0,
+        y: 0.0,
+        z: 0.5,
+    },
+};
+const NODE_DS: VertexNode = VertexNode {
+    index: 2,
+    pos: Vec3 {
+        x: 0.5,
+        y: 0.0,
+        z: 0.0,
+    },
+};
+const NODE_DW: VertexNode = VertexNode {
+    index: 3,
+    pos: Vec3 {
+        x: 0.0,
+        y: 0.0,
+        z: 0.5,
+    },
+};
 
-fn get_node_un() -> VertexNode {
-    VertexNode {
-        index: 4,
-        pos: Vec3::new(0.5, 1.0, 1.0),
-    }
-}
-fn get_node_ue() -> VertexNode {
-    VertexNode {
-        index: 5,
-        pos: Vec3::new(1.0, 1.0, 0.5),
-    }
-}
-fn get_node_us() -> VertexNode {
-    VertexNode {
-        index: 6,
-        pos: Vec3::new(0.5, 1.0, 0.0),
-    }
-}
-fn get_node_uw() -> VertexNode {
-    VertexNode {
-        index: 7,
-        pos: Vec3::new(0.0, 1.0, 0.5),
-    }
-}
+const NODE_UN: VertexNode = VertexNode {
+    index: 4,
+    pos: Vec3 {
+        x: 0.5,
+        y: 1.0,
+        z: 1.0,
+    },
+};
+const NODE_UE: VertexNode = VertexNode {
+    index: 5,
+    pos: Vec3 {
+        x: 1.0,
+        y: 1.0,
+        z: 0.5,
+    },
+};
+const NODE_US: VertexNode = VertexNode {
+    index: 6,
+    pos: Vec3 {
+        x: 0.5,
+        y: 1.0,
+        z: 0.0,
+    },
+};
+const NODE_UW: VertexNode = VertexNode {
+    index: 7,
+    pos: Vec3 {
+        x: 0.0,
+        y: 1.0,
+        z: 0.5,
+    },
+};
 
-fn get_node_nw() -> VertexNode {
-    VertexNode {
-        index: 8,
-        pos: Vec3::new(0.0, 0.5, 1.0),
-    }
-}
-fn get_node_ne() -> VertexNode {
-    VertexNode {
-        index: 9,
-        pos: Vec3::new(1.0, 0.5, 1.0),
-    }
-}
-fn get_node_se() -> VertexNode {
-    VertexNode {
-        index: 10,
-        pos: Vec3::new(1.0, 0.5, 0.0),
-    }
-}
-fn get_node_sw() -> VertexNode {
-    VertexNode {
-        index: 11,
-        pos: Vec3::new(0.0, 0.5, 0.0),
-    }
-}
+const NODE_NW: VertexNode = VertexNode {
+    index: 8,
+    pos: Vec3 {
+        x: 0.0,
+        y: 0.5,
+        z: 1.0,
+    },
+};
+const NODE_NE: VertexNode = VertexNode {
+    index: 9,
+    pos: Vec3 {
+        x: 1.0,
+        y: 0.5,
+        z: 1.0,
+    },
+};
+const NODE_SE: VertexNode = VertexNode {
+    index: 10,
+    pos: Vec3 {
+        x: 1.0,
+        y: 0.5,
+        z: 0.0,
+    },
+};
+const NODE_SW: VertexNode = VertexNode {
+    index: 11,
+    pos: Vec3 {
+        x: 0.0,
+        y: 0.5,
+        z: 0.0,
+    },
+};
 
 const NODES_POS_COUNT: usize = 12;
-fn get_base_nodes() -> [VertexNode; NODES_POS_COUNT] {
-    [
-        get_node_dn(),
-        get_node_de(),
-        get_node_ds(),
-        get_node_dw(),
-        get_node_un(),
-        get_node_ue(),
-        get_node_us(),
-        get_node_uw(),
-        get_node_nw(),
-        get_node_ne(),
-        get_node_se(),
-        get_node_sw(),
-    ]
-}
+const BASE_NODES: [VertexNode; NODES_POS_COUNT] = [
+    NODE_DN, NODE_DE, NODE_DS, NODE_DW, NODE_UN, NODE_UE, NODE_US, NODE_UW, NODE_NW, NODE_NE,
+    NODE_SE, NODE_SW,
+];
 
 type Nodes = [Voxel; NODES_POS_COUNT];
 type VoxelsBlock = [[[Voxel; 2]; 2]; 2];
@@ -165,20 +178,20 @@ fn chose_voxel_for_node(a: Voxel, b: Voxel) -> Voxel {
 fn get_vertex_nodes(voxels: VoxelsBlock) -> Nodes {
     let mut result: Nodes = [Voxel::EMPTY; NODES_POS_COUNT];
 
-    result[get_node_ds().index] = chose_voxel_for_node(voxels[0][0][0], voxels[1][0][0]);
-    result[get_node_de().index] = chose_voxel_for_node(voxels[1][0][0], voxels[1][0][1]);
-    result[get_node_dn().index] = chose_voxel_for_node(voxels[0][0][1], voxels[1][0][1]);
-    result[get_node_dw().index] = chose_voxel_for_node(voxels[0][0][0], voxels[0][0][1]);
+    result[NODE_DS.index] = chose_voxel_for_node(voxels[0][0][0], voxels[1][0][0]);
+    result[NODE_DE.index] = chose_voxel_for_node(voxels[1][0][0], voxels[1][0][1]);
+    result[NODE_DN.index] = chose_voxel_for_node(voxels[0][0][1], voxels[1][0][1]);
+    result[NODE_DW.index] = chose_voxel_for_node(voxels[0][0][0], voxels[0][0][1]);
 
-    result[get_node_ne().index] = chose_voxel_for_node(voxels[1][0][1], voxels[1][1][1]);
-    result[get_node_nw().index] = chose_voxel_for_node(voxels[0][0][1], voxels[0][1][1]);
-    result[get_node_se().index] = chose_voxel_for_node(voxels[1][0][0], voxels[1][1][0]);
-    result[get_node_sw().index] = chose_voxel_for_node(voxels[0][0][0], voxels[0][1][0]);
+    result[NODE_NE.index] = chose_voxel_for_node(voxels[1][0][1], voxels[1][1][1]);
+    result[NODE_NW.index] = chose_voxel_for_node(voxels[0][0][1], voxels[0][1][1]);
+    result[NODE_SE.index] = chose_voxel_for_node(voxels[1][0][0], voxels[1][1][0]);
+    result[NODE_SW.index] = chose_voxel_for_node(voxels[0][0][0], voxels[0][1][0]);
 
-    result[get_node_us().index] = chose_voxel_for_node(voxels[0][1][0], voxels[1][1][0]);
-    result[get_node_ue().index] = chose_voxel_for_node(voxels[1][1][0], voxels[1][1][1]);
-    result[get_node_un().index] = chose_voxel_for_node(voxels[0][1][1], voxels[1][1][1]);
-    result[get_node_uw().index] = chose_voxel_for_node(voxels[0][1][0], voxels[0][1][1]);
+    result[NODE_US.index] = chose_voxel_for_node(voxels[0][1][0], voxels[1][1][0]);
+    result[NODE_UE.index] = chose_voxel_for_node(voxels[1][1][0], voxels[1][1][1]);
+    result[NODE_UN.index] = chose_voxel_for_node(voxels[0][1][1], voxels[1][1][1]);
+    result[NODE_UW.index] = chose_voxel_for_node(voxels[0][1][0], voxels[0][1][1]);
 
     return result;
 }
@@ -197,9 +210,9 @@ fn shift_node_pos(pos: Vec3, value: f32) -> Vec3 {
     panic!("failed to process pos {:?}", pos);
 }
 
-fn append_triangle(
+fn append_voxel_triangle(
     pos: VoxelPos,
-    vertex: &mut Vec<Vertex>,
+    vertices: &mut Vec<Vertex>,
     nodes: Nodes,
     a: VertexNode,
     b: VertexNode,
@@ -220,24 +233,11 @@ fn append_triangle(
     let b_pos = shift_node_pos(b.pos, b_v.value) + pos_vec;
     let c_pos = shift_node_pos(c.pos, c_v.value) + pos_vec;
 
-    let normal = (c_pos - a_pos).cross(b_pos - a_pos).normalize();
-
+    let color = a_v.color;
     let scale = Voxel::SCALE * scale;
-    vertex.push(Vertex {
-        color: a_v.color.clone(),
-        normal,
-        pos: c_pos * scale,
-    });
-    vertex.push(Vertex {
-        color: a_v.color.clone(),
-        normal,
-        pos: b_pos * scale,
-    });
-    vertex.push(Vertex {
-        color: a_v.color.clone(),
-        normal,
-        pos: a_pos * scale,
-    });
+    let normal = append_triangle(vertices, scale, color, a_pos, b_pos, c_pos);
+
+    append_edge(vertices, color, scale, pos, normal, a_pos, b_pos, c_pos);
 }
 
 pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, scale: f32) {
@@ -248,14 +248,12 @@ pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, s
 
     let mut triangle_offset = 0;
 
-    let nodes_arr = get_base_nodes();
-
     while triangle_points[triangle_offset] != -1 {
-        let a = nodes_arr[triangle_points[triangle_offset] as usize];
-        let b = nodes_arr[triangle_points[triangle_offset + 1] as usize];
-        let c = nodes_arr[triangle_points[triangle_offset + 2] as usize];
+        let a = BASE_NODES[triangle_points[triangle_offset] as usize];
+        let b = BASE_NODES[triangle_points[triangle_offset + 1] as usize];
+        let c = BASE_NODES[triangle_points[triangle_offset + 2] as usize];
 
-        append_triangle(pos, vertices, nodes, a, b, c, scale);
+        append_voxel_triangle(pos, vertices, nodes, a, b, c, scale);
 
         triangle_offset += 3;
     }

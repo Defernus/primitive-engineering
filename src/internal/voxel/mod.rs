@@ -1,6 +1,8 @@
 use super::color::Color;
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
+pub(self) mod add_edge;
+pub(self) mod append_triangle;
 pub(self) mod triangulation_table;
 pub mod voxels_to_vertex;
 
