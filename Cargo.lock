@@ -1406,25 +1406,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "digg"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy-inspector-egui",
- "bevy_egui",
- "bevy_gltf_collider",
- "bevy_rapier3d",
- "bevy_reflect",
- "crossbeam-channel",
- "lerp",
- "noise",
- "num-traits",
- "rand 0.8.5",
- "strum",
- "strum_macros",
-]
-
-[[package]]
 name = "dirs"
 version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2854,6 +2835,25 @@ name = "pretty-type-name"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0f73cdaf19b52e6143685c3606206e114a4dfa969d6b14ec3894c88eb38bd4b"
+
+[[package]]
+name = "primitive-engineering"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_egui",
+ "bevy_gltf_collider",
+ "bevy_rapier3d",
+ "bevy_reflect",
+ "crossbeam-channel",
+ "lerp",
+ "noise",
+ "num-traits",
+ "rand 0.8.5",
+ "strum",
+ "strum_macros",
+]
 
 [[package]]
 name = "proc-macro-crate"
