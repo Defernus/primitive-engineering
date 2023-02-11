@@ -2,18 +2,24 @@ use crate::{internal::chunks::ChunkPointer, plugins::objects::components::GameWo
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::RigidBodyDisabled;
 
+#[derive(Debug, Clone, Copy)]
+pub struct FailedToSpawnError {
+    pub object_translation: Vec3,
+}
+
 pub fn update_objects_parent(
     prev_chunk_children: &Children,
     commands: &mut Commands,
     chunks: Vec<(ChunkPointer, Entity)>,
     objects_q: &mut Query<(Entity, &mut Transform, &GlobalTransform), With<GameWorldObject>>,
-) -> Result<(), ()> {
+) -> Result<(), FailedToSpawnError> {
     for child in prev_chunk_children.iter() {
         if let Ok((entity, mut transform, global)) = objects_q.get_mut(child.clone()) {
+            let global = global.translation();
             let mut spawned = false;
             for (chunk, chunk_entity) in chunks.iter() {
                 let chunk_translation = chunk.get_translation();
-                let relative_pos = global.translation() - chunk_translation;
+                let relative_pos = global - chunk_translation;
                 let chunk_size = chunk.get_size();
 
                 if relative_pos.x < 0.0
@@ -41,7 +47,9 @@ pub fn update_objects_parent(
             }
 
             if !spawned {
-                return Err(());
+                return Err(FailedToSpawnError {
+                    object_translation: global,
+                });
             }
         }
     }
