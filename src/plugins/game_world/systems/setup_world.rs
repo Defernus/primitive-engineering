@@ -7,7 +7,7 @@ pub fn setup_world(mut commands: Commands) {
         brightness: 0.4,
     });
 
-    let size = 16.0;
+    let size = 64.0;
 
     commands
         .spawn(DirectionalLightBundle {

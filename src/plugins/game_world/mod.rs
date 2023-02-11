@@ -33,7 +33,7 @@ impl Plugin for GameWorldPlugin {
             SystemSet::on_update(GameState::WorldLoading).with_system(world_loading_progress),
         )
         .insert_resource(ClearColor(Color::rgb(0.7, 0.9, 1.0)))
-        .insert_resource(DirectionalLightShadowMap { size: 4096 })
+        .insert_resource(DirectionalLightShadowMap { size: 16384 })
         .register_type::<WorldSun>()
         .register_type::<GameWorldMeta>()
         .register_type::<GameWorld>()
