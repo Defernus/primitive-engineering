@@ -276,12 +276,7 @@ impl Chunk {
         for x in 0..Self::SIZE {
             for y in 0..Self::SIZE {
                 for z in 0..Self::SIZE {
-                    append_vertex(
-                        (x, y, z).into(),
-                        self,
-                        &mut vertices,
-                        GameWorld::level_to_scale(level) as f32,
-                    );
+                    append_vertex((x, y, z).into(), self, &mut vertices, level);
                 }
             }
         }

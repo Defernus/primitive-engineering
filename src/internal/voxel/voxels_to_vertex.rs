@@ -3,6 +3,7 @@ use super::triangulation_table::{get_index_by_voxels, TABLE};
 use super::{append_triangle::append_triangle, Voxel};
 use crate::internal::chunks::Chunk;
 use crate::internal::pos::{GlobalVoxelPos, VoxelPos};
+use crate::plugins::game_world::resources::GameWorld;
 use crate::plugins::static_mesh::components::Vertex;
 use bevy::{math::Vec3, prelude::Color};
 
@@ -218,6 +219,7 @@ fn append_voxel_triangle(
     b: VertexNode,
     c: VertexNode,
     scale: f32,
+    with_edges: bool,
 ) {
     let a_v = nodes[a.index];
     let b_v = nodes[b.index];
@@ -237,10 +239,13 @@ fn append_voxel_triangle(
     let scale = Voxel::SCALE * scale;
     let normal = append_triangle(vertices, scale, color, a_pos, b_pos, c_pos);
 
-    append_edge(vertices, color, scale, pos, normal, a_pos, b_pos, c_pos);
+    if with_edges {
+        append_edge(vertices, color, scale, pos, normal, a_pos, b_pos, c_pos);
+    }
 }
 
-pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, scale: f32) {
+pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, level: usize) {
+    let scale = GameWorld::level_to_scale(level) as f32;
     let voxels = get_voxels_for_vertex(chunk, pos);
     let nodes = get_vertex_nodes(voxels);
 
@@ -253,7 +258,16 @@ pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, s
         let b = BASE_NODES[triangle_points[triangle_offset + 1] as usize];
         let c = BASE_NODES[triangle_points[triangle_offset + 2] as usize];
 
-        append_voxel_triangle(pos, vertices, nodes, a, b, c, scale);
+        append_voxel_triangle(
+            pos,
+            vertices,
+            nodes,
+            a,
+            b,
+            c,
+            scale,
+            level != GameWorld::MAX_DETAIL_LEVEL,
+        );
 
         triangle_offset += 3;
     }

@@ -93,7 +93,7 @@ impl WorldGenerator {
         let inp = BiomeCheckInput {
             temperature: self.get_temperature(pos),
             humidity: self.get_humidity(pos),
-            mountainousness: self.get_mountainousness(pos.x as f64, pos.z as f64),
+            elevation: self.get_elevation(pos.x as f64, pos.z as f64),
         };
 
         self.biomes
@@ -169,7 +169,7 @@ impl WorldGenerator {
         h
     }
 
-    pub fn get_mountainousness(&self, x: f64, z: f64) -> f64 {
+    pub fn get_elevation(&self, x: f64, z: f64) -> f64 {
         // let x = pos.x as f64;
         // let z = pos.z as f64;
 
@@ -193,7 +193,7 @@ impl WorldGenerator {
             height *= 0.5;
         }
 
-        result.pow(self.get_mountainousness(x, z))
+        result.pow(self.get_elevation(x, z))
     }
 
     fn get_random_u8<T>(&self, inp: *const T) -> u8 {

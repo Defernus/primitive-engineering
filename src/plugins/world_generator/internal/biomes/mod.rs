@@ -27,7 +27,7 @@ pub type BiomeID = &'static str;
 pub struct BiomeCheckInput {
     pub temperature: f64,
     pub humidity: f64,
-    pub mountainousness: f64,
+    pub elevation: f64,
 }
 
 pub trait Biome: Send + Sync + Debug {
