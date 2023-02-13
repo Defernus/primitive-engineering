@@ -9,7 +9,8 @@ of machines and automation in infinite procedurally generated voxel world.
 
 * Infinite procedurally generated voxel world
 * Smooth voxels (using marching cubes algorithm)
-* Procedural terrain generation
+
+// TODO: add more
 
 ## TL;DR play
 
