@@ -1,11 +1,11 @@
-use bevy::prelude::Vec3;
-
+use super::append_triangle::append_triangle_with_normal;
 use crate::{
     internal::{chunks::Chunk, color::Color, pos::VoxelPos},
     plugins::static_mesh::components::Vertex,
 };
+use bevy::prelude::Vec3;
 
-use super::append_triangle::append_triangle_with_normal;
+const FRAME_SIZE: f32 = 0.125;
 
 /// Additional mesh at the chunks border to hide seams between chunks with different LODs
 pub fn append_edge(
@@ -22,7 +22,7 @@ pub fn append_edge(
 
     let mut f = |a: Vec3, b: Vec3, mask: Vec3, color: Color| {
         let dir = -normal * mask;
-        let dir = dir.normalize() * 0.5;
+        let dir = dir.normalize() * FRAME_SIZE;
 
         let c = b + dir;
         let d = a + dir;
