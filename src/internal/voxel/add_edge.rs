@@ -5,7 +5,7 @@ use crate::{
 };
 use bevy::prelude::Vec3;
 
-const FRAME_SIZE: f32 = 0.125;
+const FRAME_SIZE: f32 = 0.25;
 
 /// Additional mesh at the chunks border to hide seams between chunks with different LODs
 pub fn append_edge(
