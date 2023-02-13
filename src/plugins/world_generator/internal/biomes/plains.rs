@@ -72,19 +72,19 @@ impl Biome for PlainsBiome {
                 SpawnObjectInp {
                     allow_air: false,
                     amount: 1,
-                    chance: 0.2,
+                    chance: 0.05,
                     get_spawner: Box::new(|t| TreeObject.get_spawner(t)),
                 },
                 SpawnObjectInp {
                     allow_air: false,
                     amount: 1,
-                    chance: 0.6,
+                    chance: 0.15,
                     get_spawner: Box::new(|t| BranchItem.get_spawner(t)),
                 },
                 SpawnObjectInp {
                     allow_air: false,
                     amount: 1,
-                    chance: 0.5,
+                    chance: 0.125,
                     get_spawner: Box::new(|t| RockItem.get_spawner(t)),
                 },
             ],

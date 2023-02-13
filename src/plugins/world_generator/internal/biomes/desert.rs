@@ -66,13 +66,13 @@ impl Biome for DesertBiome {
                 SpawnObjectInp {
                     allow_air: false,
                     amount: 1,
-                    chance: 0.05,
+                    chance: 0.0125,
                     get_spawner: Box::new(|t| CactusObject.get_spawner(t)),
                 },
                 SpawnObjectInp {
                     allow_air: false,
                     amount: 1,
-                    chance: 0.1,
+                    chance: 0.25,
                     get_spawner: Box::new(|t| RockItem.get_spawner(t)),
                 },
             ],

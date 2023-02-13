@@ -60,7 +60,7 @@ pub(self) struct SpawnObjectInp {
 impl Default for SpawnObjectInp {
     fn default() -> Self {
         Self {
-            chance: 0.1,
+            chance: 0.25,
             amount: 1,
             allow_air: false,
             get_spawner: Box::new(|_| panic!("no spawner set")),

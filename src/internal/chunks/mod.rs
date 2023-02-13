@@ -191,7 +191,7 @@ pub enum RelativeChunkResult {
 }
 
 impl Chunk {
-    pub const SIZE: usize = 32;
+    pub const SIZE: usize = 16;
     pub const SIZE_VOXELS: usize = Self::SIZE + 1;
     pub const SIZE_VOXELS_I64: i64 = Self::SIZE_VOXELS as i64;
     pub const VOLUME_VOXELS: usize = Self::SIZE_VOXELS * Self::SIZE_VOXELS * Self::SIZE_VOXELS;
