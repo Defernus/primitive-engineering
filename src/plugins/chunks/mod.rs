@@ -1,7 +1,13 @@
 use self::{
     components::ChunkComponent,
     resources::ChunkLoadingEnabled,
-    systems::{details::*, loading::region_loading_system, mine::*, redraw::*, unload::*},
+    systems::{
+        details::*,
+        loading::{handle_region_loaded_system, region_loading_system},
+        mine::*,
+        redraw::*,
+        unload::*,
+    },
 };
 use crate::states::game_state::GameState;
 use bevy::prelude::*;
@@ -21,6 +27,7 @@ impl Plugin for ChunksPlugin {
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(chunk_details_system)
+                    .with_system(handle_region_loaded_system)
                     .with_system(spawn_detailed_chunk_system)
                     .with_system(handle_unload_task_system)
                     .with_system(region_loading_system)

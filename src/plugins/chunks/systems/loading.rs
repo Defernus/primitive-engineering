@@ -4,7 +4,10 @@ use crate::{
         pos::ChunkPos,
     },
     plugins::{
-        chunks::{helpers::spawn_chunk::spawn_chunk, resources::ChunkLoadingEnabled},
+        chunks::{
+            components::ComputeChunkCreateTask, helpers::spawn_chunk::spawn_chunk,
+            resources::ChunkLoadingEnabled,
+        },
         game_world::resources::GameWorld,
         loading::resources::GameAssets,
         player::components::PlayerComponent,
@@ -12,6 +15,7 @@ use crate::{
     },
 };
 use bevy::prelude::*;
+use crossbeam_channel::unbounded;
 
 pub struct PrevPlayerChunkPos(pub ChunkPos);
 impl Default for PrevPlayerChunkPos {
@@ -23,8 +27,6 @@ impl Default for PrevPlayerChunkPos {
 /// loads region around player
 pub fn region_loading_system(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    assets: Res<GameAssets>,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
     mut world: ResMut<GameWorld>,
@@ -53,30 +55,80 @@ pub fn region_loading_system(
     for pos in pos.iter_neighbors(true) {
         let level = 0;
         if let Some((_, biomes)) = world.create_chunk(pos, &gen) {
-            // TODO add multithreading
-            let mut chunk = Chunk::generate(gen.clone(), biomes.clone(), pos, level);
-            let vertices = chunk.generate_vertices(level);
-            chunk.set_need_redraw(false);
+            let (tx, rx) = unbounded();
 
-            let chunk = ChunkPointer::new(chunk, pos, level);
+            let biomes = biomes.clone();
+            let gen = gen.clone();
 
-            let region_pos = chunk.get_pos();
-            let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
+            std::thread::spawn(move || {
+                let mut chunk = Chunk::generate(gen.clone(), biomes.clone(), pos, level);
+                let vertices = chunk.generate_vertices(level);
+                chunk.set_need_redraw(false);
 
-            for i in 0..GameWorld::REGION_VOLUME {
-                let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
-                gen.get_biome(chunk_pos)
-                    .spawn_objects(biomes, chunk_pos, &mut commands, &gen);
+                tx.send((pos, Box::new((chunk, vertices, biomes)))).unwrap();
+            });
+
+            commands.spawn(ComputeChunkCreateTask(rx));
+
+            // let chunk = ChunkPointer::new(chunk, pos, level);
+
+            // let region_pos = chunk.get_pos();
+            // let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
+
+            // for i in 0..GameWorld::REGION_VOLUME {
+            //     let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
+            //     gen.get_biome(chunk_pos)
+            //         .spawn_objects(biomes, chunk_pos, &mut commands, &gen);
+            // }
+            // spawn_chunk(
+            //     &mut commands,
+            //     &mut meshes,
+            //     &assets,
+            //     &mut world,
+            //     chunk,
+            //     vertices,
+            // );
+        }
+    }
+}
+
+pub fn handle_region_loaded_system(
+    mut world: ResMut<GameWorld>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    assets: Res<GameAssets>,
+    gen: Res<WorldGenerator>,
+    tasks_q: Query<(Entity, &mut ComputeChunkCreateTask)>,
+) {
+    for (task_e, ComputeChunkCreateTask(rx)) in tasks_q.iter() {
+        match rx.try_recv() {
+            Ok((pos, chunk_data)) => {
+                let chunk = chunk_data.0;
+                let vertices = chunk_data.1;
+                let biomes = chunk_data.2;
+
+                let chunk = ChunkPointer::new(chunk, pos, 0);
+
+                let region_pos = chunk.get_pos();
+                let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
+
+                for i in 0..GameWorld::REGION_VOLUME {
+                    let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
+                    gen.get_biome(chunk_pos)
+                        .spawn_objects(&biomes, chunk_pos, &mut commands, &gen);
+                }
+                spawn_chunk(
+                    &mut commands,
+                    &mut meshes,
+                    &assets,
+                    &mut world,
+                    chunk,
+                    vertices,
+                );
+
+                commands.entity(task_e).despawn_recursive();
             }
-
-            spawn_chunk(
-                &mut commands,
-                &mut meshes,
-                &assets,
-                &mut world,
-                chunk,
-                vertices,
-            );
+            _ => {}
         }
     }
 }

@@ -1,6 +1,7 @@
 use crate::internal::chunks::{Chunk, ChunkPointer};
 use crate::internal::pos::ChunkPos;
 use crate::plugins::static_mesh::components::Vertex;
+use crate::plugins::world_generator::internal::biomes::ChunkBiomes;
 use bevy::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 use crossbeam_channel::Receiver;
@@ -22,6 +23,9 @@ pub struct ComputeChunkUnloadTask(
         Box<(Chunk, Vec<Vertex>)>,
     )>,
 );
+
+#[derive(Component)]
+pub struct ComputeChunkCreateTask(pub Receiver<(ChunkPos, Box<(Chunk, Vec<Vertex>, ChunkBiomes)>)>);
 
 #[derive(Component)]
 pub struct ComputeChunkDetailedTask(
