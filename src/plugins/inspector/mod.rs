@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{diagnostic, prelude::*};
 use bevy_inspector_egui::DefaultInspectorConfigPlugin;
 
 use crate::states::game_state::GameState;
@@ -17,6 +17,8 @@ impl Plugin for InspectorPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(bevy_egui::EguiPlugin)
             .add_plugin(DefaultInspectorConfigPlugin)
+            .add_plugin(diagnostic::FrameTimeDiagnosticsPlugin)
+            .add_plugin(diagnostic::EntityCountDiagnosticsPlugin)
             .register_type::<InspectorOpen>()
             .register_type::<Option<Handle<Image>>>()
             .register_type::<AlphaMode>()
