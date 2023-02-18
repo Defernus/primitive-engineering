@@ -20,6 +20,7 @@ use crate::{
 use bevy::prelude::*;
 use crossbeam_channel::unbounded;
 
+// FIXME unloading for more then one chunk per region per frame
 fn unload_chunk(
     commands: &mut Commands,
     world: &mut GameWorld,
