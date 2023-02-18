@@ -9,7 +9,7 @@ use crate::{
             helpers::{spawn_chunk::spawn_chunk, update_objects_parent::update_objects_parent},
             resources::ChunkLoadingEnabled,
         },
-        game_world::resources::GameWorld,
+        game_world::resources::{GameWorld, GameWorldMeta},
         inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
         objects::components::GameWorldObject,
@@ -24,6 +24,7 @@ use crossbeam_channel::unbounded;
 fn unload_chunk(
     commands: &mut Commands,
     world: &mut GameWorld,
+    meta: &GameWorldMeta,
     gen: WorldGenerator,
     chunk_e: Entity,
     chunk: ChunkPointer,
@@ -37,6 +38,10 @@ fn unload_chunk(
             .remove_chunk(pos)
             .expect(format!("Chunk {:?}-{} should exists", pos, level).as_str());
         return true;
+    }
+
+    if level == GameWorld::MAX_DETAIL_LEVEL && chunk.is_need_save() {
+        world.save_chunk(pos, meta);
     }
 
     let parent_pos = GameWorld::scale_down_pos(pos, 2);
@@ -150,6 +155,7 @@ pub fn unload_system(
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut world: ResMut<GameWorld>,
     gen: Res<WorldGenerator>,
+    meta: Res<GameWorldMeta>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
 ) {
     if !chunk_load_enabled.0 {
@@ -171,6 +177,7 @@ pub fn unload_system(
             if unload_chunk(
                 &mut commands,
                 &mut world,
+                &meta,
                 gen.clone(),
                 entity,
                 chunk.chunk.clone(),

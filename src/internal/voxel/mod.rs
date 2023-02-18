@@ -1,4 +1,5 @@
 use super::color::Color;
+use serde::{Deserialize, Serialize};
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
 pub(self) mod add_edge;
@@ -6,7 +7,7 @@ pub(self) mod append_triangle;
 pub(self) mod triangulation_table;
 pub mod voxels_to_vertex;
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, Serialize, Deserialize)]
 pub struct Voxel {
     value: f32,
     color: Color,

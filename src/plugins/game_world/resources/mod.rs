@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use crate::{
     internal::{
         chunks::{Chunk, ChunkPointer, InWorldChunk},
@@ -11,6 +13,8 @@ use bevy::{
     utils::{HashMap, Uuid},
 };
 use bevy_inspector_egui::InspectorOptions;
+
+use super::utils::save::save;
 
 #[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions)]
 #[reflect(Resource)]
@@ -144,6 +148,27 @@ impl GameWorld {
         } else {
             None
         }
+    }
+
+    /// Saves detailest chunk at given position
+    ///
+    /// will panic if there is no real chunk at given position
+    pub fn save_chunk(&mut self, pos: ChunkPos, meta: &GameWorldMeta) {
+        let (chunk, _) = self
+            .get_real_chunk(pos)
+            .expect(format!("No chunk at {:?}", pos).as_str())
+            .get_chunk()
+            .expect(format!("Chunk at {:?} is not loaded", pos).as_str());
+
+        let path = format!("chunks/{}_{}_{}.chunk", pos.x, pos.y, pos.z);
+
+        let chunk = chunk.lock();
+
+        let chunk: &Chunk = chunk.borrow();
+
+        println!("Saving chunk at {:?}", pos);
+
+        save(chunk, meta, path.as_str());
     }
 
     pub fn remove_chunk(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {

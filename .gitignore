@@ -3,3 +3,4 @@
 .DS_Store
 trace-*.json
 logs
+saves

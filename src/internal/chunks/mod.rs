@@ -7,8 +7,9 @@ use crate::plugins::{
     static_mesh::components::Vertex,
     world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},
 };
-use bevy::prelude::{Entity, Transform, Vec3};
+use bevy::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
+use serde::{Deserialize, Serialize};
 use std::{
     collections::LinkedList,
     fmt::{Debug, Formatter},
@@ -175,10 +176,11 @@ pub fn map_chunk(chunk: &Option<InWorldChunk>) -> Option<MutexGuard<Chunk>> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Chunk {
     voxels: Vec<Voxel>,
     need_redraw: bool,
+    need_save: bool,
 }
 
 /// Result of relative chunk search.
@@ -206,6 +208,7 @@ impl Chunk {
         Self {
             voxels: vec![Voxel::default(); Self::VOLUME_VOXELS],
             need_redraw: false,
+            need_save: false,
         }
     }
 
@@ -213,7 +216,12 @@ impl Chunk {
         Self {
             voxels: gen.generate_voxels(&biomes, pos, level),
             need_redraw: true,
+            need_save: false,
         }
+    }
+
+    pub fn is_need_save(&self) -> bool {
+        self.need_save
     }
 
     pub fn is_need_redraw(&self) -> bool {
@@ -222,6 +230,10 @@ impl Chunk {
 
     pub fn set_need_redraw(&mut self, need_redraw: bool) {
         self.need_redraw = need_redraw;
+    }
+
+    pub fn set_need_save(&mut self, need_save: bool) {
+        self.need_save = need_save;
     }
 
     pub fn get_voxel(&self, pos: GlobalVoxelPos) -> Option<Voxel> {
@@ -243,6 +255,7 @@ impl Chunk {
     ///
     /// Should be called only for max_detail_level chunks.
     pub fn modify(&mut self, relative_pos: Vec3, radius: f32, strength: f32) {
+        // FIXME: iterate only over voxels in radius
         for x in 0..Self::SIZE_VOXELS {
             for y in 0..Self::SIZE_VOXELS {
                 for z in 0..Self::SIZE_VOXELS {
@@ -255,6 +268,7 @@ impl Chunk {
                         let voxel = &mut self.voxels[voxel_pos.to_index(Self::SIZE_VOXELS)];
                         *voxel += strength * (1.0 - distance / radius);
                         self.need_redraw = true;
+                        self.need_save = true;
                     }
                 }
             }
@@ -405,6 +419,10 @@ impl ChunkPointer {
 
     pub fn get_size(&self) -> f32 {
         GameWorld::level_to_scale(self.level) as f32 * Chunk::REAL_SIZE
+    }
+
+    pub fn is_need_save(&self) -> bool {
+        self.lock().is_need_save()
     }
 }
 
