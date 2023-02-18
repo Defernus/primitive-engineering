@@ -4,7 +4,6 @@ use bevy::prelude::*;
 use bevy::render::mesh::{self, PrimitiveTopology};
 use bevy::render::primitives::Aabb;
 use bevy_rapier3d::prelude::*;
-use bevy_reflect::{FromReflect, Reflect};
 #[derive(Debug, Clone, Copy, Component, PartialEq, Eq, Hash, Reflect, FromReflect)]
 pub struct StaticMeshComponent;
 

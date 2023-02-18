@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_reflect::{FromReflect, Reflect};
 
 #[derive(Component, Debug, Clone, Copy, Default, Reflect, FromReflect)]
 #[reflect(Component)]
