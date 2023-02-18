@@ -1,46 +1,55 @@
-use self::time_plot::FrameStatsPlot;
 use bevy::{
     diagnostic::{Diagnostics, FrameTimeDiagnosticsPlugin},
     prelude::*,
 };
-use bevy_egui::egui::{self};
+use bevy_egui::egui;
 
-mod time_plot;
+use self::avg_samples::AvgSamples;
 
-#[derive(Resource, Default)]
+mod avg_samples;
+
+#[derive(Resource)]
 pub struct ProfilerState {
-    fps: FrameStatsPlot,
-    frame_time: FrameStatsPlot,
+    low_1p_fps: AvgSamples,
+    low_01p_fps: AvgSamples,
+}
+
+impl Default for ProfilerState {
+    fn default() -> Self {
+        Self {
+            low_1p_fps: AvgSamples::new(100),
+            low_01p_fps: AvgSamples::new(1000),
+        }
+    }
 }
 
 pub fn profiling_inspector(world: &mut World, ui: &mut egui::Ui) {
     let mut state = world.remove_resource::<ProfilerState>().unwrap_or_default();
     let diagnostics = world.get_resource::<Diagnostics>().unwrap();
-    let time = world.get_resource::<Time>().unwrap();
 
     let fps = diagnostics
         .get_measurement(FrameTimeDiagnosticsPlugin::FPS)
         .unwrap()
         .value;
 
-    let frame_time = diagnostics
-        .get_measurement(FrameTimeDiagnosticsPlugin::FRAME_TIME)
-        .unwrap()
-        .value;
-
-    state.fps.handle_frame(fps, time.elapsed());
-    state.frame_time.handle_frame(frame_time, time.elapsed());
+    state.low_1p_fps.update(fps as f32);
+    state.low_01p_fps.update(fps as f32);
 
     egui::ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.label("fps:");
-                ui.label(format!("{}", fps as usize))
+                ui.label(format!("{}", state.low_1p_fps.avg().ceil()))
             });
-
-            state.fps.show(ui, "fps");
-            state.frame_time.show(ui, "frame time");
+            ui.horizontal(|ui| {
+                ui.label("low 1% fps:");
+                ui.label(format!("{}", state.low_1p_fps.min().ceil()));
+            });
+            ui.horizontal(|ui| {
+                ui.label("low 0.1% fps:");
+                ui.label(format!("{}", state.low_01p_fps.min().ceil()))
+            });
         });
 
     world.insert_resource(state);
