@@ -13,23 +13,30 @@ pub struct ChunkComponent {
     pub chunk: ChunkPointer,
 }
 
-#[derive(Component)]
-pub struct ComputeChunkUnloadTask(
-    pub  Receiver<(
-        LinkedList<Entity>,
-        ChunkPos,
-        usize,
-        Box<(Chunk, Vec<Vertex>)>,
-    )>,
-);
+pub struct ComputeChunkCreateData {
+    pub pos: ChunkPos,
+    pub chunk: Chunk,
+    pub vertices: Vec<Vertex>,
+    pub biomes: ChunkBiomes,
+}
+
+pub struct ComputeChunkUnloadData {
+    pub unloaded_chunks: LinkedList<Entity>,
+    pub pos: ChunkPos,
+    pub level: usize,
+    pub chunk: Chunk,
+    pub vertices: Vec<Vertex>,
+}
+
+pub struct ComputeChunkDetailedData {
+    pub prev_chunk_entity: Entity,
+    pub pos: ChunkPos,
+    pub level: usize,
+    pub chunks: Vec<(Chunk, Vec<Vertex>)>,
+}
 
 #[derive(Component)]
-pub struct ComputeChunkCreateTask(pub Receiver<(ChunkPos, Box<(Chunk, Vec<Vertex>, ChunkBiomes)>)>);
-
-#[derive(Component)]
-pub struct ComputeChunkDetailedTask(
-    pub Receiver<(Entity, ChunkPos, usize, Box<Vec<(Chunk, Vec<Vertex>)>>)>,
-);
+pub struct ComputeTask<T>(pub Receiver<Box<T>>);
 
 #[derive(Debug, Clone, Copy, Component, Default, Reflect, FromReflect)]
 #[reflect(Component)]

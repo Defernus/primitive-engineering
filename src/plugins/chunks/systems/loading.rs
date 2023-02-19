@@ -5,7 +5,8 @@ use crate::{
     },
     plugins::{
         chunks::{
-            components::ComputeChunkCreateTask, helpers::spawn_chunk::spawn_chunk,
+            components::{ComputeChunkCreateData, ComputeTask},
+            helpers::spawn_chunk::spawn_chunk,
             resources::ChunkLoadingEnabled,
         },
         game_world::resources::GameWorld,
@@ -65,29 +66,17 @@ pub fn region_loading_system(
                 let vertices = chunk.generate_vertices(level);
                 chunk.set_need_redraw(false);
 
-                tx.send((pos, Box::new((chunk, vertices, biomes)))).unwrap();
+                let data = ComputeChunkCreateData {
+                    biomes,
+                    chunk,
+                    pos,
+                    vertices,
+                };
+
+                tx.send(Box::new(data)).unwrap();
             });
 
-            commands.spawn(ComputeChunkCreateTask(rx));
-
-            // let chunk = ChunkPointer::new(chunk, pos, level);
-
-            // let region_pos = chunk.get_pos();
-            // let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
-
-            // for i in 0..GameWorld::REGION_VOLUME {
-            //     let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
-            //     gen.get_biome(chunk_pos)
-            //         .spawn_objects(biomes, chunk_pos, &mut commands, &gen);
-            // }
-            // spawn_chunk(
-            //     &mut commands,
-            //     &mut meshes,
-            //     &assets,
-            //     &mut world,
-            //     chunk,
-            //     vertices,
-            // );
+            commands.spawn(ComputeTask(rx));
         }
     }
 }
@@ -98,14 +87,17 @@ pub fn handle_region_loaded_system(
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
     gen: Res<WorldGenerator>,
-    tasks_q: Query<(Entity, &mut ComputeChunkCreateTask)>,
+    tasks_q: Query<(Entity, &mut ComputeTask<ComputeChunkCreateData>)>,
 ) {
-    for (task_e, ComputeChunkCreateTask(rx)) in tasks_q.iter() {
+    for (task_e, ComputeTask(rx)) in tasks_q.iter() {
         match rx.try_recv() {
-            Ok((pos, chunk_data)) => {
-                let chunk = chunk_data.0;
-                let vertices = chunk_data.1;
-                let biomes = chunk_data.2;
+            Ok(data) => {
+                let ComputeChunkCreateData {
+                    biomes,
+                    chunk,
+                    pos,
+                    vertices,
+                } = *data;
 
                 let chunk = ChunkPointer::new(chunk, pos, 0);
 

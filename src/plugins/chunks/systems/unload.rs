@@ -3,7 +3,7 @@ use crate::{
     plugins::{
         chunks::{
             components::{
-                ChunkComponent, ComputeChunkUnloadTask, DetailingChunkComponent,
+                ChunkComponent, ComputeChunkUnloadData, ComputeTask, DetailingChunkComponent,
                 UnloadingChunkComponent,
             },
             helpers::{spawn_chunk::spawn_chunk, update_objects_parent::update_objects_parent},
@@ -75,12 +75,15 @@ fn unload_chunk(
         let vertices = chunk.generate_vertices(parent_level);
         chunk.set_need_redraw(false);
 
-        match tx.send((
+        let data = ComputeChunkUnloadData {
             unloaded_chunks,
-            parent_pos,
-            parent_level,
-            Box::new((chunk, vertices)),
-        )) {
+            chunk,
+            vertices,
+            pos: parent_pos,
+            level: parent_level,
+        };
+
+        match tx.send(Box::new(data)) {
             Err(err) => {
                 panic!("failed to send chunk data after generation: {}", err);
             }
@@ -88,7 +91,7 @@ fn unload_chunk(
         }
     });
 
-    commands.spawn((ComputeChunkUnloadTask(rx), InspectorDisabled));
+    commands.spawn((ComputeTask(rx), InspectorDisabled));
 
     true
 }
@@ -98,23 +101,31 @@ pub fn handle_unload_task_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
-    tasks_q: Query<(Entity, &mut ComputeChunkUnloadTask)>,
+    tasks_q: Query<(Entity, &mut ComputeTask<ComputeChunkUnloadData>)>,
     mut objects_q: Query<(Entity, &mut Transform, &GlobalTransform), With<GameWorldObject>>,
     chunk_children_q: Query<&Children, With<ChunkComponent>>,
 ) {
-    for (e, ComputeChunkUnloadTask(rx)) in tasks_q.iter() {
+    for (e, ComputeTask(rx)) in tasks_q.iter() {
         match rx.try_recv() {
-            Ok((unloaded_chunks, pos, level, chunk_data)) => {
+            Ok(data) => {
                 commands.entity(e).despawn_recursive();
 
-                let chunk_pointer = ChunkPointer::new(chunk_data.0, pos, level);
+                let ComputeChunkUnloadData {
+                    chunk,
+                    vertices,
+                    pos,
+                    level,
+                    unloaded_chunks,
+                } = *data;
+
+                let chunk_pointer = ChunkPointer::new(chunk, pos, level);
                 let chunk_entity = spawn_chunk(
                     &mut commands,
                     &mut meshes,
                     &assets,
                     &mut world,
                     chunk_pointer.clone(),
-                    chunk_data.1,
+                    vertices,
                 );
 
                 for entity in unloaded_chunks {
@@ -172,14 +183,16 @@ pub fn unload_system(
         let scaled_player_pos = GameWorld::chunk_pos_to_level_pos(player_chunk_pos, level);
 
         let dist = (pos - scaled_player_pos).dist() as usize;
-        if dist > GameWorld::MAX_DETAILS_DIST && unload_chunk(
+        if dist > GameWorld::MAX_DETAILS_DIST
+            && unload_chunk(
                 &mut commands,
                 &mut world,
                 &meta,
                 gen.clone(),
                 entity,
                 chunk.chunk.clone(),
-            ) {
+            )
+        {
             // unload only one chunk per frame
             return;
         }

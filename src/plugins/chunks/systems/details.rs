@@ -6,7 +6,7 @@ use crate::{
     plugins::{
         chunks::{
             components::{
-                ChunkComponent, ComputeChunkDetailedTask, DetailingChunkComponent,
+                ChunkComponent, ComputeChunkDetailedData, ComputeTask, DetailingChunkComponent,
                 RealChunkComponent, UnloadingChunkComponent,
             },
             helpers::{spawn_chunk::spawn_chunk, update_objects_parent::update_objects_parent},
@@ -91,7 +91,14 @@ fn detail_chunk(
             })
             .collect();
 
-        match tx.send((entity, pos, level, Box::new(chunks))) {
+        let data = ComputeChunkDetailedData {
+            pos,
+            level,
+            chunks,
+            prev_chunk_entity: entity,
+        };
+
+        match tx.send(Box::new(data)) {
             Err(err) => {
                 panic!("failed to send chunk data after generation: {}", err);
             }
@@ -99,7 +106,7 @@ fn detail_chunk(
         }
     });
 
-    commands.spawn((ComputeChunkDetailedTask(rx), InspectorDisabled));
+    commands.spawn((ComputeTask(rx), InspectorDisabled));
 
     Some(())
 }
@@ -151,13 +158,20 @@ pub fn spawn_detailed_chunk_system(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
-    tasks_q: Query<(Entity, &mut ComputeChunkDetailedTask)>,
+    tasks_q: Query<(Entity, &mut ComputeTask<ComputeChunkDetailedData>)>,
     mut objects_q: Query<(Entity, &mut Transform, &GlobalTransform), With<GameWorldObject>>,
     chunk_children_q: Query<&Children, With<ChunkComponent>>,
 ) {
-    for (e, ComputeChunkDetailedTask(rx)) in tasks_q.iter() {
+    for (e, ComputeTask(rx)) in tasks_q.iter() {
         match rx.try_recv() {
-            Ok((prev_chunk_entity, pos, level, chunks)) => {
+            Ok(data) => {
+                let ComputeChunkDetailedData {
+                    chunks,
+                    prev_chunk_entity,
+                    level,
+                    pos,
+                } = *data;
+
                 let spawned_chunks = chunks
                     .into_iter()
                     .enumerate()
