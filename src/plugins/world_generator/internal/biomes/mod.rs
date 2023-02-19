@@ -107,12 +107,10 @@ pub(self) fn spawn_objects(
     gen: &WorldGenerator,
     objects: Vec<SpawnObjectInp>,
 ) -> usize {
-    let mut id = 0;
     let mut count = 0;
 
-    for inp in objects.into_iter() {
+    for (id, inp) in objects.into_iter().enumerate() {
         count += spawn_object(biomes, chunk_pos, commands, gen, id, inp);
-        id += 1;
     }
 
     count

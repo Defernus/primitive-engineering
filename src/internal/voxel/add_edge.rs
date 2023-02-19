@@ -14,11 +14,10 @@ pub fn append_edge(
     scale: f32,
     pos: VoxelPos,
     normal: Vec3,
-    a: Vec3,
-    b: Vec3,
-    c: Vec3,
+    points: (Vec3, Vec3, Vec3),
 ) {
     let chunk_size = Chunk::SIZE as f32;
+    let (a, b, c) = points;
 
     let mut f = |a: Vec3, b: Vec3, mask: Vec3, color: Color| {
         let dir = -normal * mask;

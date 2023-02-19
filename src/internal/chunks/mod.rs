@@ -135,9 +135,7 @@ impl InWorldChunk {
                     return sub_chunk.get_sub_chunk(in_chunk_pos, level - 1);
                 }
             }
-            _ => {
-                None
-            }
+            _ => None,
         }
     }
 
@@ -156,9 +154,7 @@ impl InWorldChunk {
                     return sub_chunk.get_sub_chunk_mut(in_chunk_pos, level - 1);
                 }
             }
-            _ => {
-                None
-            }
+            _ => None,
         }
     }
 
@@ -190,11 +186,8 @@ impl InWorldChunk {
 
 pub fn map_chunk(chunk: &Option<InWorldChunk>) -> Option<MutexGuard<Chunk>> {
     match chunk {
-        Some(chunk) => match chunk {
-            InWorldChunk::Loaded(chunk, _) => Some(chunk.lock()),
-            _ => None,
-        },
-        None => None,
+        Some(InWorldChunk::Loaded(chunk, _)) => Some(chunk.lock()),
+        _ => None,
     }
 }
 
@@ -203,6 +196,11 @@ pub struct Chunk {
     voxels: Vec<Voxel>,
     need_redraw: bool,
     need_save: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum VoxelAccessError {
+    OutOfBounds,
 }
 
 /// Result of relative chunk search.
@@ -297,9 +295,9 @@ impl Chunk {
         }
     }
 
-    pub fn set_voxel(&mut self, pos: VoxelPos, voxel: Voxel) -> Result<(), ()> {
+    pub fn set_voxel(&mut self, pos: VoxelPos, voxel: Voxel) -> Result<(), VoxelAccessError> {
         if pos.x >= Self::SIZE_VOXELS || pos.y >= Self::SIZE_VOXELS || pos.z >= Self::SIZE_VOXELS {
-            return Err(());
+            return Err(VoxelAccessError::OutOfBounds);
         }
 
         self.voxels[pos.to_index(Self::SIZE_VOXELS)] = voxel;

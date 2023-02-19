@@ -215,12 +215,12 @@ fn append_voxel_triangle(
     pos: VoxelPos,
     vertices: &mut Vec<Vertex>,
     nodes: Nodes,
-    a: VertexNode,
-    b: VertexNode,
-    c: VertexNode,
+    points: (VertexNode, VertexNode, VertexNode),
     scale: f32,
     with_edges: bool,
 ) {
+    let (a, b, c) = points;
+
     let a_v = nodes[a.index];
     let b_v = nodes[b.index];
     let c_v = nodes[c.index];
@@ -240,7 +240,7 @@ fn append_voxel_triangle(
     let normal = append_triangle(vertices, scale, color, a_pos, b_pos, c_pos);
 
     if with_edges {
-        append_edge(vertices, color, scale, pos, normal, a_pos, b_pos, c_pos);
+        append_edge(vertices, color, scale, pos, normal, (a_pos, b_pos, c_pos));
     }
 }
 
@@ -262,9 +262,7 @@ pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, l
             pos,
             vertices,
             nodes,
-            a,
-            b,
-            c,
+            (a, b, c),
             scale,
             level != GameWorld::MAX_DETAIL_LEVEL,
         );
