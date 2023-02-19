@@ -176,7 +176,7 @@ impl GameWorld {
 
             chunk.set_need_save(false);
 
-            save(chunk, meta, path.as_str());
+            save(chunk, meta, path.as_str(), true);
         }
     }
 
@@ -187,7 +187,7 @@ impl GameWorld {
 
         let path = Self::get_chunk_path(pos);
 
-        load::<Chunk>(meta, path.as_str())
+        load::<Chunk>(meta, path.as_str(), true)
     }
 
     pub fn remove_chunk(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {
