@@ -12,7 +12,7 @@ use crate::{
             helpers::{spawn_chunk::spawn_chunk, update_objects_parent::update_objects_parent},
             resources::ChunkLoadingEnabled,
         },
-        game_world::resources::GameWorld,
+        game_world::resources::{GameWorld, GameWorldMeta},
         inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
         objects::components::GameWorldObject,
@@ -29,6 +29,7 @@ fn detail_chunk(
     entity: Entity,
     prev_chunk: ChunkPointer,
     gen: WorldGenerator,
+    meta: &GameWorldMeta,
 ) -> Option<()> {
     let pos = prev_chunk.get_pos();
     let level = prev_chunk.get_level();
@@ -68,23 +69,28 @@ fn detail_chunk(
         .1
         .clone();
 
+    let meta = meta.clone();
+
     let (tx, rx) = unbounded();
 
     std::thread::spawn(move || {
-        let mut chunks = Vec::with_capacity(8);
+        let chunks = (0..8)
+            .into_iter()
+            .map(|i| {
+                let sub_pos = VoxelPos::from_index(i, 2);
+                let sub_pos = ChunkPos::new(sub_pos.x as i64, sub_pos.y as i64, sub_pos.z as i64);
+                let pos = sub_pos + pos * 2;
 
-        for i in 0..8 {
-            let sub_pos = VoxelPos::from_index(i, 2);
-            let sub_pos = ChunkPos::new(sub_pos.x as i64, sub_pos.y as i64, sub_pos.z as i64);
-            let pos = sub_pos + pos * 2;
-            let level = level + 1;
+                let level = level + 1;
 
-            let mut chunk = Chunk::generate(gen.clone(), biomes.clone(), pos, level);
-            let vertices = chunk.generate_vertices(level);
-            chunk.set_need_redraw(false);
+                let chunk = GameWorld::load_chunk(&meta, pos, level)
+                    .unwrap_or_else(|| Chunk::generate(gen.clone(), biomes.clone(), pos, level));
 
-            chunks.push((chunk, vertices));
-        }
+                let vertices = chunk.generate_vertices(level);
+
+                (chunk, vertices)
+            })
+            .collect();
 
         match tx.send((entity, pos, level, Box::new(chunks))) {
             Err(err) => {
@@ -102,6 +108,7 @@ fn detail_chunk(
 pub fn chunk_details_system(
     mut world: ResMut<GameWorld>,
     gen: Res<WorldGenerator>,
+    meta: Res<GameWorldMeta>,
     chunk_load_enabled: Res<ChunkLoadingEnabled>,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut commands: Commands,
@@ -134,6 +141,7 @@ pub fn chunk_details_system(
                 entity,
                 chunk.chunk.clone(),
                 gen.clone(),
+                &meta,
             );
         }
     }

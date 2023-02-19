@@ -215,7 +215,7 @@ impl Chunk {
     pub fn generate(gen: WorldGenerator, biomes: ChunkBiomes, pos: ChunkPos, level: usize) -> Self {
         Self {
             voxels: gen.generate_voxels(&biomes, pos, level),
-            need_redraw: true,
+            need_redraw: false,
             need_save: false,
         }
     }

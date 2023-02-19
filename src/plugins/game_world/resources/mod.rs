@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 use crate::{
     internal::{
         chunks::{Chunk, ChunkPointer, InWorldChunk},
@@ -13,8 +11,9 @@ use bevy::{
     utils::{HashMap, Uuid},
 };
 use bevy_inspector_egui::InspectorOptions;
+use std::borrow::BorrowMut;
 
-use super::utils::save::save;
+use super::utils::saves::{load, save};
 
 #[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions)]
 #[reflect(Resource)]
@@ -150,25 +149,45 @@ impl GameWorld {
         }
     }
 
-    /// Saves detailest chunk at given position
-    ///
-    /// will panic if there is no real chunk at given position
-    pub fn save_chunk(&mut self, pos: ChunkPos, meta: &GameWorldMeta) {
-        let (chunk, _) = self
-            .get_real_chunk(pos)
-            .expect(format!("No chunk at {:?}", pos).as_str())
-            .get_chunk()
-            .expect(format!("Chunk at {:?} is not loaded", pos).as_str());
+    fn get_chunk_path(pos: ChunkPos) -> String {
+        format!("chunks/{}_{}_{}.chunk", pos.x, pos.y, pos.z)
+    }
 
-        let path = format!("chunks/{}_{}_{}.chunk", pos.x, pos.y, pos.z);
+    /// Saves chunks in given position and level (currently only level `GameWorld::MAX_DETAIL_LEVEL - 1` is supported)
+    pub fn save_chunks(&mut self, meta: &GameWorldMeta, pos: ChunkPos, level: usize) {
+        if level != Self::MAX_DETAIL_LEVEL - 1 {
+            return;
+        }
 
-        let chunk = chunk.lock();
+        for i in 0..8 {
+            let pos = pos * 2 + ChunkPos::from_index(i, 2);
 
-        let chunk: &Chunk = chunk.borrow();
+            let (chunk, _) = self
+                .get_real_chunk(pos)
+                .expect(format!("No chunk at {:?}", pos).as_str())
+                .get_chunk()
+                .expect(format!("Chunk at {:?} is not loaded", pos).as_str());
 
-        println!("Saving chunk at {:?}", pos);
+            let path = Self::get_chunk_path(pos);
 
-        save(chunk, meta, path.as_str());
+            let mut chunk = chunk.lock();
+
+            let chunk: &mut Chunk = chunk.borrow_mut();
+
+            chunk.set_need_save(false);
+
+            save(chunk, meta, path.as_str());
+        }
+    }
+
+    pub fn load_chunk(meta: &GameWorldMeta, pos: ChunkPos, level: usize) -> Option<Chunk> {
+        if level != Self::MAX_DETAIL_LEVEL {
+            return None;
+        }
+
+        let path = Self::get_chunk_path(pos);
+
+        load::<Chunk>(meta, path.as_str())
     }
 
     pub fn remove_chunk(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {

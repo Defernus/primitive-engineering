@@ -40,12 +40,11 @@ fn unload_chunk(
         return true;
     }
 
-    if level == GameWorld::MAX_DETAIL_LEVEL && chunk.is_need_save() {
-        world.save_chunk(pos, meta);
-    }
-
     let parent_pos = GameWorld::scale_down_pos(pos, 2);
     let parent_level = level - 1;
+
+    world.save_chunks(meta, parent_pos, parent_level);
+
     let parent_chunk = world
         .get_chunk_mut(parent_pos, parent_level)
         .expect(format!("Parent chunk for {:?}-{} should exists", pos, level).as_str());
