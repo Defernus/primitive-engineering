@@ -8,7 +8,7 @@ pub(self) mod triangulation_table;
 pub mod voxel_types;
 pub mod voxels_to_vertex;
 
-pub type VoxelValue = u8;
+pub type VoxelValue = u16;
 
 /// Converts a f32 value to a voxel value.
 ///
@@ -19,6 +19,7 @@ fn f32_to_voxel_value(value: f32) -> VoxelValue {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct NotEmptyVoxel {
+    modified: bool,
     value: VoxelValue,
     id: VoxelId,
 }
@@ -45,6 +46,7 @@ impl Voxel {
         }
 
         Self::NotEmpty(NotEmptyVoxel {
+            modified: false,
             value: f32_to_voxel_value(value),
             id,
         })
@@ -75,6 +77,12 @@ impl Voxel {
         };
         value / VoxelValue::MAX as f32
     }
+
+    pub fn set_modified(&mut self, modified: bool) {
+        if let Self::NotEmpty(voxel) = self {
+            voxel.modified = modified;
+        }
+    }
 }
 
 impl Default for Voxel {
@@ -92,7 +100,10 @@ impl Sub<f32> for Voxel {
     ///
     /// NOTE: The value should be between 0.0 and 1.0. Otherwise the value will be clamped.
     fn sub(self, rhs: f32) -> Self::Output {
-        Self::new(self.value() - rhs, self.id())
+        let mut v = Self::new(self.value() - rhs, self.id());
+        v.set_modified(true);
+
+        v
     }
 }
 

@@ -44,7 +44,12 @@ impl Chunk {
         }
     }
 
-    pub fn generate(gen: WorldGenerator, biomes: ChunkBiomes, pos: ChunkPos, level: usize) -> Self {
+    pub fn generate(
+        gen: &WorldGenerator,
+        biomes: ChunkBiomes,
+        pos: ChunkPos,
+        level: usize,
+    ) -> Self {
         Self {
             voxels: gen.generate_voxels(&biomes, pos, level),
             need_redraw: false,
@@ -117,12 +122,17 @@ impl Chunk {
         Ok(())
     }
 
-    pub fn generate_vertices(&self, level: usize) -> Vec<Vertex> {
+    pub fn generate_vertices(
+        &self,
+        gen: &WorldGenerator,
+        chunk_pos: ChunkPos,
+        level: usize,
+    ) -> Vec<Vertex> {
         let mut vertices: Vec<Vertex> = Vec::new();
         for x in 0..Self::SIZE {
             for y in 0..Self::SIZE {
                 for z in 0..Self::SIZE {
-                    append_vertex((x, y, z).into(), self, &mut vertices, level);
+                    append_vertex(gen, chunk_pos, (x, y, z).into(), self, &mut vertices, level);
                 }
             }
         }

@@ -62,8 +62,8 @@ pub fn region_loading_system(
             let gen = gen.clone();
 
             std::thread::spawn(move || {
-                let mut chunk = Chunk::generate(gen.clone(), biomes.clone(), pos, level);
-                let vertices = chunk.generate_vertices(level);
+                let mut chunk = Chunk::generate(&gen, biomes.clone(), pos, level);
+                let vertices = chunk.generate_vertices(&gen, pos, level);
                 chunk.set_need_redraw(false);
 
                 let data = ComputeChunkCreateData {

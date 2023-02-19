@@ -2,9 +2,10 @@ use super::add_edge::append_edge;
 use super::triangulation_table::{get_index_by_voxels, TABLE};
 use super::{append_triangle::append_triangle, Voxel};
 use crate::internal::chunks::Chunk;
-use crate::internal::pos::{GlobalVoxelPos, VoxelPos};
+use crate::internal::pos::{ChunkPos, GlobalVoxelPos, VoxelPos};
 use crate::plugins::game_world::resources::GameWorld;
 use crate::plugins::static_mesh::components::Vertex;
+use crate::plugins::world_generator::resources::WorldGenerator;
 use bevy::math::Vec3;
 
 #[derive(Clone, Copy)]
@@ -207,6 +208,8 @@ fn shift_node_pos(pos: Vec3, value: f32) -> Vec3 {
 }
 
 fn append_voxel_triangle(
+    gen: &WorldGenerator,
+    chunk_pos: ChunkPos,
     pos: VoxelPos,
     vertices: &mut Vec<Vertex>,
     nodes: Nodes,
@@ -231,6 +234,11 @@ fn append_voxel_triangle(
     let c_pos = shift_node_pos(c.pos, c_v.value()) + pos_vec;
 
     let color = a_v.id().get_color();
+    let color = gen.randomize_color(
+        (chunk_pos * Chunk::SIZE as i64) + GlobalVoxelPos::from(pos),
+        color,
+    );
+
     let scale = Voxel::SCALE * scale;
     let normal = append_triangle(vertices, scale, color, a_pos, b_pos, c_pos);
 
@@ -239,7 +247,14 @@ fn append_voxel_triangle(
     }
 }
 
-pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, level: usize) {
+pub fn append_vertex(
+    gen: &WorldGenerator,
+    chunk_pos: ChunkPos,
+    pos: VoxelPos,
+    chunk: &Chunk,
+    vertices: &mut Vec<Vertex>,
+    level: usize,
+) {
     let scale = GameWorld::level_to_scale(level) as f32;
     let voxels = get_voxels_for_vertex(chunk, pos);
     let nodes = get_vertex_nodes(voxels);
@@ -254,6 +269,8 @@ pub fn append_vertex(pos: VoxelPos, chunk: &Chunk, vertices: &mut Vec<Vertex>, l
         let c = BASE_NODES[triangle_points[triangle_offset + 2] as usize];
 
         append_voxel_triangle(
+            gen,
+            chunk_pos,
             pos,
             vertices,
             nodes,

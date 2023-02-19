@@ -83,9 +83,9 @@ fn detail_chunk(
                 let level = level + 1;
 
                 let chunk = GameWorld::load_chunk(&meta, pos, level)
-                    .unwrap_or_else(|| Chunk::generate(gen.clone(), biomes.clone(), pos, level));
+                    .unwrap_or_else(|| Chunk::generate(&gen, biomes.clone(), pos, level));
 
-                let vertices = chunk.generate_vertices(level);
+                let vertices = chunk.generate_vertices(&gen, pos, level);
 
                 (chunk, vertices)
             })

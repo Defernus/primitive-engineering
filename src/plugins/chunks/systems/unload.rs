@@ -71,8 +71,8 @@ fn unload_chunk(
     let (tx, rx) = unbounded();
 
     std::thread::spawn(move || {
-        let mut chunk = Chunk::generate(gen, biomes, parent_pos, parent_level);
-        let vertices = chunk.generate_vertices(parent_level);
+        let mut chunk = Chunk::generate(&gen, biomes, parent_pos, parent_level);
+        let vertices = chunk.generate_vertices(&gen, parent_pos, parent_level);
         chunk.set_need_redraw(false);
 
         let data = ComputeChunkUnloadData {

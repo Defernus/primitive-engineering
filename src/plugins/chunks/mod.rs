@@ -5,7 +5,6 @@ use self::{
         details::*,
         loading::{handle_region_loaded_system, region_loading_system},
         mine::*,
-        redraw::*,
         unload::*,
     },
 };
@@ -31,7 +30,6 @@ impl Plugin for ChunksPlugin {
                     .with_system(spawn_detailed_chunk_system)
                     .with_system(handle_unload_task_system)
                     .with_system(region_loading_system)
-                    .with_system(redraw)
                     .with_system(mine_system)
                     .with_system(handle_mining_system)
                     .with_system(unload_system),

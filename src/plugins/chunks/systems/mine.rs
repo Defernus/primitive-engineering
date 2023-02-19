@@ -10,6 +10,7 @@ use crate::{
             resources::{look_at::PlayerLookAt, PlayerStats},
         },
         static_mesh::components::StaticMeshComponent,
+        world_generator::resources::WorldGenerator,
     },
 };
 use bevy::{prelude::*, window::CursorGrabMode};
@@ -50,6 +51,7 @@ fn handle_single_mining(
 pub fn handle_mining_system(
     mut commands: Commands,
     world: Res<GameWorld>,
+    gen: Res<WorldGenerator>,
     time: Res<Time>,
     mut modify_q: Query<(Entity, &GlobalTransform, &mut ChunkSmoothMining)>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -76,6 +78,7 @@ pub fn handle_mining_system(
 
     // redraw chunks immediately to prevent mesh flickering
     for (entity, chunk) in chunks_to_redraw_q.iter() {
+        let pos = chunk.chunk.get_pos();
         let mut chunk = chunk.chunk.lock();
 
         if !chunk.is_need_redraw() {
@@ -88,7 +91,7 @@ pub fn handle_mining_system(
             continue;
         };
 
-        let vertices = chunk.generate_vertices(GameWorld::MAX_DETAIL_LEVEL);
+        let vertices = chunk.generate_vertices(&gen, pos, GameWorld::MAX_DETAIL_LEVEL);
         StaticMeshComponent::update(children, &mut commands, &mut meshes, &meshes_q, vertices);
         chunk.set_need_redraw(false);
     }
