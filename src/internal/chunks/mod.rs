@@ -98,6 +98,28 @@ impl InWorldChunk {
         }
     }
 
+    /// get all sub chunks on max detail level possible for given relative pos
+    pub fn get_sub_chunks(&self, current_level: usize) -> LinkedList<ChunkPointer> {
+        let mut result = LinkedList::new();
+        match self {
+            Self::Loading => LinkedList::new(),
+            Self::Loaded(c, _) => {
+                if current_level == GameWorld::MAX_DETAIL_LEVEL {
+                    result.push_back(c.clone());
+                }
+                return result;
+            }
+            Self::SubChunks(sub_chunks) => {
+                for sub_chunk in sub_chunks {
+                    let mut sub_result = sub_chunk.get_sub_chunks(current_level + 1);
+                    result.append(&mut sub_result);
+                }
+
+                return result;
+            }
+        }
+    }
+
     pub fn get_sub_chunk(&self, pos: VoxelPos, level: usize) -> Option<&Self> {
         match self {
             Self::SubChunks(sub_chunks) => {

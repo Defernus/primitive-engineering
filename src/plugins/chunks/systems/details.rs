@@ -64,7 +64,7 @@ fn detail_chunk(
     }
 
     let biomes = world
-        .get_chunk(GameWorld::level_pos_to_level_pos(pos, level, 0))
+        .get_region(GameWorld::level_pos_to_level_pos(pos, level, 0))
         .unwrap()
         .1
         .clone();

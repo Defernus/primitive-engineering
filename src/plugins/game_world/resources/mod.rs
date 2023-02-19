@@ -11,7 +11,7 @@ use bevy::{
     utils::{HashMap, Uuid},
 };
 use bevy_inspector_egui::InspectorOptions;
-use std::borrow::BorrowMut;
+use std::{borrow::BorrowMut, collections::LinkedList};
 
 use super::utils::saves::{load, save};
 
@@ -108,6 +108,26 @@ impl GameWorld {
         Chunk::pos_to_translation(region_pos * GameWorld::REGION_SIZE as i64)
     }
 
+    pub fn get_chunk(&self, pos: ChunkPos, level: usize) -> Option<&InWorldChunk> {
+        if level == 0 {
+            return self.regions.get(&pos).map(|(chunk, _)| chunk);
+        }
+
+        let c_pos = Self::scale_down_pos(pos, 1 << level);
+
+        let in_chunk_pos = pos - c_pos * (1 << level) as i64;
+
+        let (chunk, _) = self.regions.get(&c_pos)?;
+
+        let in_chunk_pos = VoxelPos::new(
+            in_chunk_pos.x as usize,
+            in_chunk_pos.y as usize,
+            in_chunk_pos.z as usize,
+        );
+
+        chunk.get_sub_chunk(in_chunk_pos, level - 1)
+    }
+
     pub fn get_chunk_mut(&mut self, pos: ChunkPos, level: usize) -> Option<&mut InWorldChunk> {
         if level == 0 {
             return self.regions.get_mut(&pos).map(|(chunk, _)| chunk);
@@ -153,31 +173,32 @@ impl GameWorld {
         format!("chunks/{}_{}_{}.chunk", pos.x, pos.y, pos.z)
     }
 
-    /// Saves chunks in given position and level (currently only level `GameWorld::MAX_DETAIL_LEVEL - 1` is supported)
+    pub fn get_real_chunks(&self, pos: ChunkPos, level: usize) -> LinkedList<ChunkPointer> {
+        let chunk = if let Some(c) = self.get_chunk(pos, level) {
+            c
+        } else {
+            return LinkedList::new();
+        };
+
+        return chunk.get_sub_chunks(level);
+    }
+
     pub fn save_chunks(&mut self, meta: &GameWorldMeta, pos: ChunkPos, level: usize) {
-        if level != Self::MAX_DETAIL_LEVEL - 1 {
-            return;
-        }
+        self.get_real_chunks(pos, level)
+            .into_iter()
+            .for_each(|chunk| {
+                let pos = chunk.get_pos();
 
-        for i in 0..8 {
-            let pos = pos * 2 + ChunkPos::from_index(i, 2);
+                let path = Self::get_chunk_path(pos);
 
-            let (chunk, _) = self
-                .get_real_chunk(pos)
-                .expect(format!("No chunk at {:?}", pos).as_str())
-                .get_chunk()
-                .expect(format!("Chunk at {:?} is not loaded", pos).as_str());
+                let mut chunk = chunk.lock();
 
-            let path = Self::get_chunk_path(pos);
+                let chunk: &mut Chunk = chunk.borrow_mut();
 
-            let mut chunk = chunk.lock();
+                chunk.set_need_save(false);
 
-            let chunk: &mut Chunk = chunk.borrow_mut();
-
-            chunk.set_need_save(false);
-
-            save(chunk, meta, path.as_str(), true);
-        }
+                save(chunk, meta, path.as_str(), true);
+            });
     }
 
     pub fn load_chunk(meta: &GameWorldMeta, pos: ChunkPos, level: usize) -> Option<Chunk> {
@@ -194,7 +215,7 @@ impl GameWorld {
         self.regions.remove(&pos)
     }
 
-    pub fn get_chunk(&self, pos: ChunkPos) -> Option<&(InWorldChunk, ChunkBiomes)> {
+    pub fn get_region(&self, pos: ChunkPos) -> Option<&(InWorldChunk, ChunkBiomes)> {
         self.regions.get(&pos)
     }
 
@@ -268,7 +289,7 @@ fn update_chunk() {
         result.unwrap_err()
     );
 
-    let chunk_data = world.get_chunk(in_world_pos);
+    let chunk_data = world.get_region(in_world_pos);
     assert!(chunk_data.is_some(), "Failed to get chunk data");
 }
 
