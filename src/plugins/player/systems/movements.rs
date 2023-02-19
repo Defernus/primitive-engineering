@@ -6,6 +6,7 @@ use crate::plugins::player::{
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+#[allow(clippy::too_many_arguments)]
 pub fn player_fly_movement(
     time: Res<Time>,
     settings: Res<PlayerStats>,
@@ -56,6 +57,7 @@ pub fn player_fly_movement(
     transform.translation += velocity * time.delta_seconds().clamp(0.0, 0.1) * settings.fly_speed;
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn player_walk_movement(
     mut controller_q: Query<
         (

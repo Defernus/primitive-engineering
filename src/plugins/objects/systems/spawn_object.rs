@@ -40,15 +40,12 @@ pub fn spawn_object_system(
 ) {
     for (spawn_entity, mut object_spawn) in object_spawn_q.iter_mut() {
         if let Err(err) = spawn(&mut commands, &mut object_spawn, &world, &assets) {
-            match err {
-                ObjectSpawnError::ObjectAlreadySpawned => {
-                    warn!(
-                        "Error spawning object {} at {:?}: object already spawned",
-                        object_spawn.id, object_spawn.transform.translation
-                    );
-                    commands.entity(spawn_entity).despawn_recursive();
-                }
-                _ => {}
+            if let ObjectSpawnError::ObjectAlreadySpawned = err {
+                warn!(
+                    "Error spawning object {} at {:?}: object already spawned",
+                    object_spawn.id, object_spawn.transform.translation
+                );
+                commands.entity(spawn_entity).despawn_recursive();
             }
         } else {
             commands.entity(spawn_entity).despawn_recursive();

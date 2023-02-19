@@ -190,6 +190,11 @@ impl WorldGenerator {
         result.pow(self.get_elevation(x, z))
     }
 
+    /// Returns a random value of type `u8` based on the input `inp`.
+    ///
+    /// # Safety
+    ///
+    /// same as [`WorldGenerator::get_random`] for `T`
     fn get_random_u8<T>(&self, inp: *const T) -> u8 {
         let size = std::mem::size_of::<T>();
 
@@ -199,6 +204,13 @@ impl WorldGenerator {
         self.hasher.hash(arr) as u8
     }
 
+    /// Returns a random value of type `R` based on the input `inp`.
+    ///
+    /// # Safety
+    ///
+    /// `R` must be a primitive type
+    ///
+    /// `T` mustn't be a reference/pointer or contain any
     pub unsafe fn get_random<T, R>(&self, inp: *const T) -> R
     where
         R: Copy,
@@ -218,6 +230,10 @@ impl WorldGenerator {
     }
 
     /// Returns a random value between 0 and 1.
+    ///
+    /// # Safety
+    ///
+    /// same as [`WorldGenerator::get_random`] for `T`
     pub unsafe fn get_random_f64<T>(&self, inp: *const T) -> f64
     where
         T: Copy,

@@ -14,9 +14,7 @@ fn process<T: Event + Default>(
 ) {
     match condition {
         InputCondition::Keyboard(KeyboardInputCondition { key, allow_repeat }) => {
-            if allow_repeat && keys.pressed(key) {
-                event_writer.send(T::default());
-            } else if !allow_repeat && keys.just_pressed(key) {
+            if allow_repeat && keys.pressed(key) || !allow_repeat && keys.just_pressed(key) {
                 event_writer.send(T::default());
             }
         }
@@ -24,15 +22,16 @@ fn process<T: Event + Default>(
             button,
             allow_repeat,
         }) => {
-            if allow_repeat && mouse.pressed(button) {
-                event_writer.send(T::default());
-            } else if !allow_repeat && mouse.just_pressed(button) {
+            if allow_repeat && mouse.pressed(button) || !allow_repeat && mouse.just_pressed(button)
+            {
                 event_writer.send(T::default());
             }
         }
     }
 }
 
+// TODO refactor input system
+#[allow(clippy::too_many_arguments)]
 pub fn process_input_1(
     k: Res<Input<KeyCode>>,
     m: Res<Input<MouseButton>>,
@@ -54,6 +53,7 @@ pub fn process_input_1(
     process(&k, &m, s.jump, &mut jump_ew);
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn process_input_2(
     k: Res<Input<KeyCode>>,
     m: Res<Input<MouseButton>>,

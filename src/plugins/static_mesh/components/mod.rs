@@ -78,7 +78,7 @@ impl StaticMeshComponent {
         Some(Collider::trimesh(vert, indices))
     }
 
-    pub fn generate_mesh(vertices: &Vec<Vertex>) -> Mesh {
+    pub fn generate_mesh(vertices: &[Vertex]) -> Mesh {
         let mut indices_vec = Vec::new();
 
         let mut positions: Vec<[f32; 3]> = Vec::new();
