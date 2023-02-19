@@ -1,6 +1,6 @@
 use self::items::ItemComponent;
 use crate::{
-    internal::chunks::ChunkPointer,
+    internal::chunks::pointer::ChunkPointer,
     plugins::loading::resources::{GameAssets, PhysicsObject},
 };
 use bevy::{ecs::system::EntityCommands, prelude::*};

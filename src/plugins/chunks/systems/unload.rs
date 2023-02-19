@@ -1,5 +1,5 @@
 use crate::{
-    internal::chunks::{Chunk, ChunkPointer, InWorldChunk},
+    internal::chunks::{in_world_chunk::InWorldChunk, pointer::ChunkPointer, Chunk},
     plugins::{
         chunks::{
             components::{

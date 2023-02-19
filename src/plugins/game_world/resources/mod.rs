@@ -1,6 +1,6 @@
 use crate::{
     internal::{
-        chunks::{Chunk, ChunkPointer, InWorldChunk},
+        chunks::{in_world_chunk::InWorldChunk, pointer::ChunkPointer, Chunk},
         pos::{ChunkPos, VoxelPos},
     },
     plugins::world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},

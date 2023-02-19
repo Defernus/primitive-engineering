@@ -1,5 +1,5 @@
 use crate::{
-    internal::chunks::ChunkPointer,
+    internal::chunks::pointer::ChunkPointer,
     plugins::{
         chunks::components::{ChunkComponent, ChunkMeshComponent, RealChunkComponent},
         game_world::resources::GameWorld,

@@ -1,4 +1,6 @@
-use crate::{internal::chunks::ChunkPointer, plugins::objects::components::GameWorldObject};
+use crate::{
+    internal::chunks::pointer::ChunkPointer, plugins::objects::components::GameWorldObject,
+};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::RigidBodyDisabled;
 

@@ -1,4 +1,5 @@
-use crate::internal::chunks::{Chunk, ChunkPointer};
+use crate::internal::chunks::pointer::ChunkPointer;
+use crate::internal::chunks::Chunk;
 use crate::internal::pos::ChunkPos;
 use crate::plugins::static_mesh::components::Vertex;
 use crate::plugins::world_generator::internal::biomes::ChunkBiomes;

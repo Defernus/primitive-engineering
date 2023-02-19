@@ -1,6 +1,6 @@
 use crate::{
     internal::{
-        chunks::{Chunk, ChunkPointer},
+        chunks::{pointer::ChunkPointer, Chunk},
         pos::ChunkPos,
     },
     plugins::{
