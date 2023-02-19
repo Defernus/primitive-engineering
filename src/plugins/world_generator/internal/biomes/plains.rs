@@ -1,6 +1,6 @@
 use super::{spawn_objects, Biome, BiomeCheckInput, BiomeID, ChunkBiomes, SpawnObjectInp};
 use crate::{
-    internal::{color::Color, pos::ChunkPos},
+    internal::{pos::ChunkPos, voxel::voxel_types::VoxelId},
     plugins::{
         objects::components::{
             items::{branch::BranchItem, rock::RockItem},
@@ -37,9 +37,9 @@ impl Biome for PlainsBiome {
                 cave_strength: 100.0,
             },
             bumps_factor: 0.05,
-            first_layer_color: Color::rgb_u8(40, 133, 7).into(),
-            second_layer_color: Color::rgb_u8(65, 40, 22).into(),
-            rest_layers_color: Color::rgb_u8(100, 100, 100).into(),
+            first_layer_id: VoxelId::GRASS,
+            second_layer_id: VoxelId::DIRT,
+            rest_layers_id: VoxelId::STONE,
         }
     }
 

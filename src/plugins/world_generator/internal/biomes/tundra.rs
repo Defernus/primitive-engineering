@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    internal::{color::Color, pos::ChunkPos},
+    internal::{pos::ChunkPos, voxel::voxel_types::VoxelId},
     plugins::{
         objects::components::{
             items::branch::BranchItem, spruce::SpruceObject, GameWorldObjectTrait,
@@ -34,9 +34,9 @@ impl Biome for TundraBiome {
                 cave_strength: 100.0,
             },
             bumps_factor: 0.1,
-            first_layer_color: Color::rgb_u8(255, 255, 255).into(),
-            second_layer_color: Color::rgb_u8(65, 40, 22).into(),
-            rest_layers_color: Color::rgb_u8(100, 100, 100).into(),
+            first_layer_id: VoxelId::SNOW,
+            second_layer_id: VoxelId::DIRT,
+            rest_layers_id: VoxelId::STONE,
         }
     }
 

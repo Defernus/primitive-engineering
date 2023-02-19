@@ -2,7 +2,7 @@ use crate::{
     internal::chunks::Chunk,
     plugins::{
         chunks::components::{
-            ChunkComponent, ChunkMeshComponent, ChunkSmoothModification, RealChunkComponent,
+            ChunkComponent, ChunkMeshComponent, ChunkSmoothMining, RealChunkComponent,
         },
         game_world::resources::GameWorld,
         player::{
@@ -15,13 +15,13 @@ use crate::{
 use bevy::{prelude::*, window::CursorGrabMode};
 use std::time::Duration;
 
-fn handle_single_modification(
+fn handle_single_mining(
     commands: &mut Commands,
     time: &Time,
     world: &GameWorld,
     entity: Entity,
     translation: Vec3,
-    modification: &mut ChunkSmoothModification,
+    modification: &mut ChunkSmoothMining,
 ) -> Option<()> {
     let delta_str = modification.update(time);
 
@@ -36,7 +36,7 @@ fn handle_single_modification(
 
         let chunk_offset = Chunk::pos_to_translation(pos);
 
-        chunk.lock().modify(
+        chunk.lock().mine(
             translation - chunk_offset,
             modification.get_radius(),
             delta_str,
@@ -47,11 +47,11 @@ fn handle_single_modification(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub fn handle_modifications_system(
+pub fn handle_mining_system(
     mut commands: Commands,
     world: Res<GameWorld>,
     time: Res<Time>,
-    mut modify_q: Query<(Entity, &GlobalTransform, &mut ChunkSmoothModification)>,
+    mut modify_q: Query<(Entity, &GlobalTransform, &mut ChunkSmoothMining)>,
     mut meshes: ResMut<Assets<Mesh>>,
     chunks_q: Query<&Children>,
     chunks_to_redraw_q: Query<(Entity, &ChunkComponent), With<RealChunkComponent>>,
@@ -59,7 +59,7 @@ pub fn handle_modifications_system(
 ) {
     let mut modified = false;
     for (entity, transform, mut modification) in modify_q.iter_mut() {
-        handle_single_modification(
+        handle_single_mining(
             &mut commands,
             &time,
             &world,
@@ -116,10 +116,10 @@ pub fn mine_system(
             }
 
             commands.spawn((
-                ChunkSmoothModification::new(
+                ChunkSmoothMining::new(
                     &time,
                     Duration::from_millis(200),
-                    -player_stats.mining_strength,
+                    player_stats.mining_strength,
                     player_stats.mining_radius,
                 ),
                 TransformBundle::from_transform(Transform::from_translation(look_at.position)),

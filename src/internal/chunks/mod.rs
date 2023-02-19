@@ -83,10 +83,10 @@ impl Chunk {
         Some(self.voxels[pos.to_index(Self::SIZE_VOXELS)])
     }
 
-    /// Add (or remove for negative [`strength`]) value to voxels at the given position.
+    /// Remove value from voxels at the given position.
     ///
     /// Should be called only for max_detail_level chunks.
-    pub fn modify(&mut self, relative_pos: Vec3, radius: f32, strength: f32) {
+    pub fn mine(&mut self, relative_pos: Vec3, radius: f32, strength: f32) {
         // FIXME: iterate only over voxels in radius
         for x in 0..Self::SIZE_VOXELS {
             for y in 0..Self::SIZE_VOXELS {
@@ -98,7 +98,7 @@ impl Chunk {
 
                     if distance < radius {
                         let voxel = &mut self.voxels[voxel_pos.to_index(Self::SIZE_VOXELS)];
-                        *voxel += strength * (1.0 - distance / radius);
+                        *voxel -= strength * (1.0 - distance / radius);
                         self.need_redraw = true;
                         self.need_save = true;
                     }

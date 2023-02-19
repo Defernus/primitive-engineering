@@ -5,7 +5,7 @@ use crate::internal::chunks::Chunk;
 use crate::internal::pos::{GlobalVoxelPos, VoxelPos};
 use crate::plugins::game_world::resources::GameWorld;
 use crate::plugins::static_mesh::components::Vertex;
-use bevy::{math::Vec3, prelude::Color};
+use bevy::math::Vec3;
 
 #[derive(Clone, Copy)]
 struct VertexNode {
@@ -158,22 +158,17 @@ fn get_voxels_for_vertex(chunk: &Chunk, base_pos: VoxelPos) -> VoxelsBlock {
 }
 
 fn chose_voxel_for_node(a: Voxel, b: Voxel) -> Voxel {
+    let a_val = a.value();
+    let b_val = b.value();
+
     if a.is_empty() {
-        return Voxel {
-            color: b.color,
-            value: (-a.value) / (b.value - a.value),
-        };
+        return Voxel::new(-a_val / (b_val - a_val), b.id());
     }
     if b.is_empty() {
-        return Voxel {
-            color: a.color,
-            value: 1.0 - (-b.value) / (a.value - b.value),
-        };
+        return Voxel::new(1.0 - (-b_val) / (a_val - b_val), a.id());
     }
-    Voxel {
-        value: 0.,
-        color: Color::BLACK,
-    }
+
+    a
 }
 
 fn get_vertex_nodes(voxels: VoxelsBlock) -> Nodes {
@@ -231,11 +226,11 @@ fn append_voxel_triangle(
 
     let pos_vec = Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32);
 
-    let a_pos = shift_node_pos(a.pos, a_v.value) + pos_vec;
-    let b_pos = shift_node_pos(b.pos, b_v.value) + pos_vec;
-    let c_pos = shift_node_pos(c.pos, c_v.value) + pos_vec;
+    let a_pos = shift_node_pos(a.pos, a_v.value()) + pos_vec;
+    let b_pos = shift_node_pos(b.pos, b_v.value()) + pos_vec;
+    let c_pos = shift_node_pos(c.pos, c_v.value()) + pos_vec;
 
-    let color = a_v.color;
+    let color = a_v.id().get_color();
     let scale = Voxel::SCALE * scale;
     let normal = append_triangle(vertices, scale, color, a_pos, b_pos, c_pos);
 

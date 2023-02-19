@@ -38,7 +38,7 @@ impl Default for PlayerStats {
             mode: PlayerMovementMode::Fly,
             mining_radius: 1.0,
             mining_range: 16.0,
-            mining_strength: 1.0,
+            mining_strength: 0.2,
         }
     }
 }

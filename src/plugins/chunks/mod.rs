@@ -33,7 +33,7 @@ impl Plugin for ChunksPlugin {
                     .with_system(region_loading_system)
                     .with_system(redraw)
                     .with_system(mine_system)
-                    .with_system(handle_modifications_system)
+                    .with_system(handle_mining_system)
                     .with_system(unload_system),
             );
     }

@@ -7,7 +7,7 @@ use crate::{
         chunks::Chunk,
         color::Color,
         pos::{ChunkPos, GlobalVoxelPos, VoxelPos},
-        voxel::Voxel,
+        voxel::{voxel_types::VoxelId, Voxel},
     },
     plugins::game_world::resources::GameWorld,
 };
@@ -375,16 +375,14 @@ impl WorldGenerator {
         let stone_start = 32.0;
 
         let current_depth = pos.y as f64 * Voxel::SCALE as f64 - landscape_height;
-        let color = match current_depth {
-            v if v < -stone_start => inp.rest_layers_color,
-            v if v < -dirt_start => inp.second_layer_color,
+        let id = match current_depth {
+            v if v < -stone_start => inp.rest_layers_id,
+            v if v < -dirt_start => inp.second_layer_id,
 
-            _ => inp.first_layer_color,
+            _ => inp.first_layer_id,
         };
 
-        let color = self.randomize_color(pos, color.into());
-
-        Voxel::new(value as f32, color)
+        Voxel::new(value as f32, id)
     }
 
     /// Generates the voxels for a chunk.
@@ -473,12 +471,15 @@ pub struct GenCaveInp {
     pub cave_strength: f64,
 }
 
-#[derive(Debug, Clone, Copy, Lerp, Reflect, FromReflect)]
+#[derive(Debug, Clone, Copy, Reflect, FromReflect, Lerp)]
 pub struct GenVoxelInp {
     pub cave_inp: GenCaveInp,
-    pub first_layer_color: VoxelColor,
-    pub second_layer_color: VoxelColor,
-    pub rest_layers_color: VoxelColor,
+    #[lerp(f32)]
+    pub first_layer_id: VoxelId,
+    #[lerp(f32)]
+    pub second_layer_id: VoxelId,
+    #[lerp(f32)]
+    pub rest_layers_id: VoxelId,
     pub bumps_factor: f64,
 }
 

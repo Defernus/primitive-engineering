@@ -57,7 +57,7 @@ pub struct UnloadingChunkComponent;
 
 #[derive(Debug, Clone, Component, Default, Reflect, FromReflect)]
 #[reflect(Component)]
-pub struct ChunkSmoothModification {
+pub struct ChunkSmoothMining {
     duration: Duration,
     started_at: Duration,
     strength: f32,
@@ -65,7 +65,7 @@ pub struct ChunkSmoothModification {
     radius: f32,
 }
 
-impl ChunkSmoothModification {
+impl ChunkSmoothMining {
     pub fn new(time: &Time, duration: Duration, strength: f32, radius: f32) -> Self {
         Self {
             duration,

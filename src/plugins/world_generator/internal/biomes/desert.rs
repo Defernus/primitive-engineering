@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    internal::{color::Color, pos::ChunkPos},
+    internal::{pos::ChunkPos, voxel::voxel_types::VoxelId},
     plugins::{
         objects::components::{cactus::CactusObject, items::rock::RockItem, GameWorldObjectTrait},
         world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},
@@ -32,9 +32,9 @@ impl Biome for DesertBiome {
                 cave_strength: 0.0,
             },
             bumps_factor: 0.1,
-            first_layer_color: Color::rgb_u8(218, 185, 113).into(),
-            second_layer_color: Color::rgb_u8(200, 158, 100).into(),
-            rest_layers_color: Color::rgb_u8(100, 100, 100).into(),
+            first_layer_id: VoxelId::SAND,
+            second_layer_id: VoxelId::SAND_STONE,
+            rest_layers_id: VoxelId::STONE,
         }
     }
 
