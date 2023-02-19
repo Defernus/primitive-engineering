@@ -8,6 +8,5 @@ pub fn try_craft(
     commands: &mut Commands,
     items: Vec<(&GameWorldObject, Entity)>,
 ) {
-    if fire::craft(craft_center, commands, &items) {
-    }
+    fire::craft(craft_center, commands, &items);
 }

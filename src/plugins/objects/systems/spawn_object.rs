@@ -39,11 +39,8 @@ pub fn spawn_object_system(
     world: Res<GameWorld>,
 ) {
     for (spawn_entity, mut object_spawn) in object_spawn_q.iter_mut() {
-        match spawn(&mut commands, &mut object_spawn, &world, &assets) {
-            Ok(_) => {
-                commands.entity(spawn_entity).despawn_recursive();
-            }
-            Err(err) => match err {
+        if let Err(err) = spawn(&mut commands, &mut object_spawn, &world, &assets) {
+            match err {
                 ObjectSpawnError::ObjectAlreadySpawned => {
                     warn!(
                         "Error spawning object {} at {:?}: object already spawned",
@@ -52,7 +49,9 @@ pub fn spawn_object_system(
                     commands.entity(spawn_entity).despawn_recursive();
                 }
                 _ => {}
-            },
+            }
+        } else {
+            commands.entity(spawn_entity).despawn_recursive();
         }
     }
 }

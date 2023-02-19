@@ -6,6 +6,7 @@ use crate::plugins::{
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+#[allow(clippy::too_many_arguments)]
 pub fn grab(
     mut use_place_grab_e: EventReader<UseGrabPlaceEvent>,
     player_hand_q: Query<(Entity, &GlobalTransform), With<PlayerHand>>,
@@ -32,12 +33,9 @@ pub fn grab(
                 Err(_) => continue,
             };
 
-            match item_q.get(parent.get()) {
-                Ok(item) => {
-                    let (hand, _) = player_hand_q.single();
-                    grab_item(commands.entity(item), hand);
-                }
-                Err(_) => {}
+            if let Ok(item) = item_q.get(parent.get()) {
+                let (hand, _) = player_hand_q.single();
+                grab_item(commands.entity(item), hand);
             }
         }
     }

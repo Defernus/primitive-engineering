@@ -98,12 +98,8 @@ fn detail_chunk(
             prev_chunk_entity: entity,
         };
 
-        match tx.send(Box::new(data)) {
-            Err(err) => {
-                panic!("failed to send chunk data after generation: {}", err);
-            }
-            _ => {}
-        }
+        tx.send(Box::new(data))
+            .expect("failed to send chunk data after generation");
     });
 
     commands.spawn((ComputeTask(rx), InspectorDisabled));
@@ -163,44 +159,41 @@ pub fn spawn_detailed_chunk_system(
     chunk_children_q: Query<&Children, With<ChunkComponent>>,
 ) {
     for (e, ComputeTask(rx)) in tasks_q.iter() {
-        match rx.try_recv() {
-            Ok(data) => {
-                let ComputeChunkDetailedData {
-                    chunks,
-                    prev_chunk_entity,
-                    level,
-                    pos,
-                } = *data;
+        if let Ok(data) = rx.try_recv() {
+            let ComputeChunkDetailedData {
+                chunks,
+                prev_chunk_entity,
+                level,
+                pos,
+            } = *data;
 
-                let spawned_chunks = chunks
-                    .into_iter()
-                    .enumerate()
-                    .map(|(i, (chunk, vertices))| {
-                        let sub_pos = ChunkPos::from_index(i, 2);
-                        let chunk = ChunkPointer::new(chunk, pos * 2 + sub_pos, level + 1);
+            let spawned_chunks = chunks
+                .into_iter()
+                .enumerate()
+                .map(|(i, (chunk, vertices))| {
+                    let sub_pos = ChunkPos::from_index(i, 2);
+                    let chunk = ChunkPointer::new(chunk, pos * 2 + sub_pos, level + 1);
 
-                        (
-                            chunk.clone(),
-                            spawn_chunk(
-                                &mut commands,
-                                &mut meshes,
-                                &assets,
-                                &mut world,
-                                chunk,
-                                vertices,
-                            ),
-                        )
-                    })
-                    .collect::<Vec<_>>();
+                    (
+                        chunk.clone(),
+                        spawn_chunk(
+                            &mut commands,
+                            &mut meshes,
+                            &assets,
+                            &mut world,
+                            chunk,
+                            vertices,
+                        ),
+                    )
+                })
+                .collect::<Vec<_>>();
 
-                if let Ok(children) = chunk_children_q.get(prev_chunk_entity) {
-                    update_objects_parent(children, &mut commands, spawned_chunks, &mut objects_q)
-                        .unwrap();
-                }
-                commands.entity(prev_chunk_entity).despawn_recursive();
-                commands.entity(e).despawn_recursive();
+            if let Ok(children) = chunk_children_q.get(prev_chunk_entity) {
+                update_objects_parent(children, &mut commands, spawned_chunks, &mut objects_q)
+                    .unwrap();
             }
-            _ => {}
+            commands.entity(prev_chunk_entity).despawn_recursive();
+            commands.entity(e).despawn_recursive();
         }
     }
 }

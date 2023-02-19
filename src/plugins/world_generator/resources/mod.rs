@@ -199,14 +199,14 @@ impl WorldGenerator {
         self.hasher.hash(arr) as u8
     }
 
-    pub fn get_random<T, R>(&self, inp: *const T) -> R
+    pub unsafe fn get_random<T, R>(&self, inp: *const T) -> R
     where
         R: Copy,
         T: Copy,
     {
         let res_size = std::mem::size_of::<R>();
 
-        let inp = unsafe { inp.read() };
+        let inp = inp.read();
 
         let rands = (0..res_size)
             .map(|i| self.get_random_u8(&(inp, i)))
@@ -218,7 +218,7 @@ impl WorldGenerator {
     }
 
     /// Returns a random value between 0 and 1.
-    pub fn get_random_f64<T>(&self, inp: *const T) -> f64
+    pub unsafe fn get_random_f64<T>(&self, inp: *const T) -> f64
     where
         T: Copy,
     {
@@ -232,7 +232,7 @@ impl WorldGenerator {
         id: ObjectGeneratorID,
         variant: usize,
     ) -> f64 {
-        self.get_random_f64(&(chunk_pos, id, variant))
+        unsafe { self.get_random_f64(&(chunk_pos, id, variant)) }
     }
 
     /// Returns the position of the object in the chunk, if there is one.

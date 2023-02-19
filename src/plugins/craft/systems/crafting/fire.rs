@@ -11,7 +11,7 @@ const BRANCHES_COUNT: usize = 5;
 pub fn craft(
     craft_center: Vec3,
     commands: &mut Commands,
-    items: &Vec<(&GameWorldObject, Entity)>,
+    items: &[(&GameWorldObject, Entity)],
 ) -> bool {
     let branches = items
         .iter()
@@ -22,8 +22,8 @@ pub fn craft(
         return false;
     }
 
-    for i in 0..BRANCHES_COUNT {
-        commands.entity(branches[i].1).despawn_recursive();
+    for (_, e) in branches.iter().take(BRANCHES_COUNT) {
+        commands.entity(*e).despawn_recursive();
     }
 
     commands.spawn((

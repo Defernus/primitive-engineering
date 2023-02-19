@@ -83,12 +83,8 @@ fn unload_chunk(
             level: parent_level,
         };
 
-        match tx.send(Box::new(data)) {
-            Err(err) => {
-                panic!("failed to send chunk data after generation: {}", err);
-            }
-            _ => {}
-        }
+        tx.send(Box::new(data))
+            .expect("failed to send chunk data after generation");
     });
 
     commands.spawn((ComputeTask(rx), InspectorDisabled));
@@ -106,49 +102,46 @@ pub fn handle_unload_task_system(
     chunk_children_q: Query<&Children, With<ChunkComponent>>,
 ) {
     for (e, ComputeTask(rx)) in tasks_q.iter() {
-        match rx.try_recv() {
-            Ok(data) => {
-                commands.entity(e).despawn_recursive();
+        if let Ok(data) = rx.try_recv() {
+            commands.entity(e).despawn_recursive();
 
-                let ComputeChunkUnloadData {
-                    chunk,
-                    vertices,
-                    pos,
-                    level,
-                    unloaded_chunks,
-                } = *data;
+            let ComputeChunkUnloadData {
+                chunk,
+                vertices,
+                pos,
+                level,
+                unloaded_chunks,
+            } = *data;
 
-                let chunk_pointer = ChunkPointer::new(chunk, pos, level);
-                let chunk_entity = spawn_chunk(
-                    &mut commands,
-                    &mut meshes,
-                    &assets,
-                    &mut world,
-                    chunk_pointer.clone(),
-                    vertices,
-                );
+            let chunk_pointer = ChunkPointer::new(chunk, pos, level);
+            let chunk_entity = spawn_chunk(
+                &mut commands,
+                &mut meshes,
+                &assets,
+                &mut world,
+                chunk_pointer.clone(),
+                vertices,
+            );
 
-                for entity in unloaded_chunks {
-                    if let Ok(children) = chunk_children_q.get(entity) {
-                        if let Err(err) = update_objects_parent(
-                            children,
-                            &mut commands,
-                            vec![(chunk_pointer.clone(), chunk_entity)],
-                            &mut objects_q,
-                        ) {
-                            // FIXME: this should not happen
-                            warn!(
-                                "Failed to update objects parent: {:?}-{} {:?}",
-                                chunk_pointer.get_pos(),
-                                chunk_pointer.get_level(),
-                                err
-                            );
-                        }
+            for entity in unloaded_chunks {
+                if let Ok(children) = chunk_children_q.get(entity) {
+                    if let Err(err) = update_objects_parent(
+                        children,
+                        &mut commands,
+                        vec![(chunk_pointer.clone(), chunk_entity)],
+                        &mut objects_q,
+                    ) {
+                        // FIXME: this should not happen
+                        warn!(
+                            "Failed to update objects parent: {:?}-{} {:?}",
+                            chunk_pointer.get_pos(),
+                            chunk_pointer.get_level(),
+                            err
+                        );
                     }
-                    commands.entity(entity).despawn_recursive();
                 }
+                commands.entity(entity).despawn_recursive();
             }
-            _ => {}
         }
     }
 }

@@ -46,6 +46,7 @@ fn handle_single_modification(
     Some(())
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn handle_modifications_system(
     mut commands: Commands,
     world: Res<GameWorld>,

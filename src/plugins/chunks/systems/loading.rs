@@ -90,37 +90,34 @@ pub fn handle_region_loaded_system(
     tasks_q: Query<(Entity, &mut ComputeTask<ComputeChunkCreateData>)>,
 ) {
     for (task_e, ComputeTask(rx)) in tasks_q.iter() {
-        match rx.try_recv() {
-            Ok(data) => {
-                let ComputeChunkCreateData {
-                    biomes,
-                    chunk,
-                    pos,
-                    vertices,
-                } = *data;
+        if let Ok(data) = rx.try_recv() {
+            let ComputeChunkCreateData {
+                biomes,
+                chunk,
+                pos,
+                vertices,
+            } = *data;
 
-                let chunk = ChunkPointer::new(chunk, pos, 0);
+            let chunk = ChunkPointer::new(chunk, pos, 0);
 
-                let region_pos = chunk.get_pos();
-                let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
+            let region_pos = chunk.get_pos();
+            let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
 
-                for i in 0..GameWorld::REGION_VOLUME {
-                    let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
-                    gen.get_biome(chunk_pos)
-                        .spawn_objects(&biomes, chunk_pos, &mut commands, &gen);
-                }
-                spawn_chunk(
-                    &mut commands,
-                    &mut meshes,
-                    &assets,
-                    &mut world,
-                    chunk,
-                    vertices,
-                );
-
-                commands.entity(task_e).despawn_recursive();
+            for i in 0..GameWorld::REGION_VOLUME {
+                let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
+                gen.get_biome(chunk_pos)
+                    .spawn_objects(&biomes, chunk_pos, &mut commands, &gen);
             }
-            _ => {}
+            spawn_chunk(
+                &mut commands,
+                &mut meshes,
+                &assets,
+                &mut world,
+                chunk,
+                vertices,
+            );
+
+            commands.entity(task_e).despawn_recursive();
         }
     }
 }
