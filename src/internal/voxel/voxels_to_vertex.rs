@@ -170,10 +170,10 @@ fn chose_voxel_for_node(a: Voxel, b: Voxel) -> Voxel {
             value: 1.0 - (-b.value) / (a.value - b.value),
         };
     }
-    return Voxel {
+    Voxel {
         value: 0.,
         color: Color::BLACK,
-    };
+    }
 }
 
 fn get_vertex_nodes(voxels: VoxelsBlock) -> Nodes {
@@ -194,7 +194,7 @@ fn get_vertex_nodes(voxels: VoxelsBlock) -> Nodes {
     result[NODE_UN.index] = chose_voxel_for_node(voxels[0][1][1], voxels[1][1][1]);
     result[NODE_UW.index] = chose_voxel_for_node(voxels[0][1][0], voxels[0][1][1]);
 
-    return result;
+    result
 }
 
 fn shift_node_pos(pos: Vec3, value: f32) -> Vec3 {

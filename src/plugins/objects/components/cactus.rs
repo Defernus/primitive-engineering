@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 pub struct CactusObject;
 
 impl CactusObject {
-    const ID: &'static str = "cactus";
+    const ID: &str = "cactus";
 }
 
 impl GameWorldObjectTrait for CactusObject {

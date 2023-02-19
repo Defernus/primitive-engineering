@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 pub struct TreeObject;
 
 impl TreeObject {
-    const ID: &'static str = "tree";
+    const ID: &str = "tree";
 }
 
 impl GameWorldObjectTrait for TreeObject {

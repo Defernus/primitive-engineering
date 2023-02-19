@@ -61,7 +61,7 @@ impl ObjectSpawner {
             let mut transform = self.transform;
             transform.translation -= chunk_offset;
 
-            let mut object = object.spawn(commands, &assets, transform);
+            let mut object = object.spawn(commands, assets, transform);
             object.set_parent(chunk_entity);
 
             if !chunk.is_real() {
@@ -116,7 +116,7 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
             for (collider, transform) in model.colliders.iter() {
                 parent.spawn((
                     collider.clone(),
-                    TransformBundle::from_transform(transform.clone()),
+                    TransformBundle::from_transform(*transform),
                 ));
             }
         });

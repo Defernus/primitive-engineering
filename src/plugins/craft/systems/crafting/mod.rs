@@ -9,6 +9,5 @@ pub fn try_craft(
     items: Vec<(&GameWorldObject, Entity)>,
 ) {
     if fire::craft(craft_center, commands, &items) {
-        return;
     }
 }

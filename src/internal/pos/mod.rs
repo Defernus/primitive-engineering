@@ -79,10 +79,10 @@ impl<T: Reflect + Copy + Clone + num_traits::Signed + Ord> Pos<T> {
 
 impl<T: Reflect + Copy + Clone + num_traits::Signed + num_traits::FromPrimitive> Pos<T> {
     pub fn iter_around(&self, radius: usize) -> PosAroundIterator<T> {
-        PosAroundIterator::new(self.clone(), radius)
+        PosAroundIterator::new(*self, radius)
     }
     pub fn iter_neighbors(&self, include_self: bool) -> PosIterNeighbors<T> {
-        PosIterNeighbors::new(self.clone(), include_self)
+        PosIterNeighbors::new(*self, include_self)
     }
 }
 
@@ -282,7 +282,7 @@ impl<T: Reflect + Copy + Clone + PartialOrd + Eq> Ord for Pos<T> {
         if self.z < other.z {
             return Ordering::Less;
         }
-        return Ordering::Equal;
+        Ordering::Equal
     }
 }
 
@@ -344,7 +344,7 @@ impl<T: Reflect + Copy + Clone + num_traits::Signed + Ord + PartialOrd> Iterator
             self.x = self.x + T::one();
         }
 
-        return Some(result);
+        Some(result)
     }
 }
 
@@ -441,7 +441,7 @@ impl<
 
         self.current = new_pos;
 
-        return Some(new_pos + self.start);
+        Some(new_pos + self.start)
     }
 }
 

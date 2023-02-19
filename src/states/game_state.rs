@@ -1,7 +1,9 @@
 use bevy::reflect::Reflect;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Reflect)]
+#[derive(Default)]
 pub enum GameState {
+    #[default]
     AssetsLoading,
 
     MenuMain,
@@ -15,8 +17,4 @@ pub enum GameState {
     InGame,
 }
 
-impl Default for GameState {
-    fn default() -> Self {
-        GameState::AssetsLoading
-    }
-}
+

@@ -51,9 +51,9 @@ impl Direction {
     }
 }
 
-impl<T: num_traits::Signed + From<i64> + Reflect + Copy + Clone> Into<Pos<T>> for Direction {
-    fn into(self) -> Pos<T> {
-        match self {
+impl<T: num_traits::Signed + From<i64> + Reflect + Copy + Clone> From<Direction> for Pos<T> {
+    fn from(val: Direction) -> Self {
+        match val {
             Direction::UP => (0, 1, 0).into(),
             Direction::DOWN => (0, -1, 0).into(),
             Direction::WEST => (-1, 0, 0).into(),

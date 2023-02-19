@@ -60,7 +60,7 @@ impl StaticMeshComponent {
     }
 
     pub fn generate_collider(vertices: &Vec<Vertex>) -> Option<Collider> {
-        if vertices.len() == 0 {
+        if vertices.is_empty() {
             return None;
         }
 

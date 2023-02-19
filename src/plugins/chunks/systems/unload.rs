@@ -36,7 +36,7 @@ fn unload_chunk(
         commands.entity(chunk_e).despawn_recursive();
         world
             .remove_chunk(pos)
-            .expect(format!("Chunk {:?}-{} should exists", pos, level).as_str());
+            .unwrap_or_else(|| panic!("Chunk {:?}-{} should exists", pos, level));
         return true;
     }
 
@@ -47,7 +47,7 @@ fn unload_chunk(
 
     let parent_chunk = world
         .get_chunk_mut(parent_pos, parent_level)
-        .expect(format!("Parent chunk for {:?}-{} should exists", pos, level).as_str());
+        .unwrap_or_else(|| panic!("Parent chunk for {:?}-{} should exists", pos, level));
 
     let unloaded_chunks = if let Some(result) = parent_chunk.scale_down() {
         result
@@ -172,8 +172,7 @@ pub fn unload_system(
         let scaled_player_pos = GameWorld::chunk_pos_to_level_pos(player_chunk_pos, level);
 
         let dist = (pos - scaled_player_pos).dist() as usize;
-        if dist > GameWorld::MAX_DETAILS_DIST {
-            if unload_chunk(
+        if dist > GameWorld::MAX_DETAILS_DIST && unload_chunk(
                 &mut commands,
                 &mut world,
                 &meta,
@@ -181,9 +180,8 @@ pub fn unload_system(
                 entity,
                 chunk.chunk.clone(),
             ) {
-                // unload only one chunk per frame
-                return;
-            }
+            // unload only one chunk per frame
+            return;
         }
     }
 }

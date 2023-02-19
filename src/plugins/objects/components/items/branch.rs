@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 pub struct BranchItem;
 
 impl BranchItem {
-    pub const ID: &'static str = "branch";
+    pub const ID: &str = "branch";
 }
 
 impl GameWorldObjectTrait for BranchItem {

@@ -50,7 +50,7 @@ pub fn spawn_chunk(
 
     world
         .update_chunk(chunk.clone(), entity)
-        .expect(format!("Failed to update chunk {:?}-{}", pos, level).as_str());
+        .unwrap_or_else(|_| panic!("Failed to update chunk {:?}-{}", pos, level));
 
     if chunk.is_real() {
         chunk_entity.insert(RealChunkComponent);

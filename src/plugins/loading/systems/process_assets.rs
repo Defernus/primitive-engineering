@@ -27,7 +27,7 @@ pub fn process_assets(
             return false;
         }
 
-        return true;
+        true
     });
 
     if !all_loaded {

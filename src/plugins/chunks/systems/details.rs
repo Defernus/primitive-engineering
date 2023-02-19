@@ -75,7 +75,6 @@ fn detail_chunk(
 
     std::thread::spawn(move || {
         let chunks = (0..8)
-            .into_iter()
             .map(|i| {
                 let sub_pos = VoxelPos::from_index(i, 2);
                 let sub_pos = ChunkPos::new(sub_pos.x as i64, sub_pos.y as i64, sub_pos.z as i64);
@@ -173,7 +172,7 @@ pub fn spawn_detailed_chunk_system(
                                 &mut meshes,
                                 &assets,
                                 &mut world,
-                                chunk.clone(),
+                                chunk,
                                 vertices,
                             ),
                         )

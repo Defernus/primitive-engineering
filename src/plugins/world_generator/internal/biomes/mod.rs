@@ -139,7 +139,6 @@ impl ChunkBiomes {
 
         let area = size_chunks * size_chunks;
         let landscape_inputs = (0..area)
-            .into_iter()
             .map(|i| {
                 let pos = chunk_offset + ChunkPos::from_index_2d(i, size_chunks);
 
@@ -149,7 +148,6 @@ impl ChunkBiomes {
 
         let volume = size_chunks * size_chunks * size_chunks;
         let voxel_inputs = (0..volume)
-            .into_iter()
             .map(|i| {
                 let pos = chunk_offset + ChunkPos::from_index(i, size_chunks);
 

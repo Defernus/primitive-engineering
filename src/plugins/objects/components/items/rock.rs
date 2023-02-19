@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 pub struct RockItem;
 
 impl RockItem {
-    pub const ID: &'static str = "rock";
+    pub const ID: &str = "rock";
 }
 
 impl GameWorldObjectTrait for RockItem {

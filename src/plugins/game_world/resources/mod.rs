@@ -180,7 +180,7 @@ impl GameWorld {
             return LinkedList::new();
         };
 
-        return chunk.get_sub_chunks(level);
+        chunk.get_sub_chunks(level)
     }
 
     pub fn save_chunks(&mut self, meta: &GameWorldMeta, pos: ChunkPos, level: usize) {
@@ -318,7 +318,7 @@ fn test_chunk_set_and_get() {
             {
                 let chunk = world.get_chunk_mut(pos, layer);
 
-                assert_eq!(chunk.is_some(), true);
+                assert!(chunk.is_some());
 
                 let chunk = chunk.unwrap();
 

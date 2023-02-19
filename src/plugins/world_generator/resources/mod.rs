@@ -150,36 +150,30 @@ impl WorldGenerator {
             * 0.5
             + 0.5;
 
-        let t = Self::MIN_TEMP.lerp(Self::MAX_TEMP, t);
-
-        t
+        Self::MIN_TEMP.lerp(Self::MAX_TEMP, t)
     }
 
     fn get_humidity(&self, pos: ChunkPos) -> f64 {
         let x = pos.x as f64;
         let z = pos.z as f64;
 
-        let h = self.simplex.get([
+        self.simplex.get([
             x * Self::HUMIDITY_NOISE_SCALE,
             z * Self::HUMIDITY_NOISE_SCALE,
             1.0,
         ]) * 0.5
-            + 0.5;
-
-        h
+            + 0.5
     }
 
     pub fn get_elevation(&self, x: f64, z: f64) -> f64 {
         // let x = pos.x as f64;
         // let z = pos.z as f64;
 
-        let m = self.simplex.get([
+        self.simplex.get([
             x * Self::MOUNTAINOUSNESS_NOISE_SCALE,
             z * Self::MOUNTAINOUSNESS_NOISE_SCALE,
             2.0,
-        ]) + 1.0;
-
-        m
+        ]) + 1.0
     }
 
     pub fn gel_landscape_height(&self, inp: LandscapeHeightInp, x: f64, z: f64) -> f64 {
@@ -267,7 +261,7 @@ impl WorldGenerator {
         }
 
         let tree_x =
-            self.get_chunk_random(chunk_pos, id, 0 + number * max_count) * Chunk::REAL_SIZE as f64;
+            self.get_chunk_random(chunk_pos, id, number * max_count) * Chunk::REAL_SIZE as f64;
         let tree_z =
             self.get_chunk_random(chunk_pos, id, 1 + number * max_count) * Chunk::REAL_SIZE as f64;
 
@@ -280,13 +274,13 @@ impl WorldGenerator {
         let landscape_height = self.gel_landscape_height(landscape_inp, tree_x, tree_z);
         let tree_y = landscape_height as f32 - chunk_offset.y;
 
-        if tree_y < 0.0 || tree_y >= Chunk::REAL_SIZE {
+        if !(0.0..Chunk::REAL_SIZE).contains(&tree_y) {
             return None;
         }
 
         let tree_y = tree_y + chunk_offset.y;
 
-        let pos = Vec3::new(tree_x as f32, tree_y as f32, tree_z as f32);
+        let pos = Vec3::new(tree_x as f32, tree_y, tree_z as f32);
 
         if !allow_air {
             let voxel_pos = Chunk::vec_to_voxel_pos(pos);
@@ -323,9 +317,7 @@ impl WorldGenerator {
             return 0.0;
         }
 
-        let cave = cave * cave * inp.cave_strength;
-
-        cave
+        cave * cave * inp.cave_strength
     }
 
     fn generate_voxel_value(
@@ -351,9 +343,7 @@ impl WorldGenerator {
 
         let value = Self::normalize_value(value);
 
-        let value = value - self.get_caves(inp.cave_inp, pos);
-
-        value
+        value - self.get_caves(inp.cave_inp, pos)
     }
 
     fn generate_voxel(
@@ -378,9 +368,7 @@ impl WorldGenerator {
 
         let color = self.randomize_color(pos, color.into());
 
-        let voxel = Voxel::new(value as f32, color);
-
-        voxel
+        Voxel::new(value as f32, color)
     }
 
     /// Generates the voxels for a chunk.
@@ -441,9 +429,9 @@ pub struct VoxelColor {
     pub b: f32,
 }
 
-impl Into<Color> for VoxelColor {
-    fn into(self) -> Color {
-        Color::rgb(self.r, self.g, self.b)
+impl From<VoxelColor> for Color {
+    fn from(val: VoxelColor) -> Self {
+        Color::rgb(val.r, val.g, val.b)
     }
 }
 

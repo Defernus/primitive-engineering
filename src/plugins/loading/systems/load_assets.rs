@@ -25,14 +25,14 @@ pub fn load_assets(
     let game_assets = GameAssets {
         main_font: asset_server.load("fonts/roboto.ttf"),
         default_material: materials.add(StandardMaterial {
-            base_color: Color::rgb(1.0, 1.0, 1.0).into(),
+            base_color: Color::rgb(1.0, 1.0, 1.0),
             perceptual_roughness: 1.,
             metallic: 0.,
             reflectance: 0.,
             ..default()
         }),
         craft_zone_material: materials.add(StandardMaterial {
-            base_color: Color::rgba(1.0, 1.0, 1.0, 0.1).into(),
+            base_color: Color::rgba(1.0, 1.0, 1.0, 0.1),
             perceptual_roughness: 1.,
             metallic: 0.,
             alpha_mode: AlphaMode::Blend,

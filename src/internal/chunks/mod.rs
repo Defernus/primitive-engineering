@@ -36,7 +36,7 @@ impl InWorldChunk {
     /// get chunk pointer by relative pos if chunk is loaded
     pub fn get_chunk(&self) -> Option<(ChunkPointer, Entity)> {
         match self {
-            Self::Loaded(chunk, entity) => Some((chunk.clone(), entity.clone())),
+            Self::Loaded(chunk, entity) => Some((chunk.clone(), *entity)),
             _ => None,
         }
     }
@@ -49,7 +49,7 @@ impl InWorldChunk {
     ) -> Option<(&ChunkPointer, Entity)> {
         match self {
             Self::Loading => None,
-            Self::Loaded(c, e) => Some((c, e.clone())),
+            Self::Loaded(c, e) => Some((c, *e)),
             Self::SubChunks(sub_chunks) => {
                 let next_scale = GameWorld::level_to_scale(current_level + 1);
                 let sub_pos = pos / next_scale;
@@ -107,7 +107,7 @@ impl InWorldChunk {
                 if current_level == GameWorld::MAX_DETAIL_LEVEL {
                     result.push_back(c.clone());
                 }
-                return result;
+                result
             }
             Self::SubChunks(sub_chunks) => {
                 for sub_chunk in sub_chunks {
@@ -115,7 +115,7 @@ impl InWorldChunk {
                     result.append(&mut sub_result);
                 }
 
-                return result;
+                result
             }
         }
     }
@@ -130,13 +130,13 @@ impl InWorldChunk {
 
                 let sub_chunk = &sub_chunks[sub_pos.to_index(2)];
                 if level == 0 {
-                    return Some(sub_chunk);
+                    Some(sub_chunk)
                 } else {
                     return sub_chunk.get_sub_chunk(in_chunk_pos, level - 1);
                 }
             }
             _ => {
-                return None;
+                None
             }
         }
     }
@@ -151,13 +151,13 @@ impl InWorldChunk {
 
                 let sub_chunk = &mut sub_chunks[sub_pos.to_index(2)];
                 if level == 0 {
-                    return Some(sub_chunk);
+                    Some(sub_chunk)
                 } else {
                     return sub_chunk.get_sub_chunk_mut(in_chunk_pos, level - 1);
                 }
             }
             _ => {
-                return None;
+                None
             }
         }
     }

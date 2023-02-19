@@ -58,7 +58,7 @@ pub fn load<T: for<'de> serde::Deserialize<'de>>(
     } else {
         bincode::deserialize_from(reader)
     }
-    .expect(format!("Can't load file: {}", file_path).as_str());
+    .unwrap_or_else(|_| panic!("Can't load file: {}", file_path));
 
     Some(c)
 }

@@ -14,7 +14,7 @@ pub fn update_objects_parent(
     objects_q: &mut Query<(Entity, &mut Transform, &GlobalTransform), With<GameWorldObject>>,
 ) -> Result<(), FailedToSpawnError> {
     for child in prev_chunk_children.iter() {
-        if let Ok((entity, mut transform, global)) = objects_q.get_mut(child.clone()) {
+        if let Ok((entity, mut transform, global)) = objects_q.get_mut(*child) {
             let global = global.translation();
             let mut spawned = false;
             for (chunk, chunk_entity) in chunks.iter() {
@@ -34,8 +34,8 @@ pub fn update_objects_parent(
 
                 transform.translation = relative_pos;
 
-                let mut obj_commands = commands.entity(entity.clone());
-                obj_commands.set_parent(chunk_entity.clone());
+                let mut obj_commands = commands.entity(entity);
+                obj_commands.set_parent(*chunk_entity);
 
                 if chunk.is_real() {
                     obj_commands.remove::<RigidBodyDisabled>();

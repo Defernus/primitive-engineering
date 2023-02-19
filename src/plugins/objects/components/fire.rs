@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 pub struct FireObject;
 
 impl FireObject {
-    const ID: &'static str = "fire";
+    const ID: &str = "fire";
 }
 
 impl GameWorldObjectTrait for FireObject {

@@ -292,5 +292,5 @@ pub fn get_index_by_voxels(voxels: [[[Voxel; 2]; 2]; 2]) -> usize {
         index |= 1 << 7;
     }
 
-    return index;
+    index
 }

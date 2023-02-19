@@ -9,7 +9,7 @@ pub struct SpruceObject {
 }
 
 impl SpruceObject {
-    const ID: &'static str = "spruce";
+    const ID: &str = "spruce";
     pub const WITH_SNOW: Self = Self { snow: true };
     pub const WITHOUT_SNOW: Self = Self { snow: false };
 }
