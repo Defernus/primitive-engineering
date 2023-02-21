@@ -25,15 +25,24 @@ pub struct NotEmptyVoxel {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EmptyVoxel {
+    value: VoxelValue,
+    modified: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Voxel {
-    Empty(VoxelValue),
+    Empty(EmptyVoxel),
     NotEmpty(NotEmptyVoxel),
 }
 
 impl Voxel {
     pub const SCALE: f32 = 0.25;
 
-    pub const EMPTY: Self = Self::Empty(0);
+    pub const EMPTY: Self = Self::Empty(EmptyVoxel {
+        value: 0,
+        modified: false,
+    });
 
     /// Creates a new voxel.
     ///
@@ -42,7 +51,10 @@ impl Voxel {
     /// Note: The value should be between -1.0 and 1.0. Otherwise the value will be clamped.
     pub fn new(value: f32, id: VoxelId) -> Self {
         if value < 0.0 {
-            return Self::Empty(f32_to_voxel_value(-value));
+            return Self::Empty(EmptyVoxel {
+                value: f32_to_voxel_value(-value),
+                modified: false,
+            });
         }
 
         Self::NotEmpty(NotEmptyVoxel {
@@ -50,6 +62,13 @@ impl Voxel {
             value: f32_to_voxel_value(value),
             id,
         })
+    }
+
+    pub fn is_modified(&self) -> bool {
+        match self {
+            Self::Empty(voxel) => voxel.modified,
+            Self::NotEmpty(voxel) => voxel.modified,
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -72,15 +91,16 @@ impl Voxel {
 
     pub fn value(&self) -> f32 {
         let value = match self {
-            Self::Empty(value) => -(*value as f32),
+            Self::Empty(EmptyVoxel { value, .. }) => -(*value as f32),
             Self::NotEmpty(NotEmptyVoxel { value, .. }) => *value as f32,
         };
         value / VoxelValue::MAX as f32
     }
 
     pub fn set_modified(&mut self, modified: bool) {
-        if let Self::NotEmpty(voxel) = self {
-            voxel.modified = modified;
+        match self {
+            Self::Empty(v) => v.modified = modified,
+            Self::NotEmpty(v) => v.modified = modified,
         }
     }
 }
@@ -101,8 +121,7 @@ impl Sub<f32> for Voxel {
     /// NOTE: The value should be between 0.0 and 1.0. Otherwise the value will be clamped.
     fn sub(self, rhs: f32) -> Self::Output {
         let mut v = Self::new(self.value() - rhs, self.id());
-        v.set_modified(true);
-
+        v.set_modified(self.is_modified());
         v
     }
 }
@@ -111,4 +130,45 @@ impl SubAssign<f32> for Voxel {
     fn sub_assign(&mut self, rhs: f32) {
         *self = *self - rhs;
     }
+}
+
+#[test]
+fn modify_voxel() {
+    let mut voxel = Voxel::new(0.5, VoxelId::default());
+
+    assert!(
+        !voxel.is_modified(),
+        "Voxel should not be modified after creation"
+    );
+
+    voxel.set_modified(true);
+
+    assert!(
+        voxel.is_modified(),
+        "Voxel should preserve the modified state after setting it"
+    );
+
+    voxel -= 1.0;
+
+    assert!(
+        voxel.is_modified(),
+        "Voxel should preserve the modified state after subtraction"
+    );
+}
+
+#[test]
+fn modified_state_for_empty_voxel() {
+    let mut voxel = Voxel::new(-0.5, VoxelId::default());
+
+    assert!(
+        !voxel.is_modified(),
+        "Voxel should not be modified after creation"
+    );
+
+    voxel.set_modified(true);
+
+    assert!(
+        voxel.is_modified(),
+        "Voxel should preserve the modified state after setting it"
+    );
 }

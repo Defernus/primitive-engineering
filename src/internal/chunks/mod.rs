@@ -26,6 +26,7 @@ pub enum VoxelAccessError {
 
 impl Chunk {
     pub const SIZE: usize = 16;
+    pub const HALF_SIZE: usize = Self::SIZE / 2;
     pub const SIZE_VOXELS: usize = Self::SIZE + 1;
     pub const SIZE_VOXELS_I64: i64 = Self::SIZE_VOXELS as i64;
     pub const VOLUME_VOXELS: usize = Self::SIZE_VOXELS * Self::SIZE_VOXELS * Self::SIZE_VOXELS;
@@ -44,6 +45,24 @@ impl Chunk {
         }
     }
 
+    pub fn generate_with_modified(
+        voxels: Vec<Voxel>,
+        gen: &WorldGenerator,
+        biomes: ChunkBiomes,
+        pos: ChunkPos,
+        level: usize,
+    ) -> Self {
+        let mut chunk = Self::generate(gen, biomes, pos, level);
+
+        for i in 0..Self::VOLUME_VOXELS {
+            if voxels[i].is_modified() {
+                chunk.voxels[i] = voxels[i];
+            }
+        }
+
+        chunk
+    }
+
     pub fn generate(
         gen: &WorldGenerator,
         biomes: ChunkBiomes,
@@ -52,6 +71,14 @@ impl Chunk {
     ) -> Self {
         Self {
             voxels: gen.generate_voxels(&biomes, pos, level),
+            need_redraw: false,
+            need_save: false,
+        }
+    }
+
+    pub fn from_voxels(voxels: Vec<Voxel>) -> Self {
+        Self {
+            voxels,
             need_redraw: false,
             need_save: false,
         }
@@ -73,6 +100,20 @@ impl Chunk {
         self.need_save = need_save;
     }
 
+    /// Get voxel at the given position.
+    ///
+    /// Returns None if position is out of chunk bounds.
+    pub fn get_voxel_at(&self, pos: VoxelPos) -> Option<Voxel> {
+        if pos.x >= Self::SIZE_VOXELS || pos.y >= Self::SIZE_VOXELS || pos.z >= Self::SIZE_VOXELS {
+            return None;
+        }
+
+        Some(self.voxels[pos.to_index(Self::SIZE_VOXELS)])
+    }
+
+    /// Get voxel at the given position.
+    ///
+    /// Returns None if position is out of chunk bounds.
     pub fn get_voxel(&self, pos: GlobalVoxelPos) -> Option<Voxel> {
         if pos.x < 0
             || pos.y < 0
@@ -104,6 +145,11 @@ impl Chunk {
                     if distance < radius {
                         let voxel = &mut self.voxels[voxel_pos.to_index(Self::SIZE_VOXELS)];
                         *voxel -= strength * (1.0 - distance / radius);
+                        voxel.set_modified(true);
+
+                        if !voxel.is_modified() {
+                            println!("Voxel is not modified: {:?}", voxel_pos);
+                        }
                         self.need_redraw = true;
                         self.need_save = true;
                     }

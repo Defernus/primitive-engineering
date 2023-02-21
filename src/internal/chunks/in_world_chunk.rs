@@ -1,6 +1,9 @@
 use super::{pointer::ChunkPointer, Chunk};
 use crate::{
-    internal::pos::{ChunkPos, VoxelPos},
+    internal::{
+        pos::{ChunkPos, VoxelPos},
+        voxel::Voxel,
+    },
     plugins::game_world::resources::GameWorld,
 };
 use bevy::prelude::*;
@@ -44,7 +47,55 @@ impl InWorldChunk {
         }
     }
 
-    pub fn scale_down(&mut self) -> Option<LinkedList<Entity>> {
+    fn bound_sub_axis(v: usize) -> usize {
+        if v >= 2 {
+            1
+        } else {
+            v
+        }
+    }
+    fn bound_sub_pos(sub_pos: VoxelPos) -> VoxelPos {
+        VoxelPos::new(
+            Self::bound_sub_axis(sub_pos.x),
+            Self::bound_sub_axis(sub_pos.y),
+            Self::bound_sub_axis(sub_pos.z),
+        )
+    }
+
+    pub fn get_voxel(&self, pos: VoxelPos, global_pos: VoxelPos) -> Voxel {
+        match self {
+            Self::Loading => panic!("Can't get voxel from loading chunk"),
+            Self::Loaded(chunk, _) => chunk
+                .lock()
+                .get_voxel_at(pos)
+                .expect(&format!("Pos out of bounds {:?} {:?}", pos, global_pos)),
+            Self::SubChunks(sub_chunks) => {
+                let sub_pos = Self::bound_sub_pos(pos / Chunk::HALF_SIZE);
+                let in_chunk_pos = (pos - sub_pos * Chunk::HALF_SIZE) * 2;
+
+                let sub_chunk = &sub_chunks[sub_pos.to_index(2)];
+                sub_chunk.get_voxel(in_chunk_pos, pos)
+            }
+        }
+    }
+
+    pub fn simplify(self) -> Option<Vec<Voxel>> {
+        if let Self::Loading = self {
+            return None;
+        }
+
+        let mut voxels = vec![Voxel::default(); Chunk::VOLUME_VOXELS];
+
+        for i in 0..Chunk::VOLUME_VOXELS {
+            let pos = VoxelPos::from_index(i, Chunk::SIZE_VOXELS);
+            voxels[i] = self.get_voxel(pos, pos);
+        }
+
+        Some(voxels)
+    }
+
+    /// get all subchunks of this chunk to unload
+    pub fn scale_down(&self) -> Option<LinkedList<Entity>> {
         let sub_chunks = match self {
             Self::SubChunks(sub_chunks) => sub_chunks,
             _ => return None,
@@ -56,14 +107,7 @@ impl InWorldChunk {
                 Self::Loaded(_, entity) => {
                     result.push_back(*entity);
                 }
-                Self::SubChunks(_) => match sub_chunk.scale_down() {
-                    Some(mut list) => {
-                        result.append(&mut list);
-                    }
-                    _ => {
-                        return None;
-                    }
-                },
+                Self::SubChunks(_) => result.append(&mut sub_chunk.scale_down()?),
                 Self::Loading => {
                     return None;
                 }

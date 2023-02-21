@@ -20,7 +20,6 @@ use crate::{
 use bevy::prelude::*;
 use crossbeam_channel::unbounded;
 
-// FIXME unloading for more then one chunk per region per frame
 fn unload_chunk(
     commands: &mut Commands,
     world: &mut GameWorld,
@@ -45,21 +44,23 @@ fn unload_chunk(
 
     world.save_chunks(meta, parent_pos, parent_level);
 
-    let parent_chunk = world
-        .get_chunk_mut(parent_pos, parent_level)
-        .expect(&format!(
-            "Parent chunk for {:?}-{} should exists",
-            pos, level
-        ));
-
-    let unloaded_chunks = if let Some(result) = parent_chunk.scale_down() {
-        result
+    let chunk_to_simplify = if let Some(chunk) = world.get_chunk_mut(parent_pos, parent_level) {
+        chunk
     } else {
-        // this chunk is already unloading
+        // parent chunk is already unloading
         return false;
     };
 
-    *parent_chunk = InWorldChunk::Loading;
+    let unloaded_chunks = if let Some(result) = chunk_to_simplify.scale_down() {
+        result
+    } else {
+        // one of sub chunks is already unloading
+        return false;
+    };
+
+    let old_chunk = chunk_to_simplify.clone();
+
+    *chunk_to_simplify = InWorldChunk::Loading;
 
     for entity in unloaded_chunks.iter() {
         commands.entity(*entity).insert(UnloadingChunkComponent);
@@ -74,9 +75,12 @@ fn unload_chunk(
     let (tx, rx) = unbounded();
 
     std::thread::spawn(move || {
-        let mut chunk = Chunk::generate(&gen, biomes, parent_pos, parent_level);
+        let chunk = if let Some(voxels) = old_chunk.simplify() {
+            Chunk::generate_with_modified(voxels, &gen, biomes, parent_pos, parent_level)
+        } else {
+            Chunk::generate(&gen, biomes, parent_pos, parent_level)
+        };
         let vertices = chunk.generate_vertices(&gen, parent_pos, parent_level);
-        chunk.set_need_redraw(false);
 
         let data = ComputeChunkUnloadData {
             unloaded_chunks,
@@ -179,18 +183,15 @@ pub fn unload_system(
         let scaled_player_pos = GameWorld::chunk_pos_to_level_pos(player_chunk_pos, level);
 
         let dist = (pos - scaled_player_pos).dist() as usize;
-        if dist > GameWorld::MAX_DETAILS_DIST
-            && unload_chunk(
+        if dist > GameWorld::MAX_DETAILS_DIST {
+            unload_chunk(
                 &mut commands,
                 &mut world,
                 &meta,
                 gen.clone(),
                 entity,
                 chunk.chunk.clone(),
-            )
-        {
-            // unload only one chunk per frame
-            return;
+            );
         }
     }
 }
