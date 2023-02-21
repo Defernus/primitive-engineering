@@ -24,7 +24,7 @@ pub fn process_physic_objects(
     };
 
     obj.colliders = bevy_gltf_collider::get_scene_colliders(meshes, &mut scene.world)
-        .unwrap_or_else(|_| panic!("Failed to load colliders for {}", field_name));
+        .expect(&format!("Failed to load colliders for {}", field_name));
 
     true
 }
