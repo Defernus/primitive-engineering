@@ -50,7 +50,7 @@ fn unload_chunk(
 
         world
             .remove_region(pos)
-            .expect(&format!("Chunk {:?}-{} should exists", pos, level));
+            .unwrap_or_else(|| panic!("Chunk {:?}-{} should exists", pos, level));
 
         return true;
     }

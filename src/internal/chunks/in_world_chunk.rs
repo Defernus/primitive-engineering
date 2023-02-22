@@ -68,7 +68,7 @@ impl InWorldChunk {
             Self::Loaded(chunk, _) => chunk
                 .lock()
                 .get_voxel_at(pos)
-                .expect(&format!("Pos out of bounds {:?} {:?}", pos, global_pos)),
+                .unwrap_or_else(|| panic!("Pos out of bounds {:?} {:?}", pos, global_pos)),
             Self::SubChunks(sub_chunks) => {
                 let sub_pos = Self::bound_sub_pos(pos / Chunk::HALF_SIZE);
                 let in_chunk_pos = (pos - sub_pos * Chunk::HALF_SIZE) * 2;
