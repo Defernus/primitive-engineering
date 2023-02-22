@@ -54,6 +54,7 @@ pub(self) struct SpawnObjectInp {
     amount: usize,
     allow_air: bool,
     get_spawner: Box<dyn FnMut(Transform) -> ObjectSpawner>,
+    offset: Vec3,
 }
 
 impl Default for SpawnObjectInp {
@@ -63,6 +64,7 @@ impl Default for SpawnObjectInp {
             amount: 1,
             allow_air: false,
             get_spawner: Box::new(|_| panic!("no spawner set")),
+            offset: Vec3::ZERO,
         }
     }
 }
@@ -88,7 +90,7 @@ pub(self) fn spawn_object(
         ) {
             spawned += 1;
 
-            let mut transform = Transform::from_translation(pos + Vec3::Y * 0.1);
+            let mut transform = Transform::from_translation(pos + inp.offset);
             transform.rotate_y(y_angle);
             let spawner = inp.get_spawner.as_mut()(transform);
             let name = Name::new(format!("object_spawner:{}", spawner.id()));

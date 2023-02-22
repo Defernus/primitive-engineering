@@ -70,12 +70,14 @@ impl Biome for TundraBiome {
                     amount: 1,
                     chance: 0.05,
                     get_spawner: Box::new(|t| SpruceObject::WITH_SNOW.clone().get_spawner(t)),
+                    offset: Vec3::ZERO,
                 },
                 SpawnObjectInp {
                     allow_air: false,
                     amount: 1,
                     chance: 0.075,
                     get_spawner: Box::new(|t| BranchItem.get_spawner(t)),
+                    offset: Vec3::Y * 0.1,
                 },
             ],
         )

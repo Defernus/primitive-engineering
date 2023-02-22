@@ -10,6 +10,7 @@ use std::{any::Any, fmt::Debug};
 
 pub mod cactus;
 pub mod fire;
+pub mod flax;
 pub mod items;
 pub mod spruce;
 pub mod tree;

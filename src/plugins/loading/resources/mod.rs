@@ -18,6 +18,7 @@ pub struct GameAssets {
     pub pointer_mesh: Handle<Mesh>,
     pub craft_zone_mesh: Handle<Mesh>,
 
+    pub flax_object: PhysicsObject,
     pub tree_object: PhysicsObject,
     pub branch_object: PhysicsObject,
     pub rock_object: PhysicsObject,

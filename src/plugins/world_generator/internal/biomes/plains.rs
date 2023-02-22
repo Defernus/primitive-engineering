@@ -3,6 +3,7 @@ use crate::{
     internal::{pos::ChunkPos, voxel::voxel_types::VoxelId},
     plugins::{
         objects::components::{
+            flax::FlaxObject,
             items::{branch::BranchItem, rock::RockItem},
             tree::TreeObject,
             GameWorldObjectTrait,
@@ -71,21 +72,31 @@ impl Biome for PlainsBiome {
             vec![
                 SpawnObjectInp {
                     allow_air: false,
+                    amount: 2,
+                    chance: 0.2,
+                    get_spawner: Box::new(|t| FlaxObject.get_spawner(t)),
+                    offset: Vec3::ZERO,
+                },
+                SpawnObjectInp {
+                    allow_air: false,
                     amount: 1,
                     chance: 0.05,
                     get_spawner: Box::new(|t| TreeObject.get_spawner(t)),
+                    offset: Vec3::ZERO,
                 },
                 SpawnObjectInp {
                     allow_air: false,
                     amount: 1,
                     chance: 0.15,
                     get_spawner: Box::new(|t| BranchItem.get_spawner(t)),
+                    offset: Vec3::Y * 0.1,
                 },
                 SpawnObjectInp {
                     allow_air: false,
                     amount: 1,
                     chance: 0.125,
                     get_spawner: Box::new(|t| RockItem.get_spawner(t)),
+                    offset: Vec3::Y * 0.1,
                 },
             ],
         )

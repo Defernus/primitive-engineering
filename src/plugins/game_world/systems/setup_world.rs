@@ -4,7 +4,7 @@ use bevy::prelude::*;
 pub fn setup_world(mut commands: Commands) {
     commands.insert_resource(AmbientLight {
         color: Color::rgb_u8(227, 255, 255),
-        brightness: 0.4,
+        brightness: 0.7,
     });
 
     let size = 64.0;
