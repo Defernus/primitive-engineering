@@ -34,7 +34,7 @@ fn unload_chunk(
     if level == 0 {
         commands.entity(chunk_e).despawn_recursive();
         world
-            .remove_chunk(pos)
+            .remove_region(pos)
             .expect(&format!("Chunk {:?}-{} should exists", pos, level));
         return true;
     }

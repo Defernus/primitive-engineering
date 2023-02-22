@@ -147,9 +147,6 @@ impl Chunk {
                         *voxel -= strength * (1.0 - distance / radius);
                         voxel.set_modified(true);
 
-                        if !voxel.is_modified() {
-                            println!("Voxel is not modified: {:?}", voxel_pos);
-                        }
                         self.need_redraw = true;
                         self.need_save = true;
                     }

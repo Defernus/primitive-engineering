@@ -169,10 +169,29 @@ impl GameWorld {
         }
     }
 
-    fn get_chunk_path(pos: ChunkPos) -> String {
-        format!("chunks/{}_{}_{}.chunk", pos.x, pos.y, pos.z)
+    /// Get save path for region at given position
+    fn get_region_path(region_pos: ChunkPos) -> String {
+        format!(
+            "regions/{}_{}_{}/",
+            region_pos.x, region_pos.y, region_pos.z
+        )
     }
 
+    /// Get save path for chunk at given `pos` at given `level`
+    fn get_chunk_path(pos: ChunkPos, level: usize) -> String {
+        let region_pos = Self::level_pos_to_level_pos(pos, level, 0);
+
+        let region_path = Self::get_region_path(region_pos);
+
+        let in_region_pos = pos - Self::level_pos_to_level_pos(region_pos, 0, level);
+
+        format!(
+            "{}chunks/level_{}/{}_{}_{}.chunk",
+            region_path, level, in_region_pos.x, in_region_pos.y, in_region_pos.z
+        )
+    }
+
+    /// Get real subchunks of chunk at given `pos` at given `level`
     pub fn get_real_chunks(&self, pos: ChunkPos, level: usize) -> LinkedList<ChunkPointer> {
         let chunk = if let Some(c) = self.get_chunk(pos, level) {
             c
@@ -180,16 +199,29 @@ impl GameWorld {
             return LinkedList::new();
         };
 
-        chunk.get_sub_chunks(level)
+        chunk.get_real_sub_chunks(level)
     }
 
+    /// Get all loaded chunks (at any level less or equal to given `level`) of chunk at given `pos` at given `level`
+    pub fn get_all_subchunks(&self, pos: ChunkPos, level: usize) -> LinkedList<ChunkPointer> {
+        let chunk = if let Some(c) = self.get_chunk(pos, level) {
+            c
+        } else {
+            return LinkedList::new();
+        };
+
+        chunk.get_all_sub_chunks()
+    }
+
+    /// Recursively save all subchunks of chunk at given `pos` at given `level`
     pub fn save_chunks(&mut self, meta: &GameWorldMeta, pos: ChunkPos, level: usize) {
-        self.get_real_chunks(pos, level)
+        self.get_all_subchunks(pos, level)
             .into_iter()
             .for_each(|chunk| {
                 let pos = chunk.get_pos();
+                let level = chunk.get_level();
 
-                let path = Self::get_chunk_path(pos);
+                let path = Self::get_chunk_path(pos, level);
 
                 let mut chunk = chunk.lock();
 
@@ -202,16 +234,12 @@ impl GameWorld {
     }
 
     pub fn load_chunk(meta: &GameWorldMeta, pos: ChunkPos, level: usize) -> Option<Chunk> {
-        if level != Self::MAX_DETAIL_LEVEL {
-            return None;
-        }
-
-        let path = Self::get_chunk_path(pos);
+        let path = Self::get_chunk_path(pos, level);
 
         load::<Chunk>(meta, path.as_str(), true)
     }
 
-    pub fn remove_chunk(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {
+    pub fn remove_region(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {
         self.regions.remove(&pos)
     }
 

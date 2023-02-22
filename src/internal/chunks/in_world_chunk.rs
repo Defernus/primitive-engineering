@@ -125,7 +125,7 @@ impl InWorldChunk {
     }
 
     /// get all sub chunks on max detail level possible for given relative pos
-    pub fn get_sub_chunks(&self, current_level: usize) -> LinkedList<ChunkPointer> {
+    pub fn get_real_sub_chunks(&self, current_level: usize) -> LinkedList<ChunkPointer> {
         let mut result = LinkedList::new();
         match self {
             Self::Loading => LinkedList::new(),
@@ -137,7 +137,26 @@ impl InWorldChunk {
             }
             Self::SubChunks(sub_chunks) => {
                 for sub_chunk in sub_chunks {
-                    let mut sub_result = sub_chunk.get_sub_chunks(current_level + 1);
+                    let mut sub_result = sub_chunk.get_real_sub_chunks(current_level + 1);
+                    result.append(&mut sub_result);
+                }
+
+                result
+            }
+        }
+    }
+
+    pub fn get_all_sub_chunks(&self) -> LinkedList<ChunkPointer> {
+        let mut result = LinkedList::new();
+        match self {
+            Self::Loading => LinkedList::new(),
+            Self::Loaded(c, _) => {
+                result.push_back(c.clone());
+                result
+            }
+            Self::SubChunks(sub_chunks) => {
+                for sub_chunk in sub_chunks {
+                    let mut sub_result = sub_chunk.get_all_sub_chunks();
                     result.append(&mut sub_result);
                 }
 
