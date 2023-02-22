@@ -3,6 +3,7 @@ use bevy::{ecs::system::EntityCommands, prelude::*};
 use bevy_rapier3d::prelude::*;
 
 pub mod branch;
+pub mod flax_item;
 pub mod rock;
 
 #[derive(Component, Debug, Clone, Copy)]

@@ -1,6 +1,9 @@
 use crate::plugins::{
     inspector::components::InspectorDisabled,
-    objects::components::{items::branch::BranchItem, GameWorldObjectTrait},
+    objects::components::{
+        items::{branch::BranchItem, flax_item::FlaxItem},
+        GameWorldObjectTrait,
+    },
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
 use bevy::prelude::*;
@@ -18,7 +21,7 @@ pub fn spawn_item(
         let pos = camera_transform.translation + camera_transform.forward() * far;
 
         commands.spawn((
-            BranchItem.get_spawner(Transform::from_translation(pos)),
+            FlaxItem.get_spawner(Transform::from_translation(pos)),
             Name::new("player_spawned_item"),
             InspectorDisabled,
         ));

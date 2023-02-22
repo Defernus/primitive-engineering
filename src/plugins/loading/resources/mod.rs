@@ -22,6 +22,7 @@ pub struct GameAssets {
     pub tree_object: PhysicsObject,
     pub branch_object: PhysicsObject,
     pub rock_object: PhysicsObject,
+    pub flax_item_object: PhysicsObject,
     pub fire_object: PhysicsObject,
     pub cactus_object: PhysicsObject,
     pub spruce_object: PhysicsObject,
