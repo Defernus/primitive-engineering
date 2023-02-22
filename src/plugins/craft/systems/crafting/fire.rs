@@ -15,7 +15,7 @@ pub fn craft(
 ) -> bool {
     let branches = items
         .iter()
-        .filter(|(item, _)| item.0.lock().unwrap().id() == BranchItem::ID)
+        .filter(|(item, _)| item.0.id() == BranchItem::ID)
         .collect::<Vec<_>>();
 
     if branches.len() < BRANCHES_COUNT {

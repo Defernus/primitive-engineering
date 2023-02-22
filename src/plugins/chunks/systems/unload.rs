@@ -20,6 +20,7 @@ use crate::{
 use bevy::prelude::*;
 use crossbeam_channel::unbounded;
 
+/// Make chunk less detailed or unload it if it has level 0
 fn unload_chunk(
     commands: &mut Commands,
     world: &mut GameWorld,
@@ -27,15 +28,30 @@ fn unload_chunk(
     gen: WorldGenerator,
     chunk_e: Entity,
     chunk: ChunkPointer,
+    objects_q: &mut Query<(&Transform, &mut GameWorldObject, &Parent)>,
 ) -> bool {
     let level = chunk.get_level();
     let pos = chunk.get_pos();
 
     if level == 0 {
         commands.entity(chunk_e).despawn_recursive();
+        let objects = objects_q
+            .iter_mut()
+            .filter_map(|(transform, mut object, parent)| {
+                if parent.get() == chunk_e {
+                    Some(object.prepare_save(transform))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        world.save_objects(meta, pos, objects);
+
         world
             .remove_region(pos)
             .expect(&format!("Chunk {:?}-{} should exists", pos, level));
+
         return true;
     }
 
@@ -162,6 +178,7 @@ pub fn unload_system(
             Without<DetailingChunkComponent>,
         ),
     >,
+    mut objects_q: Query<(&Transform, &mut GameWorldObject, &Parent)>,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut world: ResMut<GameWorld>,
     gen: Res<WorldGenerator>,
@@ -191,6 +208,7 @@ pub fn unload_system(
                 gen.clone(),
                 entity,
                 chunk.chunk.clone(),
+                &mut objects_q,
             );
         }
     }

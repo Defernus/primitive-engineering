@@ -9,7 +9,8 @@ use crate::{
             helpers::spawn_chunk::spawn_chunk,
             resources::ChunkLoadingEnabled,
         },
-        game_world::resources::GameWorld,
+        game_world::resources::{GameWorld, GameWorldMeta},
+        inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
         player::components::PlayerComponent,
         world_generator::resources::WorldGenerator,
@@ -83,6 +84,7 @@ pub fn region_loading_system(
 
 pub fn handle_region_loaded_system(
     mut world: ResMut<GameWorld>,
+    meta: ResMut<GameWorldMeta>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
@@ -103,17 +105,28 @@ pub fn handle_region_loaded_system(
             let region_pos = chunk.get_pos();
             let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
 
-            for i in 0..GameWorld::REGION_VOLUME {
-                let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
-                gen.get_biome(chunk_pos)
-                    .spawn_objects(&biomes, chunk_pos, &mut commands, &gen);
+            if let Some(loaded_objects) = world.load_objects(&meta, region_pos) {
+                loaded_objects.into_iter().for_each(|o| {
+                    let chunk_offset = GameWorld::region_pos_to_translation(region_pos);
+                    let spawner = o.to_spawner(chunk_offset);
+                    let name = Name::new(format!("object_spawner:{}", spawner.id()));
+
+                    commands.spawn((spawner, InspectorDisabled, name));
+                });
+            } else {
+                for i in 0..GameWorld::REGION_VOLUME {
+                    let chunk_pos = ChunkPos::from_index(i, GameWorld::REGION_SIZE) + chunk_offset;
+                    gen.get_biome(chunk_pos)
+                        .spawn_objects(&biomes, chunk_pos, &mut commands, &gen);
+                }
             }
+
             spawn_chunk(
                 &mut commands,
                 &mut meshes,
                 &assets,
                 &mut world,
-                chunk,
+                chunk.clone(),
                 vertices,
             );
 

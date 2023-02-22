@@ -2,9 +2,9 @@ use crate::plugins::{
     loading::resources::{GameAssets, PhysicsObject},
     objects::components::GameWorldObjectTrait,
 };
-use std::sync::{Arc, Mutex};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct RockItem;
 
 impl RockItem {
@@ -16,8 +16,8 @@ impl GameWorldObjectTrait for RockItem {
         Self::ID
     }
 
-    fn take(&mut self) -> Arc<Mutex<dyn GameWorldObjectTrait>> {
-        Arc::new(Mutex::new(std::mem::take(self)))
+    fn take(&mut self) -> Box<dyn GameWorldObjectTrait> {
+        Box::new(std::mem::take(self))
     }
 
     fn get_model<'a>(&self, assets: &'a GameAssets) -> &'a PhysicsObject {

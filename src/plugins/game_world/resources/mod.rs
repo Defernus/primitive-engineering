@@ -3,7 +3,10 @@ use crate::{
         chunks::{in_world_chunk::InWorldChunk, pointer::ChunkPointer, Chunk},
         pos::{ChunkPos, VoxelPos},
     },
-    plugins::world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},
+    plugins::{
+        objects::components::GameWorldObjectSave,
+        world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},
+    },
 };
 use bevy::{
     prelude::*,
@@ -191,6 +194,11 @@ impl GameWorld {
         )
     }
 
+    fn get_objects_path(region_pos: ChunkPos) -> String {
+        let region_path = Self::get_region_path(region_pos);
+        format!("{}objects", region_path)
+    }
+
     /// Get real subchunks of chunk at given `pos` at given `level`
     pub fn get_real_chunks(&self, pos: ChunkPos, level: usize) -> LinkedList<ChunkPointer> {
         let chunk = if let Some(c) = self.get_chunk(pos, level) {
@@ -229,14 +237,35 @@ impl GameWorld {
 
                 chunk.set_need_save(false);
 
-                save(chunk, meta, path.as_str(), true);
+                save(chunk, meta, &path, true);
             });
     }
 
-    pub fn load_chunk(meta: &GameWorldMeta, pos: ChunkPos, level: usize) -> Option<Chunk> {
-        let path = Self::get_chunk_path(pos, level);
+    pub fn load_chunk(meta: &GameWorldMeta, region_pos: ChunkPos, level: usize) -> Option<Chunk> {
+        let path = Self::get_chunk_path(region_pos, level);
 
-        load::<Chunk>(meta, path.as_str(), true)
+        load::<Chunk>(meta, &path, true)
+    }
+
+    pub fn save_objects(
+        &self,
+        meta: &GameWorldMeta,
+        region_pos: ChunkPos,
+        objects: Vec<GameWorldObjectSave>,
+    ) {
+        let path = Self::get_objects_path(region_pos);
+
+        save(&(objects), meta, &path, true);
+    }
+
+    pub fn load_objects(
+        &self,
+        meta: &GameWorldMeta,
+        region_pos: ChunkPos,
+    ) -> Option<Vec<GameWorldObjectSave>> {
+        let path = Self::get_objects_path(region_pos);
+
+        load::<Vec<GameWorldObjectSave>>(meta, &path, true)
     }
 
     pub fn remove_region(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {

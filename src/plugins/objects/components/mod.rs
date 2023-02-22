@@ -5,11 +5,8 @@ use crate::{
 };
 use bevy::{ecs::system::EntityCommands, prelude::*};
 use bevy_rapier3d::prelude::*;
-use std::{
-    any::Any,
-    fmt::Debug,
-    sync::{Arc, Mutex},
-};
+use serde::{Deserialize, Serialize};
+use std::{any::Any, fmt::Debug};
 
 pub mod cactus;
 pub mod fire;
@@ -17,19 +14,63 @@ pub mod items;
 pub mod spruce;
 pub mod tree;
 
-#[derive(Component, Debug, Clone)]
-pub struct GameWorldObjectSpawn(pub Arc<Mutex<dyn GameWorldObjectTrait>>);
+#[derive(Component, Debug)]
+pub struct GameWorldObjectSpawn(pub Box<dyn GameWorldObjectTrait>);
 
-#[derive(Component, Debug, Clone)]
-pub struct GameWorldObject(pub Arc<Mutex<dyn GameWorldObjectTrait>>);
+#[derive(Component, Debug)]
+pub struct GameWorldObject(pub Box<dyn GameWorldObjectTrait>);
+
+impl GameWorldObject {
+    pub fn take(&mut self) -> GameWorldObject {
+        GameWorldObject(self.0.take())
+    }
+
+    pub fn prepare_save(&mut self, transform: &Transform) -> GameWorldObjectSave {
+        GameWorldObjectSave {
+            object: self.0.take(),
+            translation: transform.translation.into(),
+            rotation: transform.rotation.into(),
+            scale: transform.scale.into(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GameWorldObjectSave {
+    #[serde(with = "serde_traitobject")]
+    object: Box<dyn GameWorldObjectTrait>,
+    pub translation: (f32, f32, f32),
+    pub rotation: (f32, f32, f32, f32),
+    pub scale: (f32, f32, f32),
+}
+
+impl GameWorldObjectSave {
+    pub fn to_spawner(mut self, offset: Vec3) -> ObjectSpawner {
+        let translation = Vec3::from(self.translation) + offset;
+
+        let transform = Transform::from_translation(translation)
+            .with_rotation(Quat::from_xyzw(
+                self.rotation.0,
+                self.rotation.1,
+                self.rotation.2,
+                self.rotation.3,
+            ))
+            .with_scale(self.scale.into());
+        ObjectSpawner {
+            id: self.object.id(),
+            object: Some(self.object.take()),
+            transform,
+        }
+    }
+}
 
 /// The component that is used to spawn objects in the world.
 ///
 /// Spawn system will try to find the chunk that the object is in and spawn it there.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub struct ObjectSpawner {
     pub id: &'static str,
-    pub object: Option<Arc<Mutex<dyn GameWorldObjectTrait>>>,
+    pub object: Option<Box<dyn GameWorldObjectTrait>>,
     pub transform: Transform,
 }
 
@@ -53,9 +94,7 @@ impl ObjectSpawner {
         chunk: &ChunkPointer,
         chunk_entity: Entity,
     ) -> Option<Entity> {
-        if let Some(object) = std::mem::replace(&mut self.object, None) {
-            let mut object = object.lock().unwrap();
-
+        if let Some(mut object) = std::mem::replace(&mut self.object, None) {
             let chunk_offset = chunk.get_translation();
 
             let mut transform = self.transform;
@@ -75,11 +114,13 @@ impl ObjectSpawner {
     }
 }
 
-pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
+pub trait GameWorldObjectTrait:
+    Send + Sync + Debug + Any + serde_traitobject::Serialize + serde_traitobject::Deserialize
+{
     fn id(&self) -> &'static str;
 
     /// Replace self with empty object and return mutex
-    fn take(&mut self) -> Arc<Mutex<dyn GameWorldObjectTrait>>;
+    fn take(&mut self) -> Box<dyn GameWorldObjectTrait>;
 
     fn get_model<'a>(&self, assets: &'a GameAssets) -> &'a PhysicsObject;
 
