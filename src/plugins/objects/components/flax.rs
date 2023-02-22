@@ -19,6 +19,10 @@ impl GameWorldObjectTrait for FlaxObject {
         Box::new(std::mem::take(self))
     }
 
+    fn is_solid(&self) -> bool {
+        false
+    }
+
     fn get_model<'a>(&self, assets: &'a GameAssets) -> &'a PhysicsObject {
         &assets.flax_object
     }

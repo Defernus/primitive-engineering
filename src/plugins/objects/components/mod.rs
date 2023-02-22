@@ -141,6 +141,10 @@ pub trait GameWorldObjectTrait:
         false
     }
 
+    fn is_solid(&self) -> bool {
+        true
+    }
+
     fn spawn<'w, 's, 'a>(
         &mut self,
         commands: &'a mut Commands<'w, 's>,
@@ -156,10 +160,14 @@ pub trait GameWorldObjectTrait:
         });
         e.with_children(|parent| {
             for (collider, transform) in model.colliders.iter() {
-                parent.spawn((
+                let mut e = parent.spawn((
                     collider.clone(),
                     TransformBundle::from_transform(*transform),
                 ));
+
+                if !self.is_solid() {
+                    e.insert(Sensor);
+                }
             }
         });
 
@@ -169,7 +177,7 @@ pub trait GameWorldObjectTrait:
                 .insert(RigidBody::Dynamic)
                 .insert(Restitution::coefficient(0.7));
         } else {
-            e.insert(Name::new(format!("object:{}", self.id())));
+            e.insert((Name::new(format!("object:{}", self.id())), RigidBody::Fixed));
         }
 
         e.insert(GameWorldObject(self.take()));

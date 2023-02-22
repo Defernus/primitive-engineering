@@ -21,6 +21,7 @@ pub fn setup_player(mut commands: Commands) {
             KinematicCharacterControllerOutput::default(),
             KinematicCharacterController {
                 up: Vec3::Y,
+                filter_flags: QueryFilterFlags::default() ^ QueryFilterFlags::EXCLUDE_SENSORS,
 
                 ..Default::default()
             },
