@@ -3,7 +3,7 @@ use crate::{
     internal::{pos::ChunkPos, voxel::voxel_types::VoxelId},
     plugins::{
         objects::components::{
-            items::branch::BranchItem, spruce::SpruceObject, GameWorldObjectTrait,
+            items::branch::BranchItem, objects::spruce::SpruceObject, GameWorldObjectTrait,
         },
         world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},
     },

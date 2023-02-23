@@ -12,6 +12,7 @@ use crate::{
         game_world::resources::{meta::GameWorldMeta, GameWorld},
         inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
+        objects::resources::objects_registry::ObjectsRegistry,
         player::components::PlayerComponent,
         world_generator::resources::WorldGenerator,
     },
@@ -89,6 +90,7 @@ pub fn handle_region_loaded_system(
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,
     gen: Res<WorldGenerator>,
+    registry: Res<ObjectsRegistry>,
     tasks_q: Query<(Entity, &mut ComputeTask<ComputeChunkCreateData>)>,
 ) {
     for (task_e, ComputeTask(rx)) in tasks_q.iter() {
@@ -108,7 +110,7 @@ pub fn handle_region_loaded_system(
             if let Some(loaded_objects) = meta.load_objects(region_pos) {
                 loaded_objects.into_iter().for_each(|o| {
                     let chunk_offset = GameWorld::region_pos_to_translation(region_pos);
-                    let spawner = o.to_spawner(chunk_offset);
+                    let spawner = o.to_spawner(&registry, chunk_offset);
                     let name = Name::new(format!("object_spawner:{}", spawner.id()));
 
                     commands.spawn((spawner, InspectorDisabled, name));

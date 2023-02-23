@@ -1,7 +1,7 @@
 use crate::plugins::{
     inspector::components::InspectorDisabled,
     objects::components::{
-        fire::FireObject, items::branch::BranchItem, GameWorldObject, GameWorldObjectTrait,
+        items::branch::BranchItem, objects::fire::FireObject, GameWorldObject, GameWorldObjectTrait,
     },
 };
 use bevy::prelude::*;

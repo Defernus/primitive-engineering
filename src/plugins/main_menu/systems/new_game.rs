@@ -25,7 +25,7 @@ impl Default for NewGameLocalState {
     }
 }
 
-pub fn new_game(
+pub fn new_game_system(
     mut game_state: ResMut<State<GameState>>,
     mut generator: ResMut<WorldGenerator>,
     mut game_world_meta: ResMut<GameWorldMeta>,

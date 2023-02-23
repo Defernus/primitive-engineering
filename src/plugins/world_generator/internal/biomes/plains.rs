@@ -3,9 +3,8 @@ use crate::{
     internal::{pos::ChunkPos, voxel::voxel_types::VoxelId},
     plugins::{
         objects::components::{
-            flax::FlaxObject,
             items::{branch::BranchItem, rock::RockItem},
-            tree::TreeObject,
+            objects::{flax::FlaxObject, tree::TreeObject},
             GameWorldObjectTrait,
         },
         world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},

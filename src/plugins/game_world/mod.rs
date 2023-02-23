@@ -3,7 +3,7 @@ use self::{
     resources::{meta::GameWorldMeta, GameWorld},
     systems::{
         create_world::{start_world_creating, world_creating_progress},
-        load_world::{start_world_loading, world_loading_progress},
+        load_world::world_loading_system,
         setup_world::setup_world,
         sun_to_player::move_sun_to_player,
     },
@@ -27,10 +27,7 @@ impl Plugin for GameWorldPlugin {
             SystemSet::on_update(GameState::WorldCreating).with_system(world_creating_progress),
         )
         .add_system_set(
-            SystemSet::on_enter(GameState::WorldLoading).with_system(start_world_loading),
-        )
-        .add_system_set(
-            SystemSet::on_update(GameState::WorldLoading).with_system(world_loading_progress),
+            SystemSet::on_update(GameState::WorldLoading).with_system(world_loading_system),
         )
         .insert_resource(ClearColor(Color::rgb(0.7, 0.9, 1.0)))
         .insert_resource(DirectionalLightShadowMap { size: 16384 })

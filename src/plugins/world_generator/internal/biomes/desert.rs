@@ -2,7 +2,9 @@ use super::*;
 use crate::{
     internal::{pos::ChunkPos, voxel::voxel_types::VoxelId},
     plugins::{
-        objects::components::{cactus::CactusObject, items::rock::RockItem, GameWorldObjectTrait},
+        objects::components::{
+            items::rock::RockItem, objects::cactus::CactusObject, GameWorldObjectTrait,
+        },
         world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},
     },
 };

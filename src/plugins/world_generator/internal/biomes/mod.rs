@@ -6,7 +6,7 @@ use crate::{
     plugins::{
         game_world::resources::GameWorld,
         inspector::components::InspectorDisabled,
-        objects::components::ObjectSpawner,
+        objects::components::object_spawner::ObjectSpawner,
         world_generator::resources::{
             GenVoxelInp, LandscapeHeightInp, ObjectGeneratorID, WorldGenerator,
         },

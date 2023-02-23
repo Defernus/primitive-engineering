@@ -39,7 +39,7 @@ fn unload_chunk(
             .iter_mut()
             .filter_map(|(transform, mut object, parent)| {
                 if parent.get() == chunk_e {
-                    Some(object.prepare_save(transform))
+                    Some(object.prepare_save(transform.clone()))
                 } else {
                     None
                 }

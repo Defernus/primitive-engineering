@@ -2,7 +2,7 @@ use crate::{
     internal::{chunks::Chunk, pos::ChunkPos},
     plugins::{
         game_world::resources::GameWorld, loading::resources::GameAssets,
-        objects::components::ObjectSpawner,
+        objects::components::object_spawner::ObjectSpawner,
     },
 };
 use bevy::prelude::*;

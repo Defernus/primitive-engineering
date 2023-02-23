@@ -1,8 +1,6 @@
 use super::GameWorld;
-use crate::{
-    internal::{chunks::Chunk, pos::ChunkPos},
-    plugins::objects::components::GameWorldObjectSave,
-};
+use crate::internal::{chunks::Chunk, pos::ChunkPos};
+use crate::plugins::objects::utils::object_save::GameWorldObjectSave;
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
 use bevy_reflect::Uuid;
@@ -74,7 +72,7 @@ impl GameWorldMeta {
         } else {
             bincode::deserialize_from(reader)
         }
-        .unwrap_or_else(|_| panic!("Can't load file: {}", file_path));
+        .unwrap_or_else(|err| panic!("Can't load file {}: {}", file_path, err));
 
         Some(c)
     }
@@ -148,4 +146,43 @@ impl GameWorldMeta {
     pub fn save_self(&self) {
         self.save(self, "meta", false);
     }
+
+    pub fn get_saves() -> Vec<GameWorldMeta> {
+        let mut saves = Vec::new();
+
+        let save_dir = std::path::Path::new(Self::SAVE_DIR);
+
+        if !save_dir.exists() {
+            return saves;
+        }
+
+        for entry in fs::read_dir(save_dir).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+
+            if !path.is_dir() {
+                continue;
+            }
+
+            let meta_path = path.join("meta");
+
+            if !meta_path.exists() {
+                continue;
+            }
+
+            let file = fs::File::open(meta_path).unwrap();
+            let reader = BufReader::new(file);
+
+            let meta: GameWorldMeta = bincode::deserialize_from(reader).unwrap();
+
+            saves.push(meta);
+        }
+
+        saves
+    }
+}
+
+#[test]
+fn get_saved_worlds() {
+    println!("{:?}", GameWorldMeta::get_saves());
 }
