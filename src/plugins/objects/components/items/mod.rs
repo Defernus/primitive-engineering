@@ -3,8 +3,10 @@ use bevy::{ecs::system::EntityCommands, prelude::*};
 use bevy_rapier3d::prelude::*;
 
 pub mod branch;
+pub mod coarse_string;
 pub mod flax_item;
 pub mod rock;
+pub mod stone_axe;
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct ItemComponent;

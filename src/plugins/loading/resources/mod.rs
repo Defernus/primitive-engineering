@@ -22,11 +22,13 @@ pub struct GameAssets {
     pub tree_object: PhysicsObject,
     pub branch_object: PhysicsObject,
     pub rock_object: PhysicsObject,
+    pub coarse_string_object: PhysicsObject,
     pub flax_item_object: PhysicsObject,
     pub fire_object: PhysicsObject,
     pub cactus_object: PhysicsObject,
     pub spruce_object: PhysicsObject,
     pub spruce_snow_object: PhysicsObject,
+    pub stone_axe_object: PhysicsObject,
 
     pub crosshair_image: Handle<Image>,
 }

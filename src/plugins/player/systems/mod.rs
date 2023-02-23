@@ -43,7 +43,7 @@ pub fn setup_player(mut commands: Commands) {
                 Name::new("player:hand"),
                 PlayerHand,
                 VisibilityBundle::default(),
-                TransformBundle::from_transform(Transform::from_xyz(0.2, 0.3, -0.4)),
+                TransformBundle::from_transform(Transform::from_xyz(0.4, 0.3, -0.7)),
             ));
         });
 }
