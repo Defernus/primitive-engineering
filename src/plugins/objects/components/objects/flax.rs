@@ -1,7 +1,9 @@
 use crate::plugins::{
+    inspector::components::InspectorDisabled,
     loading::resources::{GameAssets, PhysicsObject},
-    objects::components::GameWorldObjectTrait,
+    objects::components::{items::flax_item::FlaxItem, GameWorldObject, GameWorldObjectTrait},
 };
+use bevy::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
 
 #[derive(Debug, Clone, Default, Reflect, FromReflect)]
@@ -28,6 +30,25 @@ impl GameWorldObjectTrait for FlaxObject {
         crate::plugins::objects::components::ObjectDeserializationError,
     > {
         Ok(Box::new(Self::default()))
+    }
+
+    fn on_use(
+        &mut self,
+        commands: &mut Commands,
+        _assets: &GameAssets,
+        self_entity: Entity,
+        transform: Transform,
+        _hand_item: &mut Option<(Entity, Mut<GameWorldObject>)>,
+    ) -> bool {
+        commands.spawn((
+            FlaxItem.get_spawner(transform.with_translation(transform.translation + Vec3::Y * 0.1)),
+            Name::new("flax_harvest_result"),
+            InspectorDisabled,
+        ));
+
+        commands.entity(self_entity).despawn_recursive();
+
+        true
     }
 
     fn is_solid(&self) -> bool {

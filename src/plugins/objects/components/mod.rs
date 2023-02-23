@@ -59,6 +59,17 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
         false
     }
 
+    fn on_use(
+        &mut self,
+        _commands: &mut Commands,
+        _assets: &GameAssets,
+        _self_entity: Entity,
+        _self_transform: Transform,
+        _hand_item: &mut Option<(Entity, Mut<GameWorldObject>)>,
+    ) -> bool {
+        false
+    }
+
     fn is_solid(&self) -> bool {
         true
     }
