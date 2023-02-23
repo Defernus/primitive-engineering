@@ -85,7 +85,7 @@ pub fn region_loading_system(
 
 pub fn handle_region_loaded_system(
     mut world: ResMut<GameWorld>,
-    meta: ResMut<GameWorldMeta>,
+    meta: Res<GameWorldMeta>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     assets: Res<GameAssets>,

@@ -1,4 +1,9 @@
-use crate::{plugins::game_world::resources::meta::GameWorldMeta, states::game_state::GameState};
+use crate::{
+    plugins::{
+        game_world::resources::meta::GameWorldMeta, world_generator::resources::WorldGenerator,
+    },
+    states::game_state::GameState,
+};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext};
 
@@ -14,19 +19,24 @@ impl Default for SavedWorlds {
     }
 }
 
+// expected seed 0b4380c4-b685-448c-ba55-847554c36e8e
+//               0b4380c4-b685-448c-ba55-847554c36e8e
+
 // !TODO:ui create loading progress
 pub fn load_game_system(
     mut game_state: ResMut<State<GameState>>,
     mut egui_context: ResMut<EguiContext>,
     mut saved_worlds: Local<SavedWorlds>,
-    mut meta: ResMut<GameWorldMeta>,
+    mut game_world_meta: ResMut<GameWorldMeta>,
+    mut generator: ResMut<WorldGenerator>,
 ) {
     egui::Window::new("Load world").show(egui_context.ctx_mut(), |ui| {
         ui.vertical(|ui| {
             for world in saved_worlds.worlds.iter() {
                 ui.horizontal(|ui| {
                     if ui.button("Load").clicked() {
-                        *meta = world.clone();
+                        *game_world_meta = world.clone();
+                        generator.set_seed(game_world_meta.seed);
                         game_state.set(GameState::WorldLoading).unwrap();
                     }
 

@@ -53,7 +53,8 @@ pub fn new_game_system(
                     hasher.finish()
                 });
 
-                generator.set_seed(seed as WorldSeed);
+                game_world_meta.seed = seed as WorldSeed;
+                generator.set_seed(game_world_meta.seed);
             });
 
             if ui.button("Generate world").clicked() {

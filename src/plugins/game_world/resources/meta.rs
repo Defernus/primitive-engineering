@@ -1,6 +1,7 @@
 use super::GameWorld;
 use crate::internal::{chunks::Chunk, pos::ChunkPos};
 use crate::plugins::objects::utils::object_save::GameWorldObjectSave;
+use crate::plugins::world_generator::resources::WorldSeed;
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
 use bevy_reflect::Uuid;
@@ -15,6 +16,7 @@ use std::{
 #[reflect(Resource)]
 pub struct GameWorldMeta {
     pub name: String,
+    pub seed: WorldSeed,
     pub id: String,
 }
 
