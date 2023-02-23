@@ -93,6 +93,7 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
             e.insert(ItemComponent)
                 .insert(Name::new(format!("item:{}", self.id())))
                 .insert(RigidBody::Dynamic)
+                .insert(Ccd::enabled())
                 .insert(Restitution::coefficient(0.7));
         } else {
             e.insert((Name::new(format!("object:{}", self.id())), RigidBody::Fixed));
