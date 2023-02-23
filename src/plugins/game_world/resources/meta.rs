@@ -1,17 +1,19 @@
 use super::GameWorld;
 use crate::{
     internal::{chunks::Chunk, pos::ChunkPos},
-    plugins::{
-        game_world::utils::saves::{load, save},
-        objects::components::GameWorldObjectSave,
-    },
+    plugins::objects::components::GameWorldObjectSave,
 };
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
 use bevy_reflect::Uuid;
+use serde::{Deserialize, Serialize};
 use std::borrow::BorrowMut;
+use std::{
+    fs,
+    io::{BufReader, BufWriter, Write},
+};
 
-#[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions)]
+#[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions, Serialize, Deserialize)]
 #[reflect(Resource)]
 pub struct GameWorldMeta {
     pub name: String,
@@ -22,6 +24,59 @@ impl GameWorldMeta {
     pub fn reset(&mut self) {
         self.name = "New World".to_string();
         self.id = Uuid::new_v4().to_string();
+    }
+
+    const SAVE_DIR: &str = "saves";
+
+    fn get_path(&self, path: &str) -> String {
+        format!("{}/{}/{}", Self::SAVE_DIR, self.id, path)
+    }
+
+    pub fn save<T: Serialize>(&self, data: &T, path: &str, compress: bool) {
+        let path = self.get_path(path);
+
+        let mut bytes = Vec::new();
+        {
+            let mut writer = BufWriter::new(&mut bytes);
+            bincode::serialize_into(&mut writer, data).unwrap();
+        }
+
+        let compressed = if compress {
+            let mut compressed = Vec::new();
+            zstd::stream::copy_encode(&mut &bytes[..], &mut compressed, 0).unwrap();
+            compressed
+        } else {
+            bytes
+        };
+
+        // create directory if not exists
+        let dir = std::path::Path::new(&path).parent().unwrap();
+        fs::create_dir_all(dir).unwrap();
+        let file = fs::File::create(path).unwrap();
+        let mut writer = BufWriter::new(file);
+
+        writer.write_all(&compressed).unwrap();
+    }
+
+    fn load<T: for<'de> serde::Deserialize<'de>>(&self, path: &str, compressed: bool) -> Option<T> {
+        let file_path = self.get_path(path);
+
+        let file = fs::File::open(file_path.clone()).ok()?;
+        let mut reader = BufReader::new(file);
+
+        let c = if compressed {
+            let mut decompressed = Vec::new();
+            zstd::stream::copy_decode(&mut reader, &mut decompressed).unwrap();
+
+            let reader = BufReader::new(&decompressed[..]);
+
+            bincode::deserialize_from(reader)
+        } else {
+            bincode::deserialize_from(reader)
+        }
+        .unwrap_or_else(|_| panic!("Can't load file: {}", file_path));
+
+        Some(c)
     }
 
     /// Get save path for region at given position
@@ -68,25 +123,29 @@ impl GameWorldMeta {
 
                 chunk.set_need_save(false);
 
-                save(chunk, self, &path, true);
+                self.save(chunk, &path, true);
             });
     }
 
     pub fn load_chunk(&self, region_pos: ChunkPos, level: usize) -> Option<Chunk> {
         let path = Self::get_chunk_path(region_pos, level);
 
-        load::<Chunk>(self, &path, true)
+        self.load::<Chunk>(&path, true)
     }
 
     pub fn save_objects(&self, region_pos: ChunkPos, objects: Vec<GameWorldObjectSave>) {
         let path = Self::get_objects_path(region_pos);
 
-        save(&(objects), self, &path, true);
+        self.save(&(objects), &path, true);
     }
 
     pub fn load_objects(&self, region_pos: ChunkPos) -> Option<Vec<GameWorldObjectSave>> {
         let path = Self::get_objects_path(region_pos);
 
-        load::<Vec<GameWorldObjectSave>>(self, &path, true)
+        self.load::<Vec<GameWorldObjectSave>>(&path, true)
+    }
+
+    pub fn save_self(&self) {
+        self.save(self, "meta", false);
     }
 }

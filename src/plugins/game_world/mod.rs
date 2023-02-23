@@ -14,7 +14,6 @@ use bevy::{pbr::DirectionalLightShadowMap, prelude::*};
 pub mod components;
 pub mod resources;
 mod systems;
-pub mod utils;
 
 pub struct GameWorldPlugin;
 
