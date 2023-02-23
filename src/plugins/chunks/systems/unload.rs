@@ -9,7 +9,7 @@ use crate::{
             helpers::{spawn_chunk::spawn_chunk, update_objects_parent::update_objects_parent},
             resources::ChunkLoadingEnabled,
         },
-        game_world::resources::{GameWorld, GameWorldMeta},
+        game_world::resources::{meta::GameWorldMeta, GameWorld},
         inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
         objects::components::GameWorldObject,
@@ -46,7 +46,7 @@ fn unload_chunk(
             })
             .collect::<Vec<_>>();
 
-        world.save_objects(meta, pos, objects);
+        meta.save_objects(pos, objects);
 
         world
             .remove_region(pos)
@@ -58,7 +58,7 @@ fn unload_chunk(
     let parent_pos = GameWorld::scale_down_pos(pos, 2);
     let parent_level = level - 1;
 
-    world.save_chunks(meta, parent_pos, parent_level);
+    meta.save_chunks(world, parent_pos, parent_level);
 
     let chunk_to_simplify = if let Some(chunk) = world.get_chunk_mut(parent_pos, parent_level) {
         chunk

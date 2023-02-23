@@ -1,6 +1,6 @@
 use crate::{
     plugins::{
-        game_world::resources::GameWorldMeta,
+        game_world::resources::meta::GameWorldMeta,
         world_generator::resources::{WorldGenerator, WorldSeed},
     },
     states::game_state::GameState,

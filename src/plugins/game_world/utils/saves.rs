@@ -1,10 +1,9 @@
+use crate::plugins::game_world::resources::meta::GameWorldMeta;
+use serde::Serialize;
 use std::{
     fs,
     io::{BufReader, BufWriter, Write},
 };
-
-use crate::plugins::game_world::resources::GameWorldMeta;
-use serde::Serialize;
 
 const SAVE_DIR: &str = "saves";
 

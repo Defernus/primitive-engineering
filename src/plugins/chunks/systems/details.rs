@@ -12,7 +12,7 @@ use crate::{
             helpers::{spawn_chunk::spawn_chunk, update_objects_parent::update_objects_parent},
             resources::ChunkLoadingEnabled,
         },
-        game_world::resources::{GameWorld, GameWorldMeta},
+        game_world::resources::{meta::GameWorldMeta, GameWorld},
         inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
         objects::components::GameWorldObject,
@@ -82,7 +82,8 @@ fn detail_chunk(
 
                 let level = level + 1;
 
-                let chunk = GameWorld::load_chunk(&meta, pos, level)
+                let chunk = meta
+                    .load_chunk(pos, level)
                     .unwrap_or_else(|| Chunk::generate(&gen, biomes.clone(), pos, level));
 
                 let vertices = chunk.generate_vertices(&gen, pos, level);

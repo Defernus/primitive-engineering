@@ -9,7 +9,7 @@ use crate::{
             helpers::spawn_chunk::spawn_chunk,
             resources::ChunkLoadingEnabled,
         },
-        game_world::resources::{GameWorld, GameWorldMeta},
+        game_world::resources::{meta::GameWorldMeta, GameWorld},
         inspector::components::InspectorDisabled,
         loading::resources::GameAssets,
         player::components::PlayerComponent,
@@ -105,7 +105,7 @@ pub fn handle_region_loaded_system(
             let region_pos = chunk.get_pos();
             let chunk_offset = region_pos * GameWorld::REGION_SIZE as i64;
 
-            if let Some(loaded_objects) = world.load_objects(&meta, region_pos) {
+            if let Some(loaded_objects) = meta.load_objects(region_pos) {
                 loaded_objects.into_iter().for_each(|o| {
                     let chunk_offset = GameWorld::region_pos_to_translation(region_pos);
                     let spawner = o.to_spawner(chunk_offset);

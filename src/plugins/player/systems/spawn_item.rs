@@ -1,9 +1,6 @@
 use crate::plugins::{
     inspector::components::InspectorDisabled,
-    objects::components::{
-        items::{branch::BranchItem, flax_item::FlaxItem},
-        GameWorldObjectTrait,
-    },
+    objects::components::{items::flax_item::FlaxItem, GameWorldObjectTrait},
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
 use bevy::prelude::*;

@@ -1,6 +1,6 @@
 use self::{
     components::WorldSun,
-    resources::{GameWorld, GameWorldMeta},
+    resources::{meta::GameWorldMeta, GameWorld},
     systems::{
         create_world::{start_world_creating, world_creating_progress},
         load_world::{start_world_loading, world_loading_progress},

@@ -3,34 +3,12 @@ use crate::{
         chunks::{in_world_chunk::InWorldChunk, pointer::ChunkPointer, Chunk},
         pos::{ChunkPos, VoxelPos},
     },
-    plugins::{
-        objects::components::GameWorldObjectSave,
-        world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},
-    },
+    plugins::world_generator::{internal::biomes::ChunkBiomes, resources::WorldGenerator},
 };
-use bevy::{
-    prelude::*,
-    reflect::Reflect,
-    utils::{HashMap, Uuid},
-};
-use bevy_inspector_egui::InspectorOptions;
-use std::{borrow::BorrowMut, collections::LinkedList};
+use bevy::{prelude::*, reflect::Reflect, utils::HashMap};
+use std::collections::LinkedList;
 
-use super::utils::saves::{load, save};
-
-#[derive(Resource, Debug, Clone, Reflect, Default, InspectorOptions)]
-#[reflect(Resource)]
-pub struct GameWorldMeta {
-    pub name: String,
-    pub id: String,
-}
-
-impl GameWorldMeta {
-    pub fn reset(&mut self) {
-        self.name = "New World".to_string();
-        self.id = Uuid::new_v4().to_string();
-    }
-}
+pub mod meta;
 
 #[derive(Resource, Debug, Default, Reflect, FromReflect)]
 #[reflect(Resource)]
@@ -172,33 +150,6 @@ impl GameWorld {
         }
     }
 
-    /// Get save path for region at given position
-    fn get_region_path(region_pos: ChunkPos) -> String {
-        format!(
-            "regions/{}_{}_{}/",
-            region_pos.x, region_pos.y, region_pos.z
-        )
-    }
-
-    /// Get save path for chunk at given `pos` at given `level`
-    fn get_chunk_path(pos: ChunkPos, level: usize) -> String {
-        let region_pos = Self::level_pos_to_level_pos(pos, level, 0);
-
-        let region_path = Self::get_region_path(region_pos);
-
-        let in_region_pos = pos - Self::level_pos_to_level_pos(region_pos, 0, level);
-
-        format!(
-            "{}chunks/level_{}/{}_{}_{}.chunk",
-            region_path, level, in_region_pos.x, in_region_pos.y, in_region_pos.z
-        )
-    }
-
-    fn get_objects_path(region_pos: ChunkPos) -> String {
-        let region_path = Self::get_region_path(region_pos);
-        format!("{}objects", region_path)
-    }
-
     /// Get real subchunks of chunk at given `pos` at given `level`
     pub fn get_real_chunks(&self, pos: ChunkPos, level: usize) -> LinkedList<ChunkPointer> {
         let chunk = if let Some(c) = self.get_chunk(pos, level) {
@@ -219,53 +170,6 @@ impl GameWorld {
         };
 
         chunk.get_all_sub_chunks()
-    }
-
-    /// Recursively save all subchunks of chunk at given `pos` at given `level`
-    pub fn save_chunks(&mut self, meta: &GameWorldMeta, pos: ChunkPos, level: usize) {
-        self.get_all_subchunks(pos, level)
-            .into_iter()
-            .for_each(|chunk| {
-                let pos = chunk.get_pos();
-                let level = chunk.get_level();
-
-                let path = Self::get_chunk_path(pos, level);
-
-                let mut chunk = chunk.lock();
-
-                let chunk: &mut Chunk = chunk.borrow_mut();
-
-                chunk.set_need_save(false);
-
-                save(chunk, meta, &path, true);
-            });
-    }
-
-    pub fn load_chunk(meta: &GameWorldMeta, region_pos: ChunkPos, level: usize) -> Option<Chunk> {
-        let path = Self::get_chunk_path(region_pos, level);
-
-        load::<Chunk>(meta, &path, true)
-    }
-
-    pub fn save_objects(
-        &self,
-        meta: &GameWorldMeta,
-        region_pos: ChunkPos,
-        objects: Vec<GameWorldObjectSave>,
-    ) {
-        let path = Self::get_objects_path(region_pos);
-
-        save(&(objects), meta, &path, true);
-    }
-
-    pub fn load_objects(
-        &self,
-        meta: &GameWorldMeta,
-        region_pos: ChunkPos,
-    ) -> Option<Vec<GameWorldObjectSave>> {
-        let path = Self::get_objects_path(region_pos);
-
-        load::<Vec<GameWorldObjectSave>>(meta, &path, true)
     }
 
     pub fn remove_region(&mut self, pos: ChunkPos) -> Option<(InWorldChunk, ChunkBiomes)> {
