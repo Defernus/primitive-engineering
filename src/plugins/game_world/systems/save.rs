@@ -35,6 +35,8 @@ pub fn save_system(
 ) {
     // TODO optimize this
     if timer.0.tick(time.delta()).just_finished() {
+        // TODO save objects and voxels(chunks) in parallel
+
         // saving objects
         {
             let start = std::time::Instant::now();
@@ -60,6 +62,7 @@ pub fn save_system(
 
             let count = objects_to_save.len();
 
+            // TODO add multithreading
             // save objects
             for (region_pos, objects) in objects_to_save {
                 meta.save_objects(region_pos, objects);
