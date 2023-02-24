@@ -3,7 +3,7 @@ use bevy_rapier3d::prelude::RigidBodyDisabled;
 
 use crate::{internal::chunks::pointer::ChunkPointer, plugins::loading::resources::GameAssets};
 
-use super::GameWorldObjectTrait;
+use super::{items::grab_item, GameWorldObjectTrait};
 
 #[derive(Component, Debug)]
 pub struct GameWorldObjectSpawn(pub Box<dyn GameWorldObjectTrait>);
@@ -26,6 +26,17 @@ impl ObjectSpawner {
     /// Check if object is already spawned
     pub fn is_spawned(&self) -> bool {
         self.object.is_none()
+    }
+
+    /// Spawn object to players hand
+    pub fn spawn_to_hand(&mut self, commands: &mut Commands, assets: &GameAssets, hand: Entity) {
+        if let Some(mut object) = std::mem::replace(&mut self.object, None) {
+            let object = object.spawn(commands, assets, self.transform);
+
+            grab_item(object, hand);
+        } else {
+            panic!("Object is already spawned");
+        }
     }
 
     /// Try to spawn object in the world

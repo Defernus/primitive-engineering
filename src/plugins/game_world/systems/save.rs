@@ -9,7 +9,10 @@ use crate::{
     internal::pos::ChunkPos,
     plugins::{
         game_world::resources::{meta::GameWorldMeta, GameWorld},
-        objects::{components::GameWorldObject, utils::object_save::GameWorldObjectSave},
+        objects::{
+            components::{items::ItemGrabbed, GameWorldObject},
+            utils::object_save::GameWorldObjectSave,
+        },
         player::{
             components::{save::PlayerSave, PlayerComponent, PlayerHeadComponent},
             resources::PlayerStats,
@@ -34,11 +37,12 @@ pub fn save_system(
     mut timer: Local<SaveTimer>,
     mut world: ResMut<GameWorld>,
     meta: Res<GameWorldMeta>,
-    items: Query<(&GlobalTransform, &GameWorldObject)>,
+    items: Query<(&GlobalTransform, &GameWorldObject), Without<ItemGrabbed>>,
     time: Res<Time>,
     player_stats: Res<PlayerStats>,
     player_q: Query<&PlayerComponent>,
     head_q: Query<&GlobalTransform, With<PlayerHeadComponent>>,
+    item_grabbed_q: Query<(&GameWorldObject, &Transform), With<ItemGrabbed>>,
 ) {
     if !timer.0.tick(time.delta()).just_finished() {
         return;
@@ -51,7 +55,9 @@ pub fn save_system(
         let player = player_q.single();
         let head = head_q.single();
 
-        meta.save_player(PlayerSave::new(&player_stats, player, head));
+        let hand_item = item_grabbed_q.iter().next();
+
+        meta.save_player(PlayerSave::new(&player_stats, player, head, hand_item));
     }
 
     // saving objects
