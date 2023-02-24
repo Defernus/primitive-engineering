@@ -33,7 +33,6 @@ pub fn save_system(
     items: Query<(&GlobalTransform, &GameWorldObject)>,
     time: Res<Time>,
 ) {
-    // TODO optimize this
     if timer.0.tick(time.delta()).just_finished() {
         // TODO save objects and voxels(chunks) in parallel
 
