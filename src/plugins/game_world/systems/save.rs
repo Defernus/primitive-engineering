@@ -57,7 +57,6 @@ pub fn save_system(
         }
 
         for (region_pos, objects) in items_to_save {
-            println!("Saving {} objects in {:?}", objects.len(), region_pos);
             meta.save_objects(region_pos, objects);
         }
 
