@@ -34,7 +34,7 @@ impl PlayerSave {
         let vel = player.velocity;
 
         let head_transform = head_transform.compute_transform();
-        let player_pos = head_transform.translation - Vec3::Y * HEAD_LEVEL;
+        let player_pos = head_transform.translation + Vec3::Y * HEAD_LEVEL;
 
         let player_rot: Quat = head_transform.rotation;
 

@@ -1,6 +1,6 @@
 use crate::plugins::{
     inspector::components::InspectorDisabled,
-    objects::components::{items::log::LogItem, GameWorldObjectTrait},
+    objects::components::{items::stone_axe::StoneAxeItem, GameWorldObjectTrait},
     player::{components::PlayerCameraComponent, events::SpawnItemEvent},
 };
 use bevy::prelude::*;
@@ -18,7 +18,7 @@ pub fn spawn_item(
         let pos = camera_transform.translation + camera_transform.forward() * far;
 
         commands.spawn((
-            LogItem.to_spawner(Transform::from_translation(pos)),
+            StoneAxeItem.to_spawner(Transform::from_translation(pos)),
             Name::new("player_spawned_item"),
             InspectorDisabled,
         ));

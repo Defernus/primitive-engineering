@@ -115,7 +115,7 @@ impl CraftTrait for SimpleCraft {
 /// ```
 #[macro_export]
 macro_rules! simple_craft {
-    ($id:expr, $result:expr, $(($item:ty, $count:expr)),*) => {
+    ($id:expr, $result:ty, $(($item:ty, $count:expr)),*) => {
         CraftEntry::from(SimpleCraft {
             id: $id,
             items: HashMap::<String, usize>::from([
@@ -123,7 +123,7 @@ macro_rules! simple_craft {
                     (<$item>::ID.to_string(), $count),
                 )*
             ]),
-            result: Box::new($result),
+            result: Box::new(<$result>::default()),
         })
     };
 }
