@@ -58,7 +58,20 @@ fn unload_chunk(
     let parent_pos = GameWorld::scale_down_pos(pos, 2);
     let parent_level = level - 1;
 
-    meta.save_chunks(world, parent_pos, parent_level);
+    // save subchunks
+    {
+        let start = std::time::Instant::now();
+        let saved_chunks_count = meta.save_chunks(world, parent_pos, parent_level);
+        if saved_chunks_count > 0 {
+            info!(
+                "Saved {} chunks at {:?}-{} in {}ms",
+                saved_chunks_count,
+                parent_pos,
+                parent_level,
+                start.elapsed().as_millis()
+            );
+        }
+    }
 
     let chunk_to_simplify = if let Some(chunk) = world.get_chunk_mut(parent_pos, parent_level) {
         chunk

@@ -1,12 +1,15 @@
 use super::GameWorld;
+use crate::internal::chunks::pointer::ChunkPointer;
 use crate::internal::{chunks::Chunk, pos::ChunkPos};
 use crate::plugins::objects::utils::object_save::GameWorldObjectSave;
 use crate::plugins::world_generator::resources::WorldSeed;
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
 use bevy_reflect::Uuid;
+use pariter::IteratorExt;
 use serde::{Deserialize, Serialize};
 use std::borrow::BorrowMut;
+use std::collections::LinkedList;
 use std::{
     fs,
     io::{BufReader, BufWriter, Write},
@@ -106,38 +109,68 @@ impl GameWorldMeta {
         format!("{}objects", region_path)
     }
 
-    pub fn save_all_chunks(&self, world: &mut GameWorld) {
-        // TODO multithreaded saving
-        for pos in world.get_all_regions() {
-            for i in 0..8 {
-                let sub_pos = ChunkPos::from_index(i, 2);
+    fn save_chunk(&self, chunk: ChunkPointer) -> bool {
+        let pos = chunk.get_pos();
+        let level = chunk.get_level();
 
-                let pos = pos * 2 + sub_pos;
+        let path = Self::get_chunk_path(pos, level);
 
-                self.save_chunks(world, pos, 1);
-            }
+        let mut chunk = chunk.lock();
+
+        if !chunk.is_need_save() {
+            return false;
         }
+
+        let chunk: &mut Chunk = chunk.borrow_mut();
+
+        chunk.set_need_save(false);
+
+        self.save(chunk, &path, true);
+
+        true
+    }
+
+    pub fn save_all_chunks(&self, world: &mut GameWorld) -> usize {
+        // prepare chunks for saving
+        let regions = world
+            .get_all_regions()
+            .into_iter()
+            .flat_map(|pos| {
+                let mut result = LinkedList::new();
+                for i in 0..8 {
+                    let sub_pos = ChunkPos::from_index(i, 2);
+
+                    let pos = pos.clone() * 2 + sub_pos;
+
+                    let mut sub_chunks = world.get_all_subchunks(pos, 1);
+
+                    result.append(&mut sub_chunks);
+                }
+
+                result
+            })
+            .map(|chunk| -> (ChunkPointer, Self) { (chunk, self.clone()) })
+            .collect::<Vec<_>>();
+
+        // actually save chunks in parallel
+        regions
+            .into_iter()
+            .parallel_filter(|(chunk, meta)| meta.save_chunk(chunk.clone()))
+            .count()
     }
 
     /// Recursively save all subchunks of chunk at given `pos` at given `level`
-    pub fn save_chunks(&self, world: &mut GameWorld, pos: ChunkPos, level: usize) {
-        world
+    pub fn save_chunks(&self, world: &mut GameWorld, pos: ChunkPos, level: usize) -> usize {
+        let chunks = world
             .get_all_subchunks(pos, level)
             .into_iter()
-            .for_each(|chunk| {
-                let pos = chunk.get_pos();
-                let level = chunk.get_level();
+            .map(|chunk| -> (ChunkPointer, Self) { (chunk, self.clone()) })
+            .collect::<Vec<_>>();
 
-                let path = Self::get_chunk_path(pos, level);
-
-                let mut chunk = chunk.lock();
-
-                let chunk: &mut Chunk = chunk.borrow_mut();
-
-                chunk.set_need_save(false);
-
-                self.save(chunk, &path, true);
-            });
+        chunks
+            .into_iter()
+            .parallel_filter(|(chunk, meta)| meta.save_chunk(chunk.clone()))
+            .count()
     }
 
     pub fn load_chunk(&self, region_pos: ChunkPos, level: usize) -> Option<Chunk> {

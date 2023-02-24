@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-const SAVE_INTERVAL_SECS: u64 = 30;
+const SAVE_INTERVAL_SECS: u64 = 5;
 
 pub struct SaveTimer(pub Timer);
 
@@ -35,33 +35,58 @@ pub fn save_system(
 ) {
     // TODO optimize this
     if timer.0.tick(time.delta()).just_finished() {
-        let start = std::time::Instant::now();
+        // saving objects
+        {
+            let start = std::time::Instant::now();
 
-        // items divided by regions
-        let mut items_to_save: HashMap<ChunkPos, Vec<GameWorldObjectSave>> = HashMap::new();
+            // objects divided by regions
+            let mut objects_to_save: HashMap<ChunkPos, Vec<GameWorldObjectSave>> = HashMap::new();
 
-        // prepare items to save
-        for (transform, obj) in items.iter() {
-            let transform = transform.compute_transform();
+            // prepare objects to save
+            for (transform, obj) in items.iter() {
+                let transform = transform.compute_transform();
 
-            let region_pos = GameWorld::translation_to_region_pos(transform.translation);
+                let region_pos = GameWorld::translation_to_region_pos(transform.translation);
 
-            let objects = items_to_save
-                .entry(region_pos)
-                .or_insert_with(|| Vec::new());
+                let objects = objects_to_save
+                    .entry(region_pos)
+                    .or_insert_with(|| Vec::new());
 
-            let region_offset = GameWorld::region_pos_to_translation(region_pos);
-            let transform = transform.with_translation(transform.translation - region_offset);
+                let region_offset = GameWorld::region_pos_to_translation(region_pos);
+                let transform = transform.with_translation(transform.translation - region_offset);
 
-            objects.push(obj.to_saveable(transform));
+                objects.push(obj.to_saveable(transform));
+            }
+
+            let count = objects_to_save.len();
+
+            // save objects
+            for (region_pos, objects) in objects_to_save {
+                meta.save_objects(region_pos, objects);
+            }
+
+            if count > 0 {
+                info!(
+                    "Objects in {} regions saved in {}ms",
+                    count,
+                    start.elapsed().as_millis()
+                );
+            }
         }
 
-        for (region_pos, objects) in items_to_save {
-            meta.save_objects(region_pos, objects);
+        // saving chunks
+        {
+            let start = std::time::Instant::now();
+
+            let saved_chunks_count = meta.save_all_chunks(&mut world);
+
+            if saved_chunks_count > 0 {
+                info!(
+                    "Saved {} chunks in {}ms",
+                    saved_chunks_count,
+                    start.elapsed().as_millis()
+                );
+            }
         }
-
-        meta.save_all_chunks(&mut world);
-
-        info!("World saved in {}ms", start.elapsed().as_millis());
     }
 }
