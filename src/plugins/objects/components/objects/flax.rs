@@ -1,7 +1,10 @@
 use crate::plugins::{
     inspector::components::InspectorDisabled,
     loading::resources::{GameAssets, PhysicsObject},
-    objects::components::{items::flax_item::FlaxItem, GameWorldObject, GameWorldObjectTrait},
+    objects::components::{
+        items::flax_item::FlaxItem, GameWorldObject, GameWorldObjectTrait,
+        ObjectDeserializationError,
+    },
 };
 use bevy::prelude::*;
 use bevy_reflect::{FromReflect, Reflect};
@@ -29,10 +32,8 @@ impl GameWorldObjectTrait for FlaxObject {
     fn deserialize(
         &self,
         _data: &[u8],
-    ) -> Result<
-        Box<dyn GameWorldObjectTrait>,
-        crate::plugins::objects::components::ObjectDeserializationError,
-    > {
+    ) -> Result<Box<dyn GameWorldObjectTrait>, ObjectDeserializationError> {
+        #[allow(clippy::box_default)]
         Ok(Box::new(Self::default()))
     }
 

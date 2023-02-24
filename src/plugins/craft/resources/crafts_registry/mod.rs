@@ -23,9 +23,9 @@ pub struct CraftsRegistry {
     crafts: HashMap<String, CraftEntry>,
 }
 
-pub const COARSE_STRING_CRAFT_ID: &'static str = "coarse_string";
-pub const FIRE_CRAFT_ID: &'static str = "fire";
-pub const STONE_AXE_CRAFT_ID: &'static str = "stone_axe";
+pub const COARSE_STRING_CRAFT_ID: &str = "coarse_string";
+pub const FIRE_CRAFT_ID: &str = "fire";
+pub const STONE_AXE_CRAFT_ID: &str = "stone_axe";
 
 impl CraftsRegistry {
     pub fn new() -> Self {

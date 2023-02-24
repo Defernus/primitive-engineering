@@ -1,6 +1,6 @@
 use crate::plugins::{
     loading::resources::{GameAssets, PhysicsObject},
-    objects::components::GameWorldObjectTrait,
+    objects::components::{GameWorldObjectTrait, ObjectDeserializationError},
 };
 use bevy_reflect::{FromReflect, Reflect};
 
@@ -27,10 +27,8 @@ impl GameWorldObjectTrait for CactusObject {
     fn deserialize(
         &self,
         _data: &[u8],
-    ) -> Result<
-        Box<dyn GameWorldObjectTrait>,
-        crate::plugins::objects::components::ObjectDeserializationError,
-    > {
+    ) -> Result<Box<dyn GameWorldObjectTrait>, ObjectDeserializationError> {
+        #[allow(clippy::box_default)]
         Ok(Box::new(Self::default()))
     }
 

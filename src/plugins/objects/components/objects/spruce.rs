@@ -1,6 +1,6 @@
 use crate::plugins::{
     loading::resources::{GameAssets, PhysicsObject},
-    objects::components::GameWorldObjectTrait,
+    objects::components::{GameWorldObjectTrait, ObjectDeserializationError},
 };
 use bevy_reflect::{FromReflect, Reflect};
 
@@ -31,12 +31,9 @@ impl GameWorldObjectTrait for SpruceObject {
     fn deserialize(
         &self,
         data: &[u8],
-    ) -> Result<
-        Box<dyn GameWorldObjectTrait>,
-        crate::plugins::objects::components::ObjectDeserializationError,
-    > {
+    ) -> Result<Box<dyn GameWorldObjectTrait>, ObjectDeserializationError> {
         let r = Self {
-            snow: data.len() > 0 && data[0] != 0,
+            snow: !data.is_empty() && data[0] != 0,
         };
         Ok(Box::new(r))
     }

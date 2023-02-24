@@ -83,6 +83,7 @@ pub fn region_loading_system(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn handle_region_loaded_system(
     mut world: ResMut<GameWorld>,
     meta: Res<GameWorldMeta>,

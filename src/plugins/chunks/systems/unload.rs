@@ -39,7 +39,7 @@ fn unload_chunk(
             .iter_mut()
             .filter_map(|(transform, mut object, parent)| {
                 if parent.get() == chunk_e {
-                    Some(object.prepare_save(transform.clone()))
+                    Some(object.prepare_save(*transform))
                 } else {
                     None
                 }
@@ -169,6 +169,7 @@ pub fn handle_unload_task_system(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn unload_system(
     mut commands: Commands,
     chunk_q: Query<

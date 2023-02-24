@@ -72,11 +72,7 @@ impl Voxel {
     }
 
     pub fn is_empty(&self) -> bool {
-        if let Self::Empty(_) = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::Empty(_))
     }
 
     /// Returns the voxel id

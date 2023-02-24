@@ -33,6 +33,7 @@ pub fn setup_craft_zone(
     });
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn craft_zone(
     mut commands: Commands,
     mut zone_q: Query<(&mut Visibility, &mut Transform), With<CraftZoneComponent>>,

@@ -54,9 +54,9 @@ impl Chunk {
     ) -> Self {
         let mut chunk = Self::generate(gen, biomes, pos, level);
 
-        for i in 0..Self::VOLUME_VOXELS {
-            if voxels[i].is_modified() {
-                chunk.voxels[i] = voxels[i];
+        for (i, voxel) in voxels.iter().enumerate() {
+            if voxel.is_modified() {
+                chunk.voxels[i] = *voxel;
             }
         }
 

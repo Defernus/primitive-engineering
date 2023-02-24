@@ -26,18 +26,16 @@ pub fn use_grab_system(
     for _ in use_place_grab_e.iter() {
         let look_at = look_at
             .target
-            .map(|entity| match colliders_q.get(entity) {
+            .and_then(|entity| match colliders_q.get(entity) {
                 Ok(parent) => Some(parent.get()),
                 Err(_) => None,
-            })
-            .flatten();
+            });
 
         let mut hand_item = item_grabbed_q.iter_mut().next();
 
         // try to use object
-        if let Some((obj, obj_entity)) = look_at
-            .map(|entity| Some((object_q.get_mut(entity).ok()?, entity)))
-            .flatten()
+        if let Some((obj, obj_entity)) =
+            look_at.and_then(|entity| Some((object_q.get_mut(entity).ok()?, entity)))
         {
             let (mut obj, transform) = obj;
 

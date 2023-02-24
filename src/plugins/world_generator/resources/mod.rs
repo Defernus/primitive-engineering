@@ -259,6 +259,7 @@ impl WorldGenerator {
     /// - `allow_air`: if true, objects can spawn in the air, otherwise the placement will be skipped for air voxels
     ///
     /// The number is used to generate multiple objects in the same chunk.
+    #[allow(clippy::too_many_arguments)]
     pub fn get_ground_object_pos(
         &self,
         biomes: &ChunkBiomes,

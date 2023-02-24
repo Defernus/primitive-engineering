@@ -86,9 +86,9 @@ impl InWorldChunk {
 
         let mut voxels = vec![Voxel::default(); Chunk::VOLUME_VOXELS];
 
-        for i in 0..Chunk::VOLUME_VOXELS {
+        for (i, voxel) in voxels.iter_mut().enumerate() {
             let pos = VoxelPos::from_index(i, Chunk::SIZE_VOXELS);
-            voxels[i] = self.get_voxel(pos, pos);
+            *voxel = self.get_voxel(pos, pos);
         }
 
         Some(voxels)
