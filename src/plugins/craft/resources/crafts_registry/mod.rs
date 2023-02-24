@@ -36,7 +36,7 @@ impl CraftsRegistry {
         result.register(simple_craft!(
             COARSE_STRING_CRAFT_ID,
             CoarseStringItem,
-            (FlaxItem, 1)
+            (FlaxItem, 2)
         ));
 
         result.register(simple_craft!(
