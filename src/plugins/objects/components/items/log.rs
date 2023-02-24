@@ -1,0 +1,41 @@
+use crate::plugins::{
+    loading::resources::{GameAssets, PhysicsObject},
+    objects::components::{GameWorldObjectTrait, ObjectDeserializationError},
+};
+
+#[derive(Debug, Default, Clone)]
+pub struct LogItem;
+
+impl LogItem {
+    pub const ID: &str = "log";
+}
+
+impl GameWorldObjectTrait for LogItem {
+    fn id(&self) -> &'static str {
+        Self::ID
+    }
+
+    fn take(&mut self) -> Box<dyn GameWorldObjectTrait> {
+        Box::new(std::mem::take(self))
+    }
+
+    fn get_clone(&self) -> Box<dyn GameWorldObjectTrait> {
+        Box::new(self.clone())
+    }
+
+    fn deserialize(
+        &self,
+        _data: &[u8],
+    ) -> Result<Box<dyn GameWorldObjectTrait>, ObjectDeserializationError> {
+        #[allow(clippy::box_default)]
+        Ok(Box::new(Self::default()))
+    }
+
+    fn get_model<'a>(&self, assets: &'a GameAssets) -> &'a PhysicsObject {
+        &assets.log_object
+    }
+
+    fn is_item(&self) -> bool {
+        true
+    }
+}

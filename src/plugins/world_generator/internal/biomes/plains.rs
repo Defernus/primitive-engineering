@@ -4,7 +4,7 @@ use crate::{
     plugins::{
         objects::components::{
             items::{branch::BranchItem, rock::RockItem},
-            objects::{flax::FlaxObject, stump::StumpObject, tree::TreeObject},
+            objects::{flax::FlaxObject, tree::TreeObject},
             GameWorldObjectTrait,
         },
         world_generator::resources::{GenCaveInp, GenVoxelInp, LandscapeHeightInp, WorldGenerator},
