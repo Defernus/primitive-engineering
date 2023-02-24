@@ -24,14 +24,25 @@ impl GameWorldObjectTrait for SpruceObject {
         Box::new(std::mem::take(self))
     }
 
+    fn get_clone(&self) -> Box<dyn GameWorldObjectTrait> {
+        Box::new(self.clone())
+    }
+
     fn deserialize(
         &self,
-        _data: &[u8],
+        data: &[u8],
     ) -> Result<
         Box<dyn GameWorldObjectTrait>,
         crate::plugins::objects::components::ObjectDeserializationError,
     > {
-        Ok(Box::new(Self::default()))
+        let r = Self {
+            snow: data.len() > 0 && data[0] != 0,
+        };
+        Ok(Box::new(r))
+    }
+
+    fn serialize(&self) -> Vec<u8> {
+        vec![self.snow as u8]
     }
 
     fn get_model<'a>(&self, assets: &'a GameAssets) -> &'a PhysicsObject {

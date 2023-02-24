@@ -18,7 +18,7 @@ pub fn spawn_item(
         let pos = camera_transform.translation + camera_transform.forward() * far;
 
         commands.spawn((
-            StoneAxeItem.get_spawner(Transform::from_translation(pos)),
+            StoneAxeItem.to_spawner(Transform::from_translation(pos)),
             Name::new("player_spawned_item"),
             InspectorDisabled,
         ));

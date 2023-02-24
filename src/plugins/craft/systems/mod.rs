@@ -1,15 +1,16 @@
-use super::components::CraftZoneComponent;
+use super::{components::CraftZoneComponent, resources::crafts_registry::CraftsRegistry};
 use crate::plugins::{
-    craft::{resources::CRAFT_ZONE_RADIUS, systems::crafting::try_craft},
+    craft::resources::CRAFT_ZONE_RADIUS,
     loading::resources::GameAssets,
-    objects::components::{items::ItemComponent, GameWorldObject},
+    objects::components::{
+        items::{ItemComponent, ItemGrabbed},
+        GameWorldObject,
+    },
     player::{
         components::PlayerCameraComponent, events::CraftEvent, resources::look_at::PlayerLookAt,
     },
 };
 use bevy::prelude::*;
-
-pub mod crafting;
 
 pub fn setup_craft_zone(
     mut commands: Commands,
@@ -36,8 +37,14 @@ pub fn craft_zone(
     mut commands: Commands,
     mut zone_q: Query<(&mut Visibility, &mut Transform), With<CraftZoneComponent>>,
     mut craft_e: EventReader<CraftEvent>,
-    items_q: Query<(&GlobalTransform, &GameWorldObject, Entity), With<ItemComponent>>,
+    mut item_grabbed_q: Query<(Entity, &mut GameWorldObject), With<ItemGrabbed>>,
+    mut items_q: Query<
+        (&GlobalTransform, &mut GameWorldObject, Entity),
+        (With<ItemComponent>, Without<ItemGrabbed>),
+    >,
     look_at: Res<PlayerLookAt>,
+    registry: Res<CraftsRegistry>,
+    assets: Res<GameAssets>,
 ) {
     if look_at.target.is_some() {
         let (mut visibility, mut transform) = zone_q.single_mut();
@@ -47,20 +54,31 @@ pub fn craft_zone(
         let craft_center = look_at.position;
 
         for _ in craft_e.iter() {
-            let items = items_q
-                .iter()
+            // Prepare items in craft zone
+            let mut items = items_q
+                .iter_mut()
                 .filter_map(|(transform, item, e)| {
                     let pos = transform.compute_transform().translation;
                     let dist = (pos - craft_center).length_squared();
                     if dist < CRAFT_ZONE_RADIUS * CRAFT_ZONE_RADIUS {
-                        Some((item, e))
+                        Some((e, item))
                     } else {
                         None
                     }
                 })
                 .collect::<Vec<_>>();
 
-            try_craft(craft_center, &mut commands, items);
+            // Get hand item
+            let mut hand_item = item_grabbed_q.iter_mut().next();
+
+            // Try to craft
+            registry.try_craft(
+                &mut commands,
+                &assets,
+                craft_center,
+                &mut hand_item,
+                &mut items,
+            );
         }
     } else {
         let (mut visibility, _) = zone_q.single_mut();

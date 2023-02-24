@@ -9,34 +9,26 @@ use crate::plugins::objects::components::{
     },
     GameWorldObjectTrait,
 };
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use std::sync::Arc;
 
-#[derive(Debug, Clone, Reflect, FromReflect)]
+#[derive(Debug, Default, Clone, Reflect, FromReflect)]
 pub struct ObjectRegistryEntry {
-    id: String,
     #[reflect(ignore)]
     object: Option<Arc<dyn GameWorldObjectTrait>>,
-}
-
-impl Default for ObjectRegistryEntry {
-    fn default() -> Self {
-        Self {
-            id: "none".to_string(),
-            object: None,
-        }
-    }
 }
 
 #[derive(Resource, Default, Debug, Clone, Reflect, FromReflect)]
 #[reflect(Resource)]
 pub struct ObjectsRegistry {
-    objects: Vec<ObjectRegistryEntry>,
+    objects: HashMap<String, ObjectRegistryEntry>,
 }
 
 impl ObjectsRegistry {
     pub fn new() -> Self {
-        let mut result = Self { objects: vec![] };
+        let mut result = Self {
+            objects: HashMap::new(),
+        };
 
         result.register(TreeObject::default());
         result.register(FireObject::default());
@@ -54,10 +46,12 @@ impl ObjectsRegistry {
     }
 
     pub fn register(&mut self, object: impl GameWorldObjectTrait) {
-        self.objects.push(ObjectRegistryEntry {
-            id: object.id().to_string(),
-            object: Some(Arc::new(object)),
-        });
+        self.objects.insert(
+            object.id().to_string(),
+            ObjectRegistryEntry {
+                object: Some(Arc::new(object)),
+            },
+        );
     }
 
     pub fn deserialize_object(
@@ -65,9 +59,7 @@ impl ObjectsRegistry {
         id: &str,
         data: &[u8],
     ) -> Option<Box<dyn GameWorldObjectTrait>> {
-        let entry = self.objects.iter().find(|o| o.id == id)?;
-
-        let object = entry.object.clone()?;
+        let object = self.objects.get(id)?.object.clone()?;
 
         Some(object.deserialize(data).unwrap())
     }

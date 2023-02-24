@@ -20,6 +20,10 @@ impl GameWorldObjectTrait for TreeObject {
         Box::new(std::mem::take(self))
     }
 
+    fn get_clone(&self) -> Box<dyn GameWorldObjectTrait> {
+        Box::new(self.clone())
+    }
+
     fn deserialize(
         &self,
         _data: &[u8],

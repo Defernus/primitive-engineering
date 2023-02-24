@@ -47,13 +47,29 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
     fn insert(&self, _e: &mut EntityCommands) {}
 
     /// Create object spawn and take self
-    fn get_spawner(&mut self, transform: Transform) -> ObjectSpawner {
+    fn to_spawner(&mut self, transform: Transform) -> ObjectSpawner {
         ObjectSpawner {
             id: self.id().to_string(),
             object: Some(self.take()),
             transform,
         }
     }
+
+    /// Clone self and create object spawn
+    ///
+    /// NOTE: Should only be used on template objects (like in a registry)
+    fn create_spawner(&self, transform: Transform) -> ObjectSpawner {
+        ObjectSpawner {
+            id: self.id().to_string(),
+            object: Some(self.get_clone()),
+            transform,
+        }
+    }
+
+    /// Clone self
+    ///
+    /// NOTE: Should only be used on template objects (like in a registry)
+    fn get_clone(&self) -> Box<dyn GameWorldObjectTrait>;
 
     fn is_item(&self) -> bool {
         false

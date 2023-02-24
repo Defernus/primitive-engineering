@@ -22,6 +22,10 @@ impl GameWorldObjectTrait for FlaxObject {
         Box::new(std::mem::take(self))
     }
 
+    fn get_clone(&self) -> Box<dyn GameWorldObjectTrait> {
+        Box::new(self.clone())
+    }
+
     fn deserialize(
         &self,
         _data: &[u8],
@@ -41,7 +45,7 @@ impl GameWorldObjectTrait for FlaxObject {
         _hand_item: &mut Option<(Entity, Mut<GameWorldObject>)>,
     ) -> bool {
         commands.spawn((
-            FlaxItem.get_spawner(transform.with_translation(transform.translation + Vec3::Y * 0.1)),
+            FlaxItem.to_spawner(transform.with_translation(transform.translation + Vec3::Y * 0.1)),
             Name::new("flax_harvest_result"),
             InspectorDisabled,
         ));
