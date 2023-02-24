@@ -89,10 +89,10 @@ pub fn player_walk_movement(
         };
 
     let dt = time.delta_seconds().clamp(0.0, 0.1);
-    player.speed += world_physics_config.gravity * dt;
+    player.velocity += world_physics_config.gravity * dt;
 
     if controller_output.grounded {
-        player.speed /= 1. + settings.friction_factor * dt;
+        player.velocity /= 1. + settings.friction_factor * dt;
     }
 
     let speed = if controller_output.grounded {
@@ -121,15 +121,15 @@ pub fn player_walk_movement(
         speed_dir += right;
     }
 
-    player.speed += speed_dir.normalize_or_zero() * speed;
+    player.velocity += speed_dir.normalize_or_zero() * speed;
 
     for _ in jump_e.iter() {
         if controller_output.grounded {
-            player.speed.y += settings.jump_speed;
+            player.velocity.y += settings.jump_speed;
         }
     }
 
-    controller.translation = Some(player.speed * dt);
+    controller.translation = Some(player.velocity * dt);
 }
 
 pub fn toggle_movement_mode(

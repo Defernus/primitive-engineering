@@ -1,17 +1,20 @@
 use bevy::prelude::*;
+use serde::{Deserialize, Serialize};
 
 pub mod input_settings;
 pub mod look_at;
 
 pub const PLAYER_ACCESS_RADIUS: f32 = 6.0;
 
-#[derive(Resource, Reflect, FromReflect, PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(
+    Resource, Reflect, FromReflect, PartialEq, Eq, Debug, Clone, Copy, Serialize, Deserialize,
+)]
 pub enum PlayerMovementMode {
     Fly,
     Walk,
 }
 
-#[derive(Resource, Reflect, FromReflect)]
+#[derive(Resource, Clone, Debug, Reflect, FromReflect, Serialize, Deserialize)]
 #[reflect(Resource)]
 pub struct PlayerStats {
     pub sensitivity: f32,

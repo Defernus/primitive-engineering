@@ -37,7 +37,7 @@ impl Plugin for PlayerPlugin {
             .insert_resource(PlayerStats::default())
             .insert_resource(PlayerLookAt::default())
             .insert_resource(PlayerInputSettings::default())
-            .add_startup_system(setup_player)
+            .add_startup_system(setup_player_system)
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(player_fly_movement)

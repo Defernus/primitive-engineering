@@ -1,4 +1,4 @@
-use super::components::{PlayerCameraComponent, PlayerComponent, PlayerHand};
+use super::components::{PlayerCameraComponent, PlayerComponent, PlayerHand, PlayerHeadComponent};
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
@@ -9,7 +9,9 @@ pub mod look_at;
 pub mod movements;
 pub mod spawn_item;
 
-pub fn setup_player(mut commands: Commands) {
+pub const HEAD_LEVEL: f32 = 0.75;
+
+pub fn setup_player_system(mut commands: Commands) {
     commands
         .spawn((
             Name::new("player"),
@@ -31,9 +33,10 @@ pub fn setup_player(mut commands: Commands) {
             parent.spawn((
                 Name::new("player:camera"),
                 PlayerCameraComponent,
+                PlayerHeadComponent,
                 VisibilityBundle::default(),
                 Camera3dBundle {
-                    transform: Transform::from_xyz(0.0, 0.75, 0.0),
+                    transform: Transform::from_xyz(0.0, HEAD_LEVEL, 0.0),
                     ..Default::default()
                 },
             ));

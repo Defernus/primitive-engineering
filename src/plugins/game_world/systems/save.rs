@@ -10,6 +10,10 @@ use crate::{
     plugins::{
         game_world::resources::{meta::GameWorldMeta, GameWorld},
         objects::{components::GameWorldObject, utils::object_save::GameWorldObjectSave},
+        player::{
+            components::{save::PlayerSave, PlayerComponent, PlayerHeadComponent},
+            resources::PlayerStats,
+        },
     },
 };
 
@@ -32,63 +36,76 @@ pub fn save_system(
     meta: Res<GameWorldMeta>,
     items: Query<(&GlobalTransform, &GameWorldObject)>,
     time: Res<Time>,
+    player_stats: Res<PlayerStats>,
+    player_q: Query<&PlayerComponent>,
+    head_q: Query<&GlobalTransform, With<PlayerHeadComponent>>,
 ) {
-    if timer.0.tick(time.delta()).just_finished() {
-        // TODO save objects and voxels(chunks) in parallel
+    if !timer.0.tick(time.delta()).just_finished() {
+        return;
+    }
 
-        // saving objects
-        {
-            let start = std::time::Instant::now();
+    // TODO save in parallel
 
-            // objects divided by regions
-            let mut objects_to_save: HashMap<ChunkPos, Vec<GameWorldObjectSave>> = HashMap::new();
+    // saving player data
+    {
+        let player = player_q.single();
+        let head = head_q.single();
 
-            // prepare objects to save
-            for (transform, obj) in items.iter() {
-                let transform = transform.compute_transform();
+        meta.save_player(PlayerSave::new(&player_stats, player, head));
+    }
 
-                let region_pos = GameWorld::translation_to_region_pos(transform.translation);
+    // saving objects
+    {
+        let start = std::time::Instant::now();
 
-                let objects = objects_to_save
-                    .entry(region_pos)
-                    .or_insert_with(|| Vec::new());
+        // objects divided by regions
+        let mut objects_to_save: HashMap<ChunkPos, Vec<GameWorldObjectSave>> = HashMap::new();
 
-                let region_offset = GameWorld::region_pos_to_translation(region_pos);
-                let transform = transform.with_translation(transform.translation - region_offset);
+        // prepare objects to save
+        for (transform, obj) in items.iter() {
+            let transform = transform.compute_transform();
 
-                objects.push(obj.to_saveable(transform));
-            }
+            let region_pos = GameWorld::translation_to_region_pos(transform.translation);
 
-            let count = objects_to_save.len();
+            let objects = objects_to_save
+                .entry(region_pos)
+                .or_insert_with(|| Vec::new());
 
-            // TODO add multithreading
-            // save objects
-            for (region_pos, objects) in objects_to_save {
-                meta.save_objects(region_pos, objects);
-            }
+            let region_offset = GameWorld::region_pos_to_translation(region_pos);
+            let transform = transform.with_translation(transform.translation - region_offset);
 
-            if count > 0 {
-                info!(
-                    "Objects in {} regions saved in {}ms",
-                    count,
-                    start.elapsed().as_millis()
-                );
-            }
+            objects.push(obj.to_saveable(transform));
         }
 
-        // saving chunks
-        {
-            let start = std::time::Instant::now();
+        let count = objects_to_save.len();
 
-            let saved_chunks_count = meta.save_all_chunks(&mut world);
+        // TODO add multithreading
+        // save objects
+        for (region_pos, objects) in objects_to_save {
+            meta.save_objects(region_pos, objects);
+        }
 
-            if saved_chunks_count > 0 {
-                info!(
-                    "Saved {} chunks in {}ms",
-                    saved_chunks_count,
-                    start.elapsed().as_millis()
-                );
-            }
+        if count > 0 {
+            info!(
+                "Objects in {} regions saved in {}ms",
+                count,
+                start.elapsed().as_millis()
+            );
+        }
+    }
+
+    // saving chunks
+    {
+        let start = std::time::Instant::now();
+
+        let saved_chunks_count = meta.save_all_chunks(&mut world);
+
+        if saved_chunks_count > 0 {
+            info!(
+                "Saved {} chunks in {}ms",
+                saved_chunks_count,
+                start.elapsed().as_millis()
+            );
         }
     }
 }

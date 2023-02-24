@@ -2,6 +2,7 @@ use super::GameWorld;
 use crate::internal::chunks::pointer::ChunkPointer;
 use crate::internal::{chunks::Chunk, pos::ChunkPos};
 use crate::plugins::objects::utils::object_save::GameWorldObjectSave;
+use crate::plugins::player::components::save::PlayerSave;
 use crate::plugins::world_generator::resources::WorldSeed;
 use bevy::prelude::*;
 use bevy_inspector_egui::InspectorOptions;
@@ -227,6 +228,14 @@ impl GameWorldMeta {
         }
 
         saves
+    }
+
+    pub fn save_player(&self, player: PlayerSave) {
+        self.save(&player, "player", false);
+    }
+
+    pub fn load_player(&self) -> Option<PlayerSave> {
+        self.load::<PlayerSave>("player", false)
     }
 }
 
