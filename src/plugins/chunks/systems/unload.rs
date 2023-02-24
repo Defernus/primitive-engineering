@@ -28,7 +28,7 @@ fn unload_chunk(
     gen: WorldGenerator,
     chunk_e: Entity,
     chunk: ChunkPointer,
-    objects_q: &mut Query<(&Transform, &mut GameWorldObject, &Parent)>,
+    objects_q: &Query<(&Transform, &GameWorldObject, &Parent)>,
 ) -> bool {
     let level = chunk.get_level();
     let pos = chunk.get_pos();
@@ -36,10 +36,10 @@ fn unload_chunk(
     if level == 0 {
         commands.entity(chunk_e).despawn_recursive();
         let objects = objects_q
-            .iter_mut()
-            .filter_map(|(transform, mut object, parent)| {
+            .iter()
+            .filter_map(|(transform, object, parent)| {
                 if parent.get() == chunk_e {
-                    Some(object.prepare_save(*transform))
+                    Some(object.to_saveable(*transform))
                 } else {
                     None
                 }
@@ -179,7 +179,7 @@ pub fn unload_system(
             Without<DetailingChunkComponent>,
         ),
     >,
-    mut objects_q: Query<(&Transform, &mut GameWorldObject, &Parent)>,
+    objects_q: Query<(&Transform, &GameWorldObject, &Parent)>,
     player_transform_q: Query<&Transform, With<PlayerComponent>>,
     mut world: ResMut<GameWorld>,
     gen: Res<WorldGenerator>,
@@ -209,7 +209,7 @@ pub fn unload_system(
                 gen.clone(),
                 entity,
                 chunk.chunk.clone(),
-                &mut objects_q,
+                &objects_q,
             );
         }
     }

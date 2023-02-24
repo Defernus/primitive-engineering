@@ -21,7 +21,7 @@ impl GameWorldObject {
         GameWorldObject(self.0.take())
     }
 
-    pub fn prepare_save(&mut self, transform: Transform) -> GameWorldObjectSave {
+    pub fn to_saveable(&self, transform: Transform) -> GameWorldObjectSave {
         GameWorldObjectSave::new(self, transform)
     }
 }

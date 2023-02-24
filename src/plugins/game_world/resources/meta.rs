@@ -106,6 +106,19 @@ impl GameWorldMeta {
         format!("{}objects", region_path)
     }
 
+    pub fn save_all_chunks(&self, world: &mut GameWorld) {
+        // TODO multithreaded saving
+        for pos in world.get_all_regions() {
+            for i in 0..8 {
+                let sub_pos = ChunkPos::from_index(i, 2);
+
+                let pos = pos * 2 + sub_pos;
+
+                self.save_chunks(world, pos, 1);
+            }
+        }
+    }
+
     /// Recursively save all subchunks of chunk at given `pos` at given `level`
     pub fn save_chunks(&self, world: &mut GameWorld, pos: ChunkPos, level: usize) {
         world

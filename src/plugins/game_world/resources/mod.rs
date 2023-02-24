@@ -36,6 +36,10 @@ impl GameWorld {
         }
     }
 
+    pub fn get_all_regions(&self) -> Vec<ChunkPos> {
+        self.regions.keys().copied().collect()
+    }
+
     pub fn update_chunk(
         &mut self,
         chunk: ChunkPointer,
@@ -87,6 +91,10 @@ impl GameWorld {
 
     pub fn region_pos_to_translation(region_pos: ChunkPos) -> Vec3 {
         Chunk::pos_to_translation(region_pos * GameWorld::REGION_SIZE as i64)
+    }
+
+    pub fn translation_to_region_pos(translation: Vec3) -> ChunkPos {
+        Chunk::vec_to_chunk_pos(translation / GameWorld::REGION_SIZE as f32)
     }
 
     pub fn get_chunk(&self, pos: ChunkPos, level: usize) -> Option<&InWorldChunk> {

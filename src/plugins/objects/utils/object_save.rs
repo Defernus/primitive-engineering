@@ -16,7 +16,7 @@ pub struct GameWorldObjectSave {
 }
 
 impl GameWorldObjectSave {
-    pub fn new(obj: &mut GameWorldObject, transform: Transform) -> Self {
+    pub fn new(obj: &GameWorldObject, transform: Transform) -> Self {
         Self {
             object_id: obj.0.id().to_string(),
             object_data: obj.0.serialize(),

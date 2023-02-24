@@ -4,6 +4,7 @@ use self::{
     systems::{
         create_world::{start_world_creating, world_creating_progress},
         load_world::world_loading_system,
+        save::save_system,
         setup_world::setup_world,
         sun_to_player::move_sun_to_player,
     },
@@ -22,7 +23,11 @@ impl Plugin for GameWorldPlugin {
         app.add_system_set(
             SystemSet::on_enter(GameState::WorldCreating).with_system(start_world_creating),
         )
-        .add_system_set(SystemSet::on_update(GameState::InGame).with_system(move_sun_to_player))
+        .add_system_set(
+            SystemSet::on_update(GameState::InGame)
+                .with_system(move_sun_to_player)
+                .with_system(save_system),
+        )
         .add_system_set(
             SystemSet::on_update(GameState::WorldCreating).with_system(world_creating_progress),
         )
