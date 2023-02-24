@@ -5,7 +5,7 @@ use crate::plugins::objects::components::{
     },
     objects::{
         cactus::CactusObject, fire::FireObject, flax::FlaxObject, spruce::SpruceObject,
-        tree::TreeObject,
+        stump::StumpObject, tree::TreeObject,
     },
     GameWorldObjectTrait,
 };
@@ -35,6 +35,7 @@ impl ObjectsRegistry {
         result.register(SpruceObject::default());
         result.register(CactusObject::default());
         result.register(FlaxObject::default());
+        result.register(StumpObject::default());
 
         result.register(FlaxItem::default());
         result.register(RockItem::default());
