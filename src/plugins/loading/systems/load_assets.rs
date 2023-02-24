@@ -52,6 +52,10 @@ pub fn load_assets(
         log_object: load_scene_with_physics("models/log.glb#Scene0", &asset_server),
         stump_object: load_scene_with_physics("models/stump.glb#Scene0", &asset_server),
         cactus_object: load_scene_with_physics("models/cactus.glb#Scene0", &asset_server),
+        wooden_shovel_object: load_scene_with_physics(
+            "models/wooden_shovel.glb#Scene0",
+            &asset_server,
+        ),
         spruce_object: load_scene_with_physics("models/spruce.glb#Scene0", &asset_server),
         spruce_snow_object: load_scene_with_physics("models/spruce-snow.glb#Scene0", &asset_server),
         flax_object: load_scene_with_physics("models/flax.glb#Scene0", &asset_server),

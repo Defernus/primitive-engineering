@@ -1,7 +1,7 @@
 use crate::plugins::objects::components::{
     items::{
         branch::BranchItem, coarse_string::CoarseStringItem, flax_item::FlaxItem, log::LogItem,
-        rock::RockItem, stone_axe::StoneAxeItem,
+        rock::RockItem, stone_axe::StoneAxeItem, wooden_shovel::WoodenShovelItem,
     },
     objects::{
         cactus::CactusObject, fire::FireObject, flax::FlaxObject, spruce::SpruceObject,
@@ -43,6 +43,7 @@ impl ObjectsRegistry {
         result.register(StoneAxeItem::default());
         result.register(CoarseStringItem::default());
         result.register(LogItem::default());
+        result.register(WoodenShovelItem::default());
 
         result
     }

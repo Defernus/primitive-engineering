@@ -8,6 +8,7 @@ pub mod flax_item;
 pub mod log;
 pub mod rock;
 pub mod stone_axe;
+pub mod wooden_shovel;
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct ItemComponent;
