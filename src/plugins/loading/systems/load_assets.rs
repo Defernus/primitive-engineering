@@ -1,7 +1,4 @@
-use crate::plugins::{
-    craft::resources::CRAFT_ZONE_RADIUS,
-    loading::resources::{GameAssets, PhysicsObject},
-};
+use crate::plugins::loading::resources::{GameAssets, PhysicsObject};
 use bevy::{asset::AssetPath, prelude::*};
 
 fn load_scene_with_physics<'a>(
@@ -41,7 +38,7 @@ pub fn load_assets(
         }),
         pointer_mesh: meshes.add(Mesh::from(shape::Cube { size: 0.2 })),
         craft_zone_mesh: meshes.add(Mesh::from(shape::Icosphere {
-            radius: CRAFT_ZONE_RADIUS,
+            radius: 0.05,
             subdivisions: 9,
         })),
 

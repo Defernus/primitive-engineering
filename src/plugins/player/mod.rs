@@ -7,6 +7,8 @@ use self::systems::{cursor::*, input::*, look::*, movements::*, spawn_item::*, *
 use crate::states::game_state::GameState;
 use bevy::prelude::*;
 
+use super::tooltip::systems::upsert::handle_upsert_tooltip_system;
+
 pub mod components;
 pub mod events;
 pub mod resources;
@@ -37,7 +39,7 @@ impl Plugin for PlayerPlugin {
             .insert_resource(PlayerStats::default())
             .insert_resource(PlayerLookAt::default())
             .insert_resource(PlayerInputSettings::default())
-            .add_startup_system(setup_player_system)
+            .add_startup_system(setup_player_system.before(handle_upsert_tooltip_system))
             .add_system_set(
                 SystemSet::on_update(GameState::InGame)
                     .with_system(player_fly_movement)

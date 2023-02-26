@@ -4,7 +4,8 @@ use primitive_engineering::{
         chunks::ChunksPlugin, craft::CraftPlugin, game_world::GameWorldPlugin,
         inspector::InspectorPlugin, loading::LoadingPlugin, main_menu::MainMenuPlugin,
         objects::ObjectsPlugin, physics::PhysicsPlugin, player::PlayerPlugin,
-        static_mesh::StaticMeshPlugin, ui::UiPlugin, world_generator::WorldGeneratorPlugin,
+        static_mesh::StaticMeshPlugin, tooltip::TooltipPlugin, ui::UiPlugin,
+        world_generator::WorldGeneratorPlugin,
     },
     states::game_state::GameState,
 };
@@ -26,5 +27,6 @@ fn main() {
         .add_plugin(PhysicsPlugin)
         .add_plugin(CraftPlugin)
         .add_plugin(UiPlugin)
+        .add_plugin(TooltipPlugin)
         .run();
 }
