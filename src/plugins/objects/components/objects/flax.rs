@@ -56,6 +56,10 @@ impl GameWorldObjectTrait for FlaxObject {
         true
     }
 
+    fn get_tooltip(&self, _hand_item: Option<&GameWorldObject>) -> String {
+        "Flax (press E to harvest)".into()
+    }
+
     fn is_solid(&self) -> bool {
         false
     }

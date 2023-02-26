@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use crate::plugins::{
-    objects::components::{GameWorldObject, GameWorldObjectTrait},
+    objects::components::{items::ItemGrabbed, GameWorldObject, GameWorldObjectTrait},
     player::{
         components::{PlayerCameraComponent, PlayerComponent},
         resources::{look_at::PlayerLookAt, PLAYER_ACCESS_RADIUS},
@@ -14,12 +14,11 @@ fn draw_tooltip(
     mut tooltip_ew: EventWriter<UpsertTooltipEvent>,
     position: Vec3,
     object: &Box<dyn GameWorldObjectTrait>,
+    hand_item: Option<&GameWorldObject>,
 ) {
-    let id = object.id();
-
     tooltip_ew.send(UpsertTooltipEvent {
         id: "loot_at".into(),
-        text: id.into(),
+        text: object.get_tooltip(hand_item),
         position,
         ..default()
     });
@@ -41,6 +40,7 @@ pub fn look_at_system(
     tooltip_ew: EventWriter<UpsertTooltipEvent>,
     parent_q: Query<&Parent>,
     object_q: Query<&GameWorldObject>,
+    hand_item_q: Query<&GameWorldObject, With<ItemGrabbed>>,
 ) {
     let player = player_q.single();
     let cam = player_camera_q.single();
@@ -66,7 +66,8 @@ pub fn look_at_system(
             .ok()
             .and_then(|parent| object_q.get(parent.get()).ok())
         {
-            draw_tooltip(tooltip_ew, look_at.position, &object.0);
+            let hand_item = hand_item_q.iter().next();
+            draw_tooltip(tooltip_ew, look_at.position, &object.0, hand_item);
         } else {
             disable_tooltip(tooltip_ew);
         }

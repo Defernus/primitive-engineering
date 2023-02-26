@@ -86,6 +86,14 @@ pub trait GameWorldObjectTrait: Send + Sync + Debug + Any {
         false
     }
 
+    fn get_tooltip(&self, _hand_item: Option<&GameWorldObject>) -> String {
+        if self.is_item() {
+            format!("{} (press E to pickup)", self.id())
+        } else {
+            self.id().to_string()
+        }
+    }
+
     fn is_solid(&self) -> bool {
         true
     }
