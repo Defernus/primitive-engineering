@@ -16,6 +16,7 @@ fn main() {
         .register_type::<GameState>()
         .add_plugin(WorldGeneratorPlugin)
         .add_plugins(DefaultPlugins)
+        .add_plugin(TooltipPlugin)
         .add_plugin(LoadingPlugin)
         .add_plugin(MainMenuPlugin)
         .add_plugin(GameWorldPlugin)
@@ -27,6 +28,5 @@ fn main() {
         .add_plugin(PhysicsPlugin)
         .add_plugin(CraftPlugin)
         .add_plugin(UiPlugin)
-        .add_plugin(TooltipPlugin)
         .run();
 }
