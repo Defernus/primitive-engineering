@@ -85,7 +85,7 @@ impl GameWorldObjectTrait for TreeObject {
     fn get_tooltip(&self, hand_item: Option<&GameWorldObject>) -> String {
         if let Some(hand_item) = hand_item {
             if hand_item.0.id() == StoneAxeItem::ID {
-                return "Tree (press E to harvest)".into();
+                return "Tree (press E to chop)".into();
             }
         }
         "Tree".into()
