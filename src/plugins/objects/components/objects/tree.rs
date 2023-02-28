@@ -4,7 +4,7 @@ use crate::plugins::{
     inspector::components::InspectorDisabled,
     loading::resources::{GameAssets, PhysicsObject},
     objects::components::{
-        items::{log::LogItem, stone_axe::StoneAxeItem},
+        items::{branch::BranchItem, log::LogItem, stone_axe::StoneAxeItem},
         GameWorldObject, GameWorldObjectTrait, ObjectDeserializationError,
     },
 };
@@ -14,6 +14,7 @@ use bevy_reflect::{FromReflect, Reflect};
 use super::stump::StumpObject;
 
 const LOGS_PER_TREE: usize = 3;
+const BRANCHES_PER_TREE: usize = 4;
 
 #[derive(Debug, Clone, Default, Reflect, FromReflect)]
 pub struct TreeObject;
@@ -61,12 +62,35 @@ impl GameWorldObjectTrait for TreeObject {
             let rotation = Quat::from_rotation_x(x_rot) * Quat::from_rotation_y(y_rot);
 
             commands.spawn((
-                LogItem.to_spawner(
+                LogItem::default().to_spawner(
                     self_transform
                         .with_translation(self_transform.translation + offset)
                         .with_rotation(rotation),
                 ),
-                Name::new("tree_harvest_result"),
+                Name::new("tree_harvest_result_log"),
+                InspectorDisabled,
+            ));
+        }
+
+        for _ in 0..BRANCHES_PER_TREE {
+            let offset = Vec3::new(
+                (rand::random::<f32>() - 0.5) * 2.0,
+                rand::random::<f32>() * 2.0 + 4.0,
+                (rand::random::<f32>() - 0.5) * 2.0,
+            );
+
+            let x_rot = (rand::random::<f32>() - 0.5) * PI * 2.0;
+            let y_rot = (rand::random::<f32>() - 0.5) * PI * 2.0;
+
+            let rotation = Quat::from_rotation_x(x_rot) * Quat::from_rotation_y(y_rot);
+
+            commands.spawn((
+                BranchItem::default().to_spawner(
+                    self_transform
+                        .with_translation(self_transform.translation + offset)
+                        .with_rotation(rotation),
+                ),
+                Name::new("tree_harvest_result_branch"),
                 InspectorDisabled,
             ));
         }
