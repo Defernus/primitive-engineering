@@ -57,6 +57,7 @@ impl Chunk {
         for (i, voxel) in voxels.iter().enumerate() {
             if voxel.is_modified() {
                 chunk.voxels[i] = *voxel;
+                chunk.need_save = true;
             }
         }
 
